@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ES6+ 常用特性</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../../global.css"> <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+
+    <style>
+        /* --- Page Specific Adjustments & Material Design Alignment --- */
+        html {
+            scroll-padding-top: 2rem; /* Adjust if header is sticky */
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-family-sans);
+            background-color: var(--bg-color-lighter);
+            color: var(--text-color-default);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Ensure headings have scroll margin for TOC */
+        h1, h2, h3, h4, h5, h6 {
+            scroll-margin-top: 2rem;
+        }
+
+        /* Consistent section heading style (Using global.css head classes) */
+        .content-section h2 {
+            /* Styles from global.css .head2 */
+            border-bottom: 1px solid var(--border-color-light);
+            padding-bottom: 0.5rem; /* Adjust as needed */
+            margin-bottom: 1.5rem; /* Space below heading */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; /* Space between icon and text */
+        }
+        .content-section h2 .material-icons {
+             color: var(--primary-color); /* Use primary color for icons */
+             font-size: 1.75rem; /* Match size */
+             vertical-align: middle; /* Align icon nicely */
+        }
+
+        /* Card Styling - Enhance shadow for Material feel */
+        .content-card {
+            /* Inherit base styles from global.css */
+            box-shadow: 0 2px 4px -1px rgba(0,0,0,0.1), 0 4px 5px 0 rgba(0,0,0,0.07), 0 1px 10px 0 rgba(0,0,0,0.06); /* Material-like shadow */
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        .content-card:hover {
+             box-shadow: 0 5px 5px -3px rgba(0,0,0,0.1), 0 8px 10px 1px rgba(0,0,0,0.07), 0 3px 14px 2px rgba(0,0,0,0.06);
+        }
+        .content-card > .content-card { /* Adjust nested card shadow if needed */
+             box-shadow: var(--card-shadow-nested-level1);
+        }
+
+        /* Styling for lists within article content */
+        article ul:not([class]), article ol:not([class]) {
+            padding-left: 1.75em; /* Indentation */
+            margin-bottom: 1em;
+        }
+        article ul:not([class]) { list-style: disc; }
+        article ol:not([class]) { list-style: decimal; }
+        article li { margin-bottom: 0.5em; }
+        article ul ul, article ol ol, article ul ol, article ol ul { margin-top: 0.5em; margin-bottom: 0.5em; }
+
+        /* Code block styling */
+        article pre {
+            font-family: var(--font-family-mono);
+            border-radius: 0.375rem; /* rounded-md */
+            margin: 1.25rem 0; /* my-5 */
+            padding: 1em;
+            overflow-x: auto;
+            background-color: #272822; /* Okaidia theme background */
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        article pre code[class*="language-"] {
+            font-family: inherit;
+            font-size: 0.9em; /* Slightly larger code font */
+            line-height: 1.6;
+            background: none;
+            color: #f8f8f2; /* Okaidia theme text */
+            padding: 0;
+            text-shadow: none;
+            white-space: pre;
+            display: block;
+        }
+         /* Inline code */
+         article :not(pre) > code {
+            font-family: var(--font-family-mono);
+            font-size: 0.9em;
+            background-color: var(--primary-color-light);
+            color: var(--primary-color-dark);
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem; /* rounded-sm */
+            vertical-align: baseline;
+        }
+
+        /* Emphasis for key terms */
+        .key-term {
+            font-weight: 600; /* font-semibold */
+            color: var(--primary-color-dark); /* Use primary dark color */
+            /* Optional: Add subtle background or border */
+            /* background-color: var(--primary-color-light); padding: 0.1rem 0.2rem; border-radius: 3px; */
+        }
+        .important-note {
+            color: var(--danger-color); /* Use danger color for important notes/warnings */
+            font-weight: 600;
+        }
+
+        /* Add margin between cards within a section */
+        .content-section > .content-card + .content-card {
+            margin-top: 1.5rem; /* mb-6 */
+        }
+
+        /* Remove bottom margin from last element inside a card */
+        .content-card > *:last-child {
+            margin-bottom: 0 !important;
+        }
+        .content-card > .quiz-card:last-child {
+            margin-bottom: 0 !important;
+        }
+
+        /* --- Fade-in Animation --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-section {
+            opacity: 0;
+            animation: fadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+         /* --- Tooltip Styles --- */
+        .tooltip-term {
+            border-bottom: 1px dotted var(--primary-color-dark);
+            cursor: help;
+            position: relative;
+            color: var(--primary-color-dark);
+            font-weight: 500;
+        }
+        .tooltip-term::before, .tooltip-term::after {
+             content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px); /* Increased distance */
+            background-color: #323232; /* Darker background */
+            color: white;
+            padding: 0.5rem 0.8rem; /* Slightly larger padding */
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 400; /* Normal weight */
+            line-height: 1.4;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out, transform 0.2s ease-in-out;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .tooltip-term::after {
+            content: '';
+            border-width: 6px; /* Slightly larger arrow */
+            border-style: solid;
+            border-color: #323232 transparent transparent transparent;
+            transform: translateX(-50%) translateY(-1px); /* Position below tooltip */
+        }
+        .tooltip-term:hover::before, .tooltip-term:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-8px); /* Move slightly on hover */
+        }
+
+        /* --- Quiz Card Styles --- */
+        .quiz-card {
+            /* Use styles from global.css */
+            margin-top: 1.5rem; /* Add top margin */
+        }
+        .quiz-question .material-icons {
+            color: var(--primary-color-dark);
+            font-size: 1.25rem;
+            vertical-align: text-bottom; /* Better alignment */
+            margin-right: 0.3rem;
+        }
+         .quiz-answer {
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.4s ease-out, opacity 0.3s ease-out, padding-top 0.4s ease-out, padding-bottom 0.4s ease-out, margin-top 0.4s ease-out;
+            overflow: hidden;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            border: 1px solid var(--border-color-default);
+            background-color: var(--bg-color-light); /* Slightly different background */
+            border-radius: 0 0 0.5rem 0.5rem; /* Round bottom corners */
+            color: var(--text-color-default);
+            border-top: none; /* Remove top border as card has one */
+         }
+        .quiz-answer.visible {
+            max-height: 1000px; /* Adjust if needed */
+            opacity: 1;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            margin-top: 0; /* Remove margin-top, handled by padding */
+            overflow: auto;
+        }
+        .quiz-toggle {
+            /* Use .button and .button-secondary from global.css */
+            margin-top: 1rem; /* Add space above button */
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .quiz-toggle .button-text { pointer-events: none; }
+        .quiz-toggle .material-icons { font-size: 1.2rem; transition: transform 0.3s ease-in-out; }
+        .quiz-toggle .icon-arrow.rotated { transform: rotate(180deg); }
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(59, 130, 246, 0.3); /* Primary color ripple */
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            pointer-events: none;
+        }
+        @keyframes ripple-animation { to { transform: scale(4); opacity: 0; } }
+
+        /* Sidebar Link Feedback */
+        .local-side-nav li a:hover {
+             background-color: var(--bg-color-light);
+             color: var(--text-color-dark);
+             /* transform: translateX(2px); Optional subtle move */
+        }
+        .local-side-nav li a:focus-visible {
+            /* Use global focus style */
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring-color);
+            z-index: 10;
+        }
+        .local-side-nav li a.active {
+            background-color: var(--primary-color-light);
+            color: var(--primary-color-dark);
+            font-weight: 600; /* Make active link bolder */
+            border-left-color: var(--primary-color);
+        }
+
+        /* Interview Point Marker */
+        .interview-point::before {
+            content: "✨";
+            margin-right: 0.3em;
+            font-size: 1.1em;
+        }
+
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <div class="page-container">
+
+        <aside class="local-side-nav">
+            <h4 class="head5 font-semibold text-gray-800 mb-4 pl-2">ES6+ 常用特性</h4> <ul id="local-toc">
+                <li><a href="#intro" class="active"><span class="material-icons nav-icon">description</span>引言</a></li>
+                <li><a href="#let-const-var"><span class="material-icons nav-icon">difference</span>let/const vs var</a></li>
+                <li><a href="#arrow-functions"><span class="material-icons nav-icon">functions</span>箭头函数 & this</a></li>
+                <li><a href="#template-literals"><span class="material-icons nav-icon">text_fields</span>模板字符串</a></li>
+                <li><a href="#destructuring"><span class="material-icons nav-icon">scatter_plot</span>解构赋值</a></li>
+                <li><a href="#spread-rest"><span class="material-icons nav-icon">control_point_duplicate</span>展开与剩余</a></li>
+                <li><a href="#array-methods"><span class="material-icons nav-icon">list_alt</span>数组常用方法</a></li>
+                <li><a href="#modules"><span class="material-icons nav-icon">hub</span>模块化</a></li>
+            </ul>
+            <a href="../../index.html" class="back-link"> &larr; 返回大纲目录
+            </a>
+        </aside>
+
+        <main class="content-main">
+            <article>
+                <section id="intro" class="content-section fade-in-section">
+                    <h1 class="head1 flex items-center gap-2"><span class="material-icons text-3xl text-blue-600">stars</span>ES6+ 常用特性</h1>
+                    <p class="text-lg text-gray-600 mb-4">欢迎来到 ES6+ (ECMAScript 2015 及之后版本) 常用特性介绍。掌握这些现代 JavaScript 特性对于编写简洁、高效且易于维护的代码至关重要。本页将逐一介绍这些核心概念。</p>
+                    <p class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-4 rounded-md text-sm shadow-sm">💡
+                        <strong>提示:</strong> 点击左侧导航可以快速跳转到相应主题。代码示例和 Quiz 卡片可帮助巩固理解。
+                    </p>
+                </section>
+
+                <section id="let-const-var" class="content-section fade-in-section">
+                    <h2 class="head2"><span class="material-icons">difference</span>let 与 const vs var</h2>
+                    <div class="content-card">
+                        <h3 class="head3">作用域差异 (Scope Differences)</h3>
+                        <p>理解变量声明方式的作用域是基础中的基础。</p>
+                        <ul>
+                            <li><code>var</code>: 具有<strong class="key-term">函数作用域</strong>或<strong class="key-term">全局作用域</strong>。存在<strong class="key-term">变量提升 (hoisting)</strong>，声明会被提升，但赋值留在原地（提升后值为 <code>undefined</code>）。</li>
+                            <li><code>let</code> & <code>const</code>: 具有<strong class="key-term">块级作用域</strong> (<code>{}</code> 内有效)。也存在提升，但引入了 <strong class="key-term tooltip-term" data-tooltip="Temporal Dead Zone: 从块作用域开始到变量声明语句之间的区域。在此区域访问变量会报错。">暂时性死区 (TDZ)</strong>，在声明前访问会抛出 <code>ReferenceError</code>。</li>
+                        </ul>
+                        <pre><code class="language-javascript">// var: 函数作用域 & 提升
+function varScopeTest() {
+  console.log(a); // undefined (hoisted)
+  if (true) {
+    var a = 10;
+  }
+  console.log(a); // 10 (accessible outside block because var is function-scoped)
+}
+varScopeTest();
+
+// let/const: 块级作用域 & TDZ
+function letScopeTest() {
+  // console.log(b); // ReferenceError: Cannot access 'b' before initialization (TDZ)
+  if (true) {
+    let b = 20;
+    const c = 30;
+    console.log(b); // 20
+    console.log(c); // 30
+  }
+  // console.log(b); // ReferenceError: b is not defined (outside its block scope)
+}
+letScopeTest();</code></pre>
+                        <p class="mt-3"><strong class="interview-point">面试考点:</strong> 清晰解释 <code>var</code>, <code>let</code>, <code>const</code> 的区别，特别是作用域、提升行为和 TDZ。</p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">重复声明与赋值 (Redeclaration & Reassignment)</h3>
+                        <ul>
+                            <li><code>var</code>: <strong class="text-yellow-600">允许</strong>在同一作用域内重复声明。</li>
+                            <li><code>let</code> & <code>const</code>: <strong class="important-note">不允许</strong>在同一作用域内重复声明。</li>
+                            <li><code>let</code>: 允许重新赋值。</li>
+                            <li><code>const</code>: <strong class="important-note">不允许</strong>重新赋值。声明时<strong class="important-note">必须</strong>初始化。</li>
+                        </ul>
+                        <p><strong>关键注意 (<code>const</code> 与对象/数组):</strong> 使用 <code>const</code> 声明对象或数组时，变量本身（存储的内存地址/引用）不可变，但对象内部的属性或数组内部的元素是<strong class="key-term">可以修改</strong>的。</p>
+                        <pre><code class="language-javascript">var x = 1;
+var x = 2; // Allowed, but often leads to confusion
+
+let y = 1;
+// let y = 2; // SyntaxError: Identifier 'y' has already been declared
+
+let z = 1;
+z = 2; // Allowed
+
+const PI = 3.14;
+// PI = 3.14159; // TypeError: Assignment to constant variable.
+// const E; // SyntaxError: Missing initializer in const declaration.
+
+// --- const with objects/arrays ---
+const userProfile = { name: 'Alice' };
+userProfile.name = 'Bob'; // OK: Modifying property of constant object
+userProfile.city = 'New York'; // OK: Adding property
+// userProfile = { id: 1 }; // TypeError: Assignment to constant variable.
+
+const scores = [90, 85];
+scores.push(99); // OK: Modifying constant array
+scores[0] = 92;  // OK
+// scores = [100]; // TypeError: Assignment to constant variable.</code></pre>
+                        <p class="mt-4 font-medium bg-green-50 p-3 rounded border border-green-200 text-sm"><strong>最佳实践:</strong> 默认使用 <code>const</code> 增强代码可预测性。仅在确定变量需要重新赋值时使用 <code>let</code>。避免使用 <code>var</code> 以减少作用域和提升相关的潜在问题。</p>
+
+                        <div class="quiz-card" id="quiz-let-const">
+                            <div class="quiz-question"><span class="material-icons">quiz</span>问题: 下面的代码会输出什么？
+                                <pre><code class="language-javascript">const config = { setting: 'A' };
+config.setting = 'B';
+config = { setting: 'C' }; // 这行会发生什么？
+console.log(config.setting);</code></pre>
+                            </div>
+                            <button class="quiz-toggle button button-secondary">
+                                <span class="material-icons icon-arrow">expand_more</span><span class="button-text"> 查看答案</span>
+                            </button>
+                            <div class="quiz-answer">
+                                <p><strong>答案:</strong> 代码会在 `config = { setting: 'C' };` 这一行抛出 `TypeError: Assignment to constant variable.`。</p>
+                                <p><strong>解析:</strong></p>
+                                <ol>
+                                    <li>`const config = { setting: 'A' };` 声明了一个常量 `config`，它引用了一个对象。</li>
+                                    <li>`config.setting = 'B';` 是允许的，因为它修改的是 `config` 所引用的对象的内部属性，而不是 `config` 变量本身。</li>
+                                    <li>`config = { setting: 'C' };` 试图将 `config` 变量重新赋值给一个新的对象引用。由于 `config` 是用 `const` 声明的，这个操作是不允许的，因此会抛出 TypeError。</li>
+                                </ol>
+                                <p class="mt-2 font-medium">关键在于区分修改对象属性和重新赋值常量变量。</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="arrow-functions" class="content-section fade-in-section">
+                    <h2 class="head2"><span class="material-icons">functions</span>箭头函数及其 this 指向</h2>
+                    <div class="content-card">
+                        <h3 class="head3">简洁语法 (Concise Syntax)</h3>
+                        <p>箭头函数 (<code>=></code>) 提供了更短的函数书写方式，尤其适用于简单的回调函数。</p>
+                        <pre><code class="language-javascript">// Traditional Function Expression
+const add = function(a, b) {
+  return a + b;
+};
+
+// Arrow Function Equivalent
+const subtract = (a, b) => {
+  return a - b;
+};
+
+// Implicit return for single expression
+const multiply = (a, b) => a * b;
+
+// Single parameter (parentheses optional)
+const square = x => x * x;
+
+// No parameters
+const getRandom = () => Math.random();
+
+console.log(multiply(5, 4)); // 20
+console.log(square(7));      // 49</code></pre>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">核心区别: `this` 指向 (Lexical `this`)</h3>
+                        <p>这是箭头函数与传统函数最本质的区别：</p>
+                        <ul>
+                            <li><strong>箭头函数:</strong> <strong class="important-note">没有自己的 <code>this</code></strong>。它会<strong class="key-term">捕获</strong>其<strong class="key-term">定义时</strong>所在的<strong class="key-term tooltip-term" data-tooltip="函数定义时所处的作用域">词法作用域 (lexical scope)</strong> 的 <code>this</code> 值。这个 <code>this</code> 值在箭头函数内部是<strong class="important-note">固定不变的</strong>，不能通过 <code>.call()</code>, <code>.apply()</code>, <code>.bind()</code> 或 <code>new</code> 来改变。</li>
+                            <li><strong>传统函数:</strong> <code>this</code> 的值取决于<strong class="key-term">函数如何被调用</strong>（调用方式决定 <code>this</code>，例如：作为对象方法、普通函数、构造函数、或通过 `call/apply/bind` 调用）。</li>
+                        </ul>
+                        <pre><code class="language-javascript">'use strict'; // Recommended for predictable 'this' behavior
+
+const timer = {
+  seconds: 0,
+  startTraditional: function() {
+    console.log("Traditional outer this:", this); // 'this' is 'timer' object
+    // Problem: 'this' inside setTimeout callback refers to global/undefined
+    setTimeout(function() {
+      console.log("Traditional inner this:", this); // undefined in strict mode
+      // console.log(this.seconds); // TypeError in strict mode
+    }, 500);
+  },
+  startArrow: function() {
+    console.log("Arrow outer this:", this); // 'this' is 'timer' object
+    // Solution: Arrow function captures 'this' from the surrounding 'startArrow' scope
+    setTimeout(() => {
+      console.log("Arrow inner this:", this); // 'this' is 'timer' object
+      this.seconds++;
+      console.log("Seconds:", this.seconds); // Correctly increments timer.seconds
+    }, 1000);
+  }
+};
+
+// timer.startTraditional();
+timer.startArrow(); // This will work as expected</code></pre>
+                        <p class="mt-3"><strong>应用场景:</strong> 箭头函数非常适合用在需要保持外部 <code>this</code> 上下文的回调函数中，如 <code>setTimeout</code>, <code>setInterval</code>, 事件监听器, 以及 <code>.map()</code>, <code>.filter()</code> 等数组方法的回调。</p>
+                        <p class="mt-3"><strong class="interview-point">面试考点:</strong> 解释箭头函数 `this` 的词法绑定特性，与传统函数 `this` 的动态绑定进行对比。知道如何解决回调中 `this` 丢失的问题。</p>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="head3">其他限制 (Other Characteristics)</h3>
+                        <ul>
+                            <li><strong class="important-note">不能用作构造函数:</strong> 使用 <code>new</code> 调用箭头函数会抛出 <code>TypeError</code>。</li>
+                            <li><strong class="important-note">没有 <code>arguments</code> 对象:</strong> 需要访问所有传入参数时，应使用<strong class="key-term">剩余参数 (`...rest`)</strong>。</li>
+                            <li><strong class="important-note">没有 <code>prototype</code> 属性:</strong> 因为不能作为构造函数，所以不需要 <code>prototype</code>。</li>
+                            <li>通常不能作为对象的方法（除非不依赖 <code>this</code> 或明确知道词法 <code>this</code> 是什么）。</li>
+                        </ul>
+                        <pre><code class="language-javascript">// 1. Not a constructor
+const MyArrowClass = () => {};
+// const instance = new MyArrowClass(); // TypeError: MyArrowClass is not a constructor
+
+// 2. No 'arguments' object
+const sumArgs = (...args) => { // Use rest parameters instead
+  // console.log(arguments); // ReferenceError
+  return args.reduce((sum, num) => sum + num, 0);
+};
+console.log(sumArgs(1, 2, 3, 4)); // 10
+
+// 3. No 'prototype' property
+console.log(MyArrowClass.prototype); // undefined
+
+// 4. As an object method (lexical this matters)
+const counter = {
+    count: 0,
+    increment: () => {
+        // 'this' here is NOT the 'counter' object.
+        // It's inherited from the scope where 'counter' object is defined (likely global/window or undefined).
+        // this.count++; // This will likely cause an error or unexpected behavior.
+        console.log("Arrow method 'this':", this);
+    }
+};
+// counter.increment(); // Avoid using arrow functions for methods that rely on the object's 'this'.</code></pre>
+                         <p class="mt-3"><strong class="interview-point">面试考点:</strong> 了解箭头函数的这些限制，知道何时不适合使用箭头函数。</p>
+
+                         <div class="quiz-card" id="quiz-arrow-this">
+                            <div class="quiz-question"><span class="material-icons">quiz</span>问题: 在浏览器环境中，以下代码 `obj.arrowMethod()` 会输出什么？
+                                <pre><code class="language-javascript">const obj = {
+  value: 'Inside obj',
+  arrowMethod: () => {
+    console.log(this.value);
+  }
+};
+
+const value = 'Global value'; // Assume this is global
+
+obj.arrowMethod(); // 输出?</code></pre>
+                            </div>
+                            <button class="quiz-toggle button button-secondary">
+                                <span class="material-icons icon-arrow">expand_more</span><span class="button-text"> 查看答案</span>
+                            </button>
+                            <div class="quiz-answer">
+                                <p><strong>答案:</strong> 输出 `Global value` (非严格模式下) 或 `undefined` (严格模式下，如果全局没有 `value` 属性)。</p>
+                                <p><strong>解析:</strong></p>
+                                <ol>
+                                    <li>箭头函数 `arrowMethod` 在定义时捕获其词法作用域的 `this`。</li>
+                                    <li>对象字面量 `{...}` 本身不创建新的 `this` 作用域。因此，`arrowMethod` 定义时所在的词法作用域是全局作用域（或模块作用域）。</li>
+                                    <li>在非严格模式的浏览器全局作用域中，`this` 指向 `window` 对象。因此 `this.value` 访问的是全局变量 `value`。</li>
+                                     <li>在严格模式或模块作用域中，顶层 `this` 是 `undefined`，访问 `this.value` 会导致 TypeError 或输出 `undefined`（取决于全局是否有 `value`）。</li>
+                                </ol>
+                                <p class="mt-2 font-medium">关键在于箭头函数 `this` 的词法绑定特性，它不看调用方式，只看定义时的环境。</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="template-literals" class="content-section fade-in-section">
+                    <h2 class="head2"><span class="material-icons">text_fields</span>模板字符串 (Template Literals)</h2>
+                    <div class="content-card">
+                        <h3 class="head3">基本语法与优势</h3>
+                        <p>使用反引号 (<code>`</code>) 定义字符串，提供了比传统单引号/双引号更强大的功能。</p>
+                        <p><strong>主要优势：</strong></p>
+                        <ul>
+                            <li><strong>字符串插值 (Interpolation):</strong> 使用 <code>${expression}</code> 轻松嵌入变量和表达式，代码更清晰。</li>
+                            <li><strong>多行字符串:</strong> 直接书写跨越多行的字符串，保持代码格式。</li>
+                        </ul>
+                        <pre><code class="language-javascript">const userName = "Alex";
+const score = 88;
+const level = Math.floor(score / 10);
+
+// Interpolation Example
+const report = `User: ${userName.toUpperCase()}
+Score: ${score}
+Level: ${level}
+Status: ${score >= 60 ? 'Passed' : 'Failed'}`;
+
+console.log(report);
+/* Output:
+User: ALEX
+Score: 88
+Level: 8
+Status: Passed
+*/
+
+// Comparison with traditional concatenation
+const traditionalReport = "User: " + userName.toUpperCase() + "\n" +
+                         "Score: " + score + "\n" +
+                         "Level: " + level + "\n" +
+                         "Status: " + (score >= 60 ? 'Passed' : 'Failed');
+console.log(traditionalReport === report); // true (but template literal is more readable)</code></pre>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">标签模板 (Tagged Templates)</h3>
+                        <p>这是一个更高级的特性，允许你通过一个函数（标签）来处理模板字符串的各个部分。</p>
+                        <p>标签函数接收两个参数：</p>
+                        <ol>
+                            <li>字符串字面量组成的数组 (被插值分割的部分)。</li>
+                            <li>依次排列的插值表达式的结果。</li>
+                        </ol>
+                        <p>常用于：HTML/SQL 转义、国际化 (i18n)、样式化组件 (如 `styled-components`) 等。</p>
+                         <pre><code class="language-javascript">// Example: Simple HTML escaping tag
+function sanitizeHTML(strings, ...values) {
+  let result = '';
+  strings.forEach((str, i) => {
+    result += str;
+    if (values[i] !== undefined) {
+      let valueStr = String(values[i]);
+      // Basic escaping (replace <, >, &) - real scenarios need more robust libraries
+      result += valueStr.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+  });
+  return result;
+}
+
+const userInput = '&lt;script&gt;alert("XSS")&lt;/script&gt;';
+const safeHTML = sanitizeHTML`&lt;p&gt;User comment: ${userInput}&lt;/p&gt;`;
+
+console.log(safeHTML);
+// Output: &lt;p&gt;User comment: &lt;script&gt;alert("XSS")&lt;/script&gt;&lt;/p&gt;</code></pre>
+                         <p class="mt-3"><strong class="interview-point">面试考点:</strong> 了解模板字符串的基本用法（插值、多行）。知道标签模板的存在及其基本工作原理（函数接收字符串数组和值）。</p>
+                    </div>
+                </section>
+
+                <section id="destructuring" class="content-section fade-in-section">
+                    <h2 class="head2"><span class="material-icons">scatter_plot</span>解构赋值 (Destructuring Assignment)</h2>
+                    <p>一种方便地从数组或对象中提取数据并赋值给变量的语法。</p>
+                    <div class="content-card">
+                        <h3 class="head3">数组解构 (Array Destructuring)</h3>
+                        <p>按<strong class="key-term">位置</strong>提取。</p>
+                        <ul>
+                            <li>基本赋值、跳过元素、剩余元素 (`...rest`)、默认值、变量交换。</li>
+                        </ul>
+                         <pre><code class="language-javascript">const rgbColor = [255, 128, 0];
+
+// Basic
+const [red, green, blue] = rgbColor;
+console.log(`R: ${red}, G: ${green}, B: ${blue}`); // R: 255, G: 128, B: 0
+
+// With rest
+const [r, ...gb] = rgbColor;
+console.log(r, gb); // 255, [ 128, 0 ]
+
+// With default value
+const coordinates = [10];
+const [x = 0, y = 0, z = 0] = coordinates;
+console.log(`X: ${x}, Y: ${y}, Z: ${z}`); // X: 10, Y: 0, Z: 0
+
+// Swapping
+let a = 1, b = 2;
+[a, b] = [b, a];
+console.log(a, b); // 2, 1</code></pre>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">对象解构 (Object Destructuring)</h3>
+                        <p>按<strong class="key-term">属性名</strong>提取。</p>
+                        <ul>
+                            <li>基本赋值（变量名需与属性名相同）、赋给新变量名、剩余属性 (`...rest`)、默认值、嵌套解构、函数参数解构。</li>
+                        </ul>
+                        <pre><code class="language-javascript">const user = {
+  id: 'u001',
+  details: { name: 'Diana', age: 28 },
+  role: 'admin',
+  prefs: { theme: 'dark' }
+};
+
+// Basic
+const { role } = user;
+console.log(role); // admin
+
+// New variable name & default value
+const { id: userId, status = 'active' } = user;
+console.log(userId, status); // u001 active
+
+// Nested & new name
+const { details: { name: userName }, prefs: { theme = 'light' } } = user;
+console.log(userName, theme); // Diana dark
+
+// Rest properties
+const { details, ...otherInfo } = user;
+console.log(details);    // { name: 'Diana', age: 28 }
+console.log(otherInfo); // { id: 'u001', role: 'admin', prefs: { theme: 'dark' } }
+
+// Function parameter destructuring with default value
+function displayUser({ details: { name }, role = 'guest' }) {
+  console.log(`Name: ${name}, Role: ${role}`);
+}
+displayUser(user); // Name: Diana, Role: admin
+displayUser({ details: { name: 'Guest' } }); // Name: Guest, Role: guest</code></pre>
+                         <p class="mt-3"><strong class="interview-point">面试考点:</strong> 熟练使用数组和对象解构，包括重命名、默认值、剩余语法和嵌套解构。理解其在简化代码（如处理函数参数、返回值）方面的应用。</p>
+                    </div>
+                </section>
+
+                <section id="spread-rest" class="content-section fade-in-section">
+                    <h2 class="head2"><span class="material-icons">control_point_duplicate</span>展开语法 (...) 与 剩余参数 (...)</h2>
+                    <p>它们使用相同的 <code>...</code> 语法，但根据上下文含义不同。</p>
+                    <div class="content-card">
+                        <h3 class="head3">展开语法 (Spread Syntax)</h3>
+                        <p>将可迭代对象（数组、字符串等）或对象“展开”为独立的元素或属性。用于<strong class="key-term">构建</strong>新的数组/对象或<strong class="key-term">传递</strong>参数。</p>
+                        <pre><code class="language-javascript">// --- In Arrays ---
+const parts = ['shoulders', 'knees'];
+const body = ['head', ...parts, 'toes']; // ['head', 'shoulders', 'knees', 'toes']
+const arrCopy = [...body]; // Shallow copy
+
+// --- In Function Calls ---
+const numbers = [1, 5, 2, 8];
+console.log(Math.max(...numbers)); // 8 (Passes 1, 5, 2, 8 as individual args)
+
+// --- In Objects (ES2018+) ---
+const defaults = { color: 'blue', size: 'M' };
+const custom = { size: 'L', material: 'cotton' };
+const product = { ...defaults, ...custom, id: 123 };
+// { color: 'blue', size: 'L', material: 'cotton', id: 123 } (custom.size overrides defaults.size)
+const defaultsCopy = { ...defaults }; // Shallow copy
+
+console.log(body);
+console.log(product);</code></pre>
+                        <p><strong>注意:</strong> 展开语法进行的是<strong class="important-note">浅拷贝</strong>。如果数组或对象中包含其他对象或数组，拷贝的是它们的引用。</p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">剩余参数 (Rest Parameters)</h3>
+                        <p>用在<strong class="key-term">函数定义</strong>的参数列表中，将<strong class="key-term">不定数量</strong>的传入参数收集到一个<strong class="key-term">真正的数组</strong>中。必须是<strong class="important-note">最后一个</strong>参数。</p>
+                        <p>它提供了比旧的 <code>arguments</code> 对象更现代、更方便的方式来处理可变数量的参数。</p>
+                        <pre><code class="language-javascript">function multiply(multiplier, ...numbersToMultiply) {
+  // multiplier = 2
+  // numbersToMultiply = [1, 5, 10] (a real array)
+  console.log('Multiplier:', multiplier);
+  console.log('Numbers to multiply:', numbersToMultiply);
+  return numbersToMultiply.map(n => n * multiplier);
+}
+
+const result = multiply(2, 1, 5, 10);
+console.log('Result:', result); // Result: [ 2, 10, 20 ]
+
+function logArgs(arg1, ...restArgs) {
+    console.log("First Arg:", arg1);
+    console.log("Rest Args Array:", restArgs);
+    // console.log(arguments); // Avoid using 'arguments' when rest parameters are available
+}
+logArgs('hello', true, 100, 'world');
+// First Arg: hello
+// Rest Args Array: [ true, 100, 'world' ]</code></pre>
+                         <p class="mt-3"><strong class="interview-point">面试考点:</strong> 区分展开语法和剩余参数的使用场景和作用。知道剩余参数是真数组，而 `arguments` 是类数组对象。</p>
+
+                        <div class="quiz-card" id="quiz-spread-rest">
+                            <div class="quiz-question"><span class="material-icons">quiz</span>问题: 以下代码中 `...` 分别代表什么？
+                                <pre><code class="language-javascript">function process(x, ...y) {
+  const arr = [0, ...y];
+  console.log(arr);
+}
+const data = [1, 2, 3];
+process(...data); // 输出?</code></pre>
+                            </div>
+                            <button class="quiz-toggle button button-secondary">
+                                <span class="material-icons icon-arrow">expand_more</span><span class="button-text"> 查看答案</span>
+                            </button>
+                            <div class="quiz-answer">
+                                <p><strong>答案:</strong> 输出 `[ 0, 2, 3 ]`</p>
+                                <p><strong>解析:</strong></p>
+                                <ol>
+                                    <li>`process(...data)`: 这里的 `...` 是<strong class="key-term">展开语法</strong>。它将数组 `data` ([1, 2, 3]) 展开成独立的参数传递给 `process` 函数。相当于调用 `process(1, 2, 3)`。</li>
+                                    <li>`function process(x, ...y)`: 这里的 `...y` 是<strong class="key-term">剩余参数</strong>。它会将第一个参数 (`1`) 赋值给 `x`，并将<strong class="important-note">剩余的</strong>参数 (`2`, `3`) 收集到一个名为 `y` 的<strong class="key-term">数组</strong>中。所以 `y` 变为 `[2, 3]`。</li>
+                                    <li>`const arr = [0, ...y]`: 这里的 `...y` 再次是<strong class="key-term">展开语法</strong>。它将数组 `y` ([2, 3]) 展开成独立的元素放入新数组 `arr` 中。所以 `arr` 变为 `[0, 2, 3]`。</li>
+                                    <li>`console.log(arr)` 输出 `[ 0, 2, 3 ]`。</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="array-methods" class="content-section fade-in-section">
+                    <h2 class="head2"><span class="material-icons">list_alt</span>数组常用方法</h2>
+                    <p>ES5/ES6+ 提供了丰富的数组方法，使得数组操作更函数化、更易读。</p>
+                    <div class="content-card">
+                        <h3 class="head3">遍历与转换 (<code>forEach</code>, <code>map</code>)</h3>
+                        <ul>
+                            <li><code>forEach(callback)</code>: 遍历执行，无返回值。</li>
+                            <li><code>map(callback)</code>: 映射转换，返回新数组。</li>
+                        </ul>
+                        <pre><code class="language-javascript">const items = [
+  { name: 'Pen', price: 1.5 },
+  { name: 'Paper', price: 0.5 },
+  { name: 'Book', price: 10 }
+];
+
+// forEach: Log item names
+items.forEach(item => console.log(item.name)); // Pen, Paper, Book
+
+// map: Get an array of prices
+const prices = items.map(item => item.price);
+console.log(prices); // [ 1.5, 0.5, 10 ]</code></pre>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">筛选 (`filter`)</h3>
+                        <ul>
+                            <li><code>filter(callback)</code>: 根据条件筛选，返回新数组。</li>
+                        </ul>
+                        <pre><code class="language-javascript">// filter: Get items with price >= 1
+const expensiveItems = items.filter(item => item.price >= 1);
+console.log(expensiveItems); // [ { name: 'Pen', price: 1.5 }, { name: 'Book', price: 10 } ]</code></pre>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">聚合 (`reduce`)</h3>
+                        <ul>
+                            <li><code>reduce(callback, initialValue)</code>: 将数组元素累积计算为一个值。</li>
+                        </ul>
+                        <pre><code class="language-javascript">// reduce: Calculate total price
+const totalPrice = items.reduce((sum, item) => sum + item.price, 0);
+console.log(totalPrice); // 12</code></pre>
+                         <p class="mt-3"><strong class="interview-point">面试考点:</strong> 熟练使用 `map`, `filter`, `reduce`。理解它们的作用、参数、返回值以及是否修改原数组（这些方法都不修改原数组）。可能会要求手写 `map`, `filter` 或 `reduce` 的简单实现。</p>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="head3">查找 (`find`, `findIndex`, `includes`)</h3>
+                         <ul>
+                            <li><code>find(callback)</code>: 查找第一个符合条件的元素。</li>
+                            <li><code>findIndex(callback)</code>: 查找第一个符合条件的元素索引。</li>
+                            <li><code>includes(value)</code>: 判断是否包含某个值 (可查 NaN)。</li>
+                        </ul>
+                        <pre><code class="language-javascript">const book = items.find(item => item.name === 'Book');
+console.log(book); // { name: 'Book', price: 10 }
+
+const paperIndex = items.findIndex(item => item.name === 'Paper');
+console.log(paperIndex); // 1
+
+console.log(prices.includes(0.5)); // true</code></pre>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">检查 (`some`, `every`)</h3>
+                         <ul>
+                            <li><code>some(callback)</code>: 是否至少有一个满足条件。</li>
+                            <li><code>every(callback)</code>: 是否所有都满足条件。</li>
+                        </ul>
+                        <pre><code class="language-javascript">const hasCheapItem = items.some(item => item.price < 1);
+console.log(hasCheapItem); // true (Paper)
+
+const allItemsPriced = items.every(item => item.price > 0);
+console.log(allItemsPriced); // true</code></pre>
+                         <p class="mt-3"><strong class="interview-point">面试考点:</strong> 理解 `find`/`findIndex`, `includes`, `some`/`every` 的区别和应用场景。</p>
+                    </div>
+                </section>
+
+                <section id="modules" class="content-section fade-in-section">
+                    <h2 class="head2"><span class="material-icons">hub</span>模块化 (import/export)</h2>
+                    <p>ES6 模块化 (ESM) 提供了官方的、基于文件的模块系统。</p>
+                    <div class="content-card">
+                        <h3 class="head3">导出 (`export`)</h3>
+                        <p>定义模块的公共接口。</p>
+                        <ul>
+                            <li><strong>命名导出 (Named):</strong> <code>export const/let/var/function/class ...</code> 或 <code>export { name1, name2 }</code>。</li>
+                            <li><strong>默认导出 (Default):</strong> <code>export default ...</code> (每个模块最多一个)。</li>
+                        </ul>
+                        <pre><code class="language-javascript">// --- logger.js ---
+export const logLevel = 'info'; // Named export
+
+export function logMessage(message) { // Named export
+  console.log(`[${logLevel.toUpperCase()}]: ${message}`);
+}
+
+function format(msg) { // Internal helper, not exported
+    return `Formatted: ${msg}`;
+}
+
+export default class Logger { // Default export
+    constructor(prefix) {
+        this.prefix = prefix;
+    }
+    info(message) {
+        logMessage(`${this.prefix} - ${format(message)}`);
+    }
+}</code></pre>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">导入 (`import`)</h3>
+                        <p>使用其他模块提供的功能。</p>
+                        <ul>
+                            <li><strong>导入命名导出:</strong> <code>import { name1, name2 as alias } from './module.js'</code></li>
+                            <li><strong>导入默认导出:</strong> <code>import anyName from './module.js'</code></li>
+                            <li><strong>导入命名空间:</strong> <code>import * as namespace from './module.js'</code></li>
+                            <li><strong>混合导入:</strong> <code>import defaultName, { named1, named2 } from './module.js'</code></li>
+                            <li><strong>仅执行副作用:</strong> <code>import './module.js'</code> (不导入任何变量，仅执行模块代码)</li>
+                        </ul>
+                        <pre><code class="language-javascript">// --- app.js ---
+import DefaultLogger, { logMessage, logLevel as level } from './logger.js';
+import * as LoggerUtils from './logger.js';
+
+console.log(`Current log level: ${level}`); // info
+
+logMessage("Application starting..."); // [INFO]: Application starting...
+
+const appLogger = new DefaultLogger("APP");
+appLogger.info("User logged in."); // [INFO]: APP - Formatted: User logged in.
+
+console.log(LoggerUtils.logLevel); // info
+LoggerUtils.logMessage("Using namespace import."); // [INFO]: Using namespace import.</code></pre>
+                         <p class="mt-3"><strong class="interview-point">面试考点:</strong> 理解命名导出和默认导出的区别。掌握不同的 `import` 语法。了解 ESM 的基本特性（严格模式、模块作用域、静态分析）。</p>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="head3">环境与加载</h3>
+                        <ul>
+                            <li><strong>浏览器:</strong> 使用 <code>&lt;script type="module"&gt;</code>。模块默认<strong class="key-term">延迟 (defer)</strong> 加载和执行。</li>
+                            <li><strong>Node.js:</strong> 使用 <code>.mjs</code> 或在 <code>package.json</code> 中设置 <code>"type": "module"</code>。</li>
+                            <li><strong>构建工具:</strong> Webpack, Rollup 等会处理依赖并打包。</li>
+                        </ul>
+                        <p>ES 模块是<strong class="key-term">静态解析</strong>的，意味着导入和导出关系在编译时确定，这有助于优化和 Tree Shaking。</p>
+                         <div class="quiz-card" id="quiz-modules">
+                            <div class="quiz-question"><span class="material-icons">quiz</span>问题: 如何从一个模块中同时导入默认导出和一个命名导出？</div>
+                            <button class="quiz-toggle button button-secondary">
+                                <span class="material-icons icon-arrow">expand_more</span><span class="button-text"> 查看答案</span>
+                            </button>
+                            <div class="quiz-answer">
+                                <p><strong>答案:</strong> 使用混合导入语法。</p>
+                                <pre><code class="language-javascript">// Assuming module './myModule.js' has:
+// export default function myFunc() {}
+// export const myVar = 123;
+
+import defaultFunction, { myVar } from './myModule.js';
+
+// Usage:
+defaultFunction();
+console.log(myVar);</code></pre>
+                                <p class="mt-2 font-medium">默认导出的名称写在前面，逗号隔开，然后是花括号包裹的命名导出。</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                 <section id="conclusion" class="content-section fade-in-section">
+                    <h2 class="head2"><span class="material-icons">flag</span>总结</h2>
+                    <div class="content-card">
+                        <p>掌握这些 ES6+ 核心特性是现代 JavaScript 开发的基础。理解它们的作用域、`this` 行为、语法糖以及模块化机制，将极大地提升你的代码质量和开发效率。</p>
+                        <p>继续实践，探索更多 ES 新特性（如 Promise, async/await, Set, Map 等），并深入理解它们在实际项目中的应用！</p>
+                    </div>
+                </section>
+
+            </article>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        // --- Ripple Effect Logic ---
+        function createRipple(event) {
+            const button = event.currentTarget;
+            // Apply ripple only to elements with the 'button' class (or specific quiz-toggle if needed)
+            if (!button || !button.classList.contains('button')) return;
+
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+            circle.style.width = circle.style.height = `${diameter}px`;
+            const rect = button.getBoundingClientRect();
+            circle.style.left = `${event.clientX - rect.left - radius}px`;
+            circle.style.top = `${event.clientY - rect.top - radius}px`;
+            circle.classList.add("ripple");
+            const existingRipple = button.querySelector(".ripple");
+            if (existingRipple) existingRipple.remove();
+            button.appendChild(circle);
+            setTimeout(() => circle.remove(), 600);
+        }
+
+        // --- Quiz Toggle Logic ---
+        function toggleAnswer(quizId, buttonElement) {
+            const quizCard = document.getElementById(quizId);
+            if (!quizCard) return;
+            const answer = quizCard.querySelector('.quiz-answer');
+            const icon = buttonElement.querySelector('.icon-arrow');
+            const buttonTextSpan = buttonElement.querySelector('.button-text');
+            if (!answer || !icon || !buttonTextSpan) return;
+
+            const isVisible = answer.classList.contains('visible');
+            if (isVisible) {
+                answer.style.maxHeight = '0';
+                answer.style.opacity = '0';
+                 // Reset padding/margin after transition
+                 answer.addEventListener('transitionend', () => {
+                    if (!answer.classList.contains('visible')) { // Check again in case it was quickly reopened
+                        answer.style.paddingTop = '0';
+                        answer.style.paddingBottom = '0';
+                        // answer.style.marginTop = '0'; // Keep margin-top handled by button/question
+                    }
+                }, { once: true }); // Remove listener after it runs once
+                answer.classList.remove('visible');
+                icon.classList.remove('rotated');
+                buttonTextSpan.textContent = ' 查看答案';
+            } else {
+                // Set final state styles needed for measurement
+                answer.style.paddingTop = '1rem';
+                answer.style.paddingBottom = '1rem';
+                // answer.style.marginTop = '1rem'; // Keep margin-top handled by button/question
+
+                // Make it visible to measure scrollHeight, then start transition
+                answer.classList.add('visible'); // Add class first
+                answer.style.maxHeight = answer.scrollHeight + 'px'; // Set max-height to trigger transition
+                answer.style.opacity = '1';
+
+                icon.classList.add('rotated');
+                buttonTextSpan.textContent = ' 隐藏答案';
+            }
+        }
+
+        // Combined click handler for Quiz Toggle
+        function handleQuizToggleClick(quizId, buttonElement, event) {
+            createRipple(event); // Add ripple to the button
+            toggleAnswer(quizId, buttonElement);
+        }
+
+        // --- Intersection Observer for TOC & Fade-in ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('main > article > section[id]'); // Target direct children sections
+            const tocLinks = document.querySelectorAll('#local-toc a');
+            const mainContentSections = document.querySelectorAll('main > article > section.content-section'); // For fade-in
+
+            // --- Event Listeners ---
+            // Add ripple/toggle listeners to Quiz Buttons
+            const quizToggles = document.querySelectorAll('.quiz-toggle');
+            quizToggles.forEach(button => {
+                const quizCard = button.closest('.quiz-card');
+                const quizId = quizCard?.id;
+                if (quizId) {
+                    button.addEventListener('click', (event) => handleQuizToggleClick(quizId, button, event));
+                } else {
+                     // Add ripple to non-quiz buttons too if they have the 'button' class
+                     if(button.classList.contains('button')) {
+                        button.addEventListener('click', createRipple);
+                     }
+                }
+            });
+
+            // --- TOC Highlighting ---
+            const tocObserverOptions = { root: null, rootMargin: '-20% 0px -60% 0px', threshold: 0 };
+            let lastActiveTocLink = null;
+            const tocObserverCallback = (entries) => {
+                let bestVisibleEntry = null;
+                // Find the topmost visible entry
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (!bestVisibleEntry || entry.boundingClientRect.top < bestVisibleEntry.boundingClientRect.top) {
+                            bestVisibleEntry = entry;
+                        }
+                    }
+                });
+
+                // Update active link if a best entry is found
+                if (bestVisibleEntry) {
+                    const id = bestVisibleEntry.target.getAttribute('id');
+                    const activeLink = document.querySelector(`#local-toc a[href="#${id}"]`);
+                    if (activeLink && activeLink !== lastActiveTocLink) {
+                        if (lastActiveTocLink) lastActiveTocLink.classList.remove('active');
+                        activeLink.classList.add('active');
+                        lastActiveTocLink = activeLink;
+                    }
+                }
+                // Fallback if no section is clearly "best" (e.g., scrolled past all) - maybe deactivate all or keep last?
+                // Current logic keeps the last active one if nothing new is detected.
+            };
+            const tocObserver = new IntersectionObserver(tocObserverCallback, tocObserverOptions);
+            sections.forEach(section => tocObserver.observe(section));
+
+            // --- Initial TOC Active Link ---
+            const currentHash = window.location.hash;
+            let foundInitial = false;
+            if (currentHash) {
+                const initialActiveLink = document.querySelector(`#local-toc a[href="${currentHash}"]`);
+                if (initialActiveLink) {
+                    tocLinks.forEach(link => link.classList.remove('active'));
+                    initialActiveLink.classList.add('active');
+                    lastActiveTocLink = initialActiveLink;
+                    foundInitial = true;
+                }
+            }
+            // If no hash or hash link not found, activate the first link
+            if (!foundInitial && tocLinks.length > 0) {
+                 tocLinks.forEach(link => link.classList.remove('active')); // Ensure clean state
+                 tocLinks[0].classList.add('active');
+                 lastActiveTocLink = tocLinks[0];
+            }
+
+            // --- Fade-in Animation ---
+            const fadeObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 }; // Trigger when 10% visible
+            const fadeObserverCallback = (entries, observer) => {
+                entries.forEach((entry, index) => { // Use index for stagger calculation
+                    if (entry.isIntersecting) {
+                        // Use the actual index from the observed elements list for delay
+                        const delayIndex = Array.from(mainContentSections).indexOf(entry.target);
+                        entry.target.style.animationDelay = `${delayIndex * 0.1}s`; // Slower stagger
+                        entry.target.classList.add('fade-in-section');
+                        observer.unobserve(entry.target); // Stop observing once animated
+                    }
+                });
+            };
+            const fadeObserver = new IntersectionObserver(fadeObserverCallback, fadeObserverOptions);
+            mainContentSections.forEach(section => fadeObserver.observe(section));
+        });
+    </script>
+
+</body>
+</html>
