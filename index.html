@@ -825,25 +825,25 @@
                                 <h3>(四) 内存管理与垃圾回收</h3>
                                 <ul>
                                     <li data-tags="medium intermediate"><input type="checkbox" data-id="js-memory-management">
-                                        <div class="item-content"><a href="#">内存生命周期 (分配、使用、释放)</a>
+                                        <div class="item-content"><a href="content/JavaScript/04-Memory-Management.html#lifecycle">内存生命周期 (分配、使用、释放)</a>
                                             <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
                                                     class="item-tag tag-diff-intermediate">进阶</span></div>
                                         </div>
                                     </li>
                                     <li data-tags="medium intermediate"><input type="checkbox" data-id="js-gc-basic">
-                                        <div class="item-content"><a href="#">垃圾回收机制基本原理 (可达性)</a>
+                                        <div class="item-content"><a href="content/JavaScript/04-Memory-Management.html#gc-basics">垃圾回收机制基本原理 (可达性)</a>
                                             <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
                                                     class="item-tag tag-diff-intermediate">进阶</span></div>
                                         </div>
                                     </li>
-                                    <li data-tags="medium intermediate"><input type="checkbox" data-id="js-gc-mark-sweep">
-                                        <div class="item-content"><a href="#">常见 GC 算法简介 (标记清除、引用计数)</a>
+                                    <li data-tags="medium intermediate"><input type="checkbox" data-id="js-gc-algorithms">
+                                        <div class="item-content"><a href="content/JavaScript/04-Memory-Management.html#gc-algorithms">常见 GC 算法简介 (标记清除、引用计数)</a>
                                             <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
                                                     class="item-tag tag-diff-intermediate">进阶</span></div>
                                         </div>
                                     </li>
                                     <li data-tags="high intermediate"><input type="checkbox" data-id="js-memory-leak">
-                                        <div class="item-content"><a href="content/JavaScript/01-Language-Basics.html#closure-memory">常见的内存泄漏场景 (闭包、定时器、DOM引用)</a>
+                                        <div class="item-content"><a href="content/JavaScript/04-Memory-Management.html#memory-leaks">常见的内存泄漏场景 (闭包、定时器、DOM引用)</a>
                                             <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
                                                     class="item-tag tag-diff-intermediate">进阶</span></div>
                                         </div>
@@ -852,32 +852,46 @@
                             </li>
                             <li>
                                 <h3>(五) 其他高频考点</h3>
-                                <ul>
-                                    <li data-tags="high intermediate"><input type="checkbox" data-id="js-copy">
-                                        <div class="item-content"><a href="#">深拷贝与浅拷贝 (概念、区别、实现)</a>
-                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
-                                                    class="item-tag tag-diff-intermediate">进阶</span></div>
+                                <ul class="space-y-2"> <li data-tags="high intermediate">
+                                    <input type="checkbox" data-id="js-copy" class="mr-2 align-middle"> <div class="item-content inline-block align-middle">
+                                        <a href="05-Other.html#copy" class="text-blue-600 hover:text-blue-800 hover:underline">深拷贝与浅拷贝 (概念、区别、实现)</a>
+                                        <div class="item-tags mt-1">
+                                            <span class="item-tag tag-freq-high bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-medium">高频</span>
+                                            <span class="item-tag tag-diff-intermediate bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded text-xs font-medium">进阶</span>
                                         </div>
-                                    </li>
-                                    <li data-tags="medium basic"><input type="checkbox" data-id="js-error-handling">
-                                        <div class="item-content"><a href="#">错误处理 (<code>try...catch...finally</code>)</a>
-                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
-                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                    </div>
+                                </li>
+                                <li data-tags="medium basic">
+                                    <input type="checkbox" data-id="js-error-handling" class="mr-2 align-middle">
+                                    <div class="item-content inline-block align-middle">
+                                        <a href="05-Other.html#error-handling" class="text-blue-600 hover:text-blue-800 hover:underline">错误处理 (<code>try...catch...finally</code>)</a>
+                                        <div class="item-tags mt-1">
+                                            <span class="item-tag tag-freq-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">中频</span>
+                                            <span class="item-tag tag-diff-basic bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium">基础</span>
                                         </div>
-                                    </li>
-                                    <li data-tags="medium basic"><input type="checkbox" data-id="js-json">
-                                        <div class="item-content"><a href="#">JSON (<code>JSON.stringify</code>, <code>JSON.parse</code>)</a>
-                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
-                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                    </div>
+                                </li>
+                                <li data-tags="medium basic">
+                                    <input type="checkbox" data-id="js-json" class="mr-2 align-middle">
+                                    <div class="item-content inline-block align-middle">
+                                        <a href="05-Other.html#json" class="text-blue-600 hover:text-blue-800 hover:underline">JSON (<code>JSON.stringify</code>, <code>JSON.parse</code>)</a>
+                                        <div class="item-tags mt-1">
+                                            <span class="item-tag tag-freq-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">中频</span>
+                                            <span class="item-tag tag-diff-basic bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium">基础</span>
                                         </div>
-                                    </li>
-                                    <li data-tags="medium intermediate"><input type="checkbox" data-id="js-debounce-throttle">
-                                        <div class="item-content"><a href="#">防抖 (Debounce) 与 节流 (Throttle)</a>
-                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
-                                                    class="item-tag tag-diff-intermediate">进阶</span></div>
+                                    </div>
+                                </li>
+                                <li data-tags="medium intermediate">
+                                    <input type="checkbox" data-id="js-debounce-throttle" class="mr-2 align-middle">
+                                    <div class="item-content inline-block align-middle">
+                                        <a href="05-Other.html#debounce-throttle" class="text-blue-600 hover:text-blue-800 hover:underline">防抖 (Debounce) 与 节流 (Throttle)</a>
+                                        <div class="item-tags mt-1">
+                                            <span class="item-tag tag-freq-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">中频</span>
+                                            <span class="item-tag tag-diff-intermediate bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded text-xs font-medium">进阶</span>
                                         </div>
-                                    </li>
-                                </ul>
+                                    </div>
+                                </li>
+                            </ul>
                             </li>
                         </ul>
                     </div>

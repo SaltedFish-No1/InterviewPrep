@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS 其他高频考点</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../../global.css"> <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+
+    <style>
+        /* Minimal inline styles - Primarily rely on global.css and Tailwind */
+
+        /* --- Base & Layout Adjustments --- */
+        html {
+            scroll-padding-top: 2rem; /* Adjust if header is sticky */
+        }
+
+        body {
+            /* Base font, bg, color assumed from global.css */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --- Typography (Assuming base H1-H6, p, strong, a, pre, code from global.css) --- */
+        h1, h2, h3, h4, h5, h6 {
+            scroll-margin-top: 2rem; /* Offset for sticky nav */
+        }
+
+        /* Specific heading styles if needed, complementing global.css */
+        h2 {
+            /* global.css might already style head2, add border if not */
+            /* border-bottom: 1px solid var(--border-color-light); */ /* Removed border based on feedback */
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem; /* Consistent spacing */
+        }
+
+        h3 {
+            /* global.css might style head3, adjust color/margins for cards */
+            margin-top: 0; /* Reset top margin as card handles spacing */
+            margin-bottom: 1.25rem; /* Increased bottom margin */
+            color: var(--primary-color-dark); /* Use a distinct color for card titles */
+            font-size: 1.25rem; /* Ensure size consistency */
+            display: flex; /* Align icon and text */
+            align-items: center; /* Align icon and text */
+        }
+        h3 .material-icons {
+            margin-right: 0.5rem; /* Space between icon and text */
+            font-size: 1.4rem; /* Slightly larger icon */
+            color: var(--primary-color); /* Match primary color */
+        }
+
+        /* Specific list styling within article (using global.css .prose/.content-main styles) */
+        article ul { list-style: disc; padding-left: 1.5em; margin-bottom: 1.25em; } /* Increased margin */
+        article ol { list-style: decimal; padding-left: 1.5em; margin-bottom: 1.25em; } /* Increased margin */
+        article li { margin-bottom: 0.6em; } /* Increased margin */
+        article ul ul, article ol ol, article ul ol, article ol ul { margin-top: 0.6em; margin-bottom: 0.6em; } /* Increased margin */
+
+        /* Ensure pre uses the mono font and has appropriate styling */
+        article pre {
+            font-family: var(--font-family-mono);
+            border-radius: 0.375rem; /* Ensure rounding */
+            margin: 1.25rem 0; /* Increased margin */
+            padding: 1.25em; /* Increased padding */
+            overflow: auto;
+            /* Background/border assumed from global.css or Prism theme */
+        }
+
+        /* Reset inline code styles within pre for Prism */
+        article pre code[class*="language-"] {
+            background: none; color: inherit; padding: 0; border-radius: 0;
+            font-size: inherit; font-family: inherit; line-height: inherit;
+            text-shadow: none; white-space: pre; display: block;
+        }
+
+        /* Add margin between nested cards */
+        .content-section > .content-card + .content-card {
+            margin-top: 2rem; /* Increased margin */
+        }
+
+        /* Remove bottom margin from last element inside a card */
+        .content-card > *:last-child {
+            margin-bottom: 0 !important; /* Use !important if needed */
+        }
+
+        /* --- Content Section Spacing --- */
+        .content-section {
+             padding-bottom: 1rem; /* Reduced padding as border is removed */
+             margin-bottom: 3rem; /* Increased margin between sections */
+             /* border-bottom: 1px solid var(--border-color-light); */ /* Removed border */
+        }
+        .content-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+
+         /* --- Tooltips (Keep as is) --- */
+        .tooltip-term {
+            border-bottom: 1px dotted var(--primary-color); cursor: help;
+            position: relative; color: var(--primary-color); font-weight: 500;
+        }
+        .tooltip-term::before {
+            content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%;
+            transform: translateX(-50%) translateY(-8px); background-color: rgba(0, 0, 0, 0.85);
+            color: white; padding: 0.4rem 0.75rem; border-radius: 4px; font-size: 0.8rem;
+            white-space: nowrap; opacity: 0; visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out; z-index: 10;
+        }
+        .tooltip-term::after {
+            content: ''; position: absolute; bottom: 100%; left: 50%;
+            transform: translateX(-50%) translateY(0px); border-width: 5px; border-style: solid;
+            border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out; z-index: 10;
+        }
+        .tooltip-term:hover::before, .tooltip-term:hover::after {
+            opacity: 1; visibility: visible;
+        }
+
+        /* --- Fade-in Animation (Keep as is) --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-section {
+            opacity: 0; animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* --- Card Hover Effect --- */
+        .content-card {
+            /* Base shadow from global.css assumed */
+            transition: box-shadow 0.2s ease-in-out;
+        }
+        .content-card:hover {
+             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* Tailwind shadow-lg */
+        }
+
+        /* --- Quiz Card Styling (Improved Feedback) --- */
+        .quiz-toggle {
+            position: relative; overflow: hidden;
+        }
+        .ripple {
+            position: absolute; border-radius: 50%;
+            background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.4);
+            transform: scale(0); animation: ripple-animation 0.6s linear; pointer-events: none;
+        }
+        @keyframes ripple-animation { to { transform: scale(4); opacity: 0; } }
+        .quiz-toggle .material-icons { font-size: 1.1rem; transition: transform 0.3s ease-in-out; }
+        .quiz-toggle .icon-arrow.rotated { transform: rotate(180deg); }
+        .quiz-answer {
+            max-height: 0; opacity: 0;
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, padding-top 0.5s ease-in-out, padding-bottom 0.5s ease-in-out, margin-top 0.5s ease-in-out;
+            overflow: hidden; padding-top: 0; padding-bottom: 0; margin-top: 0;
+            border: 1px solid var(--border-color-default); background-color: var(--bg-color-lighter);
+            border-radius: 0.375rem; color: var(--text-color-default);
+        }
+        .quiz-answer.visible {
+            max-height: 1000px; opacity: 1; padding-top: 1rem; padding-bottom: 1rem;
+            margin-top: 1rem; overflow: auto;
+        }
+         /* Enhanced Quiz Option Styles */
+        .quiz-option {
+            /* Base from global.css */
+            transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+        }
+        .quiz-option:hover {
+             background-color: var(--quiz-option-hover-bg, rgba(59, 130, 246, 0.05)); /* Lighter hover */
+             border-color: var(--primary-color);
+        }
+        .quiz-option.selected {
+            border-color: var(--primary-color-dark);
+            background-color: var(--primary-color-light); /* More distinct selection */
+            transform: scale(1.01); /* Subtle scale effect */
+        }
+        .quiz-option.correct {
+             border-color: var(--success-color, #10b981);
+             background-color: var(--success-color-light, #ecfdf5);
+        }
+        .quiz-option.incorrect {
+             border-color: var(--danger-color, #ef4444);
+             background-color: var(--danger-color-light, #fee2e2);
+        }
+         /* Ensure feedback text colors match background intentions */
+        .quiz-feedback.correct { color: var(--success-color, #047857); }
+        .quiz-feedback.incorrect { color: var(--danger-color, #b91c1c); }
+        .quiz-feedback.warning { color: var(--warning-color, #c2410c); }
+
+
+        /* --- SVG Diagram Styling --- */
+        .svg-diagram {
+            display: block;
+            margin: 1.5rem auto;
+            /* max-width: 100%; */ /* Let container handle width */
+            width: 100%; /* Make SVG take full width of container */
+            max-width: 450px; /* Optional: Set a max-width for larger screens */
+            height: auto;
+            background-color: var(--bg-color-light);
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color-light);
+            overflow: visible; /* Ensure content isn't clipped if viewBox is tight */
+        }
+        .svg-diagram text {
+            font-family: var(--font-family-sans);
+            font-size: 12px;
+            fill: var(--text-color-default);
+        }
+        .svg-diagram .label { font-weight: 500; }
+        .svg-diagram .arrow { stroke: var(--text-color-light); stroke-width: 1.5; fill: var(--text-color-light); }
+        .svg-diagram .box { fill: white; stroke: var(--border-color-default); stroke-width: 1; }
+        .svg-diagram .box-nested { fill: #e0f2fe; /* Light blue */ stroke: #7dd3fc; /* Blue-300 */ }
+        .svg-diagram .line { stroke: var(--text-color-light); stroke-width: 1.5; stroke-dasharray: 3,3; }
+
+
+        /* --- Interactive Demo Styling --- */
+        .interactive-demo {
+            border: 1px dashed var(--border-color-default);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            background-color: var(--bg-color-light);
+        }
+        .interactive-demo label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-color-dark);
+        }
+        .interactive-demo input[type="text"],
+        .interactive-demo textarea {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border-color-default);
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+            font-family: var(--font-family-sans);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .interactive-demo input[type="text"]:focus,
+        .interactive-demo textarea:focus {
+             border-color: var(--primary-color);
+             outline: none;
+             box-shadow: 0 0 0 2px var(--focus-ring-color);
+        }
+        .interactive-demo .output-area {
+            background-color: var(--bg-color-lighter);
+            border: 1px solid var(--border-color-light);
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            min-height: 50px;
+            font-family: var(--font-family-mono);
+            font-size: 0.875rem;
+            color: var(--text-color-default);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+         .interactive-demo .button-group {
+             display: flex;
+             flex-wrap: wrap;
+             gap: 0.75rem; /* space-x-3 approx */
+             margin-top: 1rem;
+             margin-bottom: 0.5rem;
+         }
+
+
+    </style>
+
+</head>
+
+<body class="bg-gray-100"> <div class="page-container">
+
+        <aside class="local-side-nav">
+            <h4 class="head4">JS 其他高频考点</h4>
+            <ul id="local-toc">
+                <li><a href="#copy" class="active"><span class="material-icons nav-icon">content_copy</span>深/浅拷贝</a></li>
+                <li><a href="#error-handling"><span class="material-icons nav-icon">error_outline</span>错误处理</a></li>
+                <li><a href="#json"><span class="material-icons nav-icon">data_object</span>JSON</a></li>
+                <li><a href="#debounce-throttle"><span class="material-icons nav-icon">timer</span>防抖与节流</a></li>
+            </ul>
+            <a href="../../index.html" class="back-link"> &larr; 返回大纲目录
+            </a>
+        </aside>
+
+        <main class="content-main space-y-8"> <article>
+                <section id="intro" class="content-section fade-in-section" style="animation-delay: 0s;">
+                    <h1 class="head1 flex items-center gap-2">
+                        <span class="material-icons text-3xl text-blue-600">checklist</span>JavaScript 其他高频考点
+                    </h1>
+                    <p class="leading-relaxed">除了核心概念外，JavaScript 中还有一些在面试和实际开发中经常遇到的重要知识点。本节将重点介绍深拷贝与浅拷贝、错误处理机制、JSON 的使用以及性能优化技巧中的防抖和节流。</p>
+                     <p class="mt-6 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md text-sm">💡
+                        <strong>提示:</strong> 点击左侧导航可以快速跳转。理解这些概念对于编写健壮、高效的代码至关重要。
+                    </p>
+                </section>
+
+                <section id="copy" class="content-section fade-in-section" style="animation-delay: 0.05s;">
+                    <h2 class="flex items-center head2"><span class="material-icons">content_copy</span>深拷贝与浅拷贝</h2>
+                    <p class="mb-8 leading-relaxed">在 JavaScript 中复制对象或数组时，理解深拷贝和浅拷贝的区别非常重要，因为它关系到原始数据和副本之间的关联性。</p>
+
+                    <div class="content-card mb-8"> <h3 class="head3"><span class="material-icons">science</span>概念</h3>
+                        <ul class="space-y-3"> <li><strong>浅拷贝 (Shallow Copy):</strong> 创建一个新对象/数组，然后将原始对象/数组的<strong class="text-red-600">第一层</strong>属性/元素复制过去。如果属性值是<strong class="text-blue-600">原始类型</strong>，则复制值；如果是<strong class="text-green-600">引用类型</strong>，则复制<strong class="text-red-600">内存地址引用</strong>。这意味着副本和原始对象<strong class="text-red-600">共享内部</strong>的引用类型数据。</li>
+                            <li><strong>深拷贝 (Deep Copy):</strong> 创建一个<strong class="text-red-600">完全独立</strong>的新对象/数组，<strong class="text-red-600">递归</strong>复制原始对象/数组的所有层级。所有内容（包括嵌套的引用类型）都是<strong class="text-red-600">新的副本</strong>，修改副本<strong class="text-red-600">不会影响</strong>原始对象。</li>
+                        </ul>
+                    </div>
+
+                     <svg class="svg-diagram" viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"> <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+                            </marker>
+                        </defs>
+
+                        <text x="100" y="20" text-anchor="middle" class="label">浅拷贝 (Shallow Copy)</text>
+                        <rect x="20" y="40" width="80" height="50" class="box"/>
+                        <text x="60" y="65" text-anchor="middle">Original</text>
+                        <rect x="20" y="100" width="80" height="50" class="box box-nested"/>
+                        <text x="60" y="125" text-anchor="middle">Nested Obj</text>
+                        <line x1="60" y1="90" x2="60" y2="100" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+                        <rect x="140" y="40" width="80" height="50" class="box"/>
+                        <text x="180" y="65" text-anchor="middle">Shallow Copy</text>
+                        <line x1="180" y1="90" x2="60" y2="100" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+                        <text x="120" y="110" fill="#ef4444" font-size="10" font-weight="bold">共享引用!</text>
+
+
+                        <text x="300" y="20" text-anchor="middle" class="label">深拷贝 (Deep Copy)</text>
+                        <rect x="220" y="40" width="80" height="50" class="box"/>
+                        <text x="260" y="65" text-anchor="middle">Original</text>
+                        <rect x="220" y="100" width="80" height="50" class="box box-nested"/>
+                        <text x="260" y="125" text-anchor="middle">Nested Obj A</text>
+                         <line x1="260" y1="90" x2="260" y2="100" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+                        <rect x="340" y="40" width="80" height="50" class="box"/>
+                        <text x="380" y="65" text-anchor="middle">Deep Copy</text>
+                        <rect x="340" y="100" width="80" height="50" class="box box-nested"/>
+                        <text x="380" y="125" text-anchor="middle">Nested Obj B</text>
+                        <line x1="380" y1="90" x2="380" y2="100" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+                         <text x="320" y="110" fill="#10b981" font-size="10" font-weight="bold">完全独立</text>
+                    </svg>
+
+
+                    <div class="content-card mb-8"> <h3 class="head3"><span class="material-icons">difference</span>区别</h3>
+                        <p class="mb-4">主要区别在于如何处理<strong class="text-red-600">嵌套的引用类型</strong>：</p>
+                        <ul class="space-y-2">
+                            <li>浅拷贝只复制第一层，嵌套的引用类型共享内存地址。</li>
+                            <li>深拷贝递归复制所有层级，所有内容都是独立的副本。</li>
+                        </ul>
+                         <pre><code class="language-javascript">// 浅拷贝示例
+const originalShallow = { a: 1, b: { c: 2 } };
+const shallowCopy = { ...originalShallow }; // 使用展开运算符进行浅拷贝
+// 关键点: shallowCopy.b 仍然引用 originalShallow.b 指向的对象
+
+shallowCopy.a = 10;
+shallowCopy.b.c = 20; // 修改嵌套对象的属性
+
+console.log('原始浅拷贝:', originalShallow); // { a: 1, b: { c: 20 } } <-- b.c 被改变
+
+// 深拷贝示例 (使用 JSON 方法，有局限性)
+const originalDeep = { a: 1, b: { c: 2 } };
+const deepCopy = JSON.parse(JSON.stringify(originalDeep));
+
+deepCopy.a = 10;
+deepCopy.b.c = 20; // 修改嵌套对象的属性
+
+console.log('原始深拷贝:', originalDeep); // { a: 1, b: { c: 2 } } <-- 未被改变</code></pre>
+                    </div>
+
+                    <div class="content-card mb-8"> <h3 class="head3"><span class="material-icons">code</span>实现</h3>
+                        <p class="mb-4"><strong>浅拷贝常见方法:</strong></p>
+                        <ul class="list-disc list-inside space-y-1 ml-4">
+                            <li><code>Object.assign({}, obj)</code></li>
+                            <li>展开运算符: <code>{ ...obj }</code> 或 <code>[ ...arr ]</code></li>
+                            <li>数组方法: <code>arr.slice()</code>, <code>arr.concat()</code>, <code>Array.from(arr)</code></li>
+                        </ul>
+                        <p class="mt-6 mb-4"><strong>深拷贝常见方法:</strong></p>
+                        <ul class="list-disc list-inside space-y-3 ml-4">
+                            <li><strong><code>JSON.parse(JSON.stringify(obj))</code>:</strong>
+                                <ul class="list-circle list-inside space-y-1 ml-6 mt-1 text-sm text-gray-600">
+                                    <li>优点：简单易用。</li>
+                                    <li>缺点：无法处理函数、<code>undefined</code>、<code>Symbol</code>、<code>Date</code> (变字符串)、循环引用 (报错) 等。</li>
+                                </ul>
+                            </li>
+                            <li><strong>递归函数:</strong> 手动编写递归逻辑，最灵活但复杂。</li>
+                            <li><strong>第三方库:</strong> 如 Lodash 的 <code>_.cloneDeep()</code>，功能完善，推荐在项目中使用。</li>
+                        </ul>
+                         <pre><code class="language-javascript">// Lodash 示例 (需引入库)
+// import _ from 'lodash'; // or const _ = require('lodash');
+// const deepCopyLodash = _.cloneDeep(originalObject);</code></pre>
+                    </div>
+
+                     <div class="interactive-demo">
+                        <h4 class="head4 mb-4 text-lg font-medium">交互式拷贝示例</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="originalObjectDisplay">原始对象:</label>
+                                <pre id="originalObjectDisplay" class="output-area h-40 overflow-auto"></pre>
+                            </div>
+                            <div>
+                                <label for="copiedObjectDisplay">拷贝后的对象:</label>
+                                <pre id="copiedObjectDisplay" class="output-area h-40 overflow-auto"></pre>
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button id="shallowCopyBtn" class="button button-secondary">浅拷贝 (...)</button>
+                            <button id="deepCopyJsonBtn" class="button button-secondary">深拷贝 (JSON)</button>
+                            <button id="modifyCopyBtn" class="button button-primary" disabled>修改拷贝对象 (b.c = 99)</button>
+                            <button id="resetCopyBtn" class="button button-danger">重置</button>
+                        </div>
+                        <div id="copyStatus" class="text-sm text-gray-600 mt-2">点击按钮进行拷贝操作。</div>
+                    </div>
+
+
+                     <div class="quiz-card mt-8" id="quiz-copy"> <div class="quiz-question"><span class="material-icons mr-1">quiz</span>测验：<code>JSON.parse(JSON.stringify(obj))</code> 进行深拷贝时，无法正确处理哪些类型的数据？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"><input type="checkbox" name="q_copy" value="a"><span>函数 (Function)</span></label>
+                            <label class="quiz-option"><input type="checkbox" name="q_copy" value="b"><span>Undefined</span></label>
+                            <label class="quiz-option"><input type="checkbox" name="q_copy" value="c"><span>Symbol</span></label>
+                            <label class="quiz-option"><input type="checkbox" name="q_copy" value="d"><span>Date 对象 (会变字符串)</span></label>
+                            <label class="quiz-option"><input type="checkbox" name="q_copy" value="e"><span>循环引用 (会报错)</span></label>
+                            <label class="quiz-option"><input type="checkbox" name="q_copy" value="f"><span>数字 (Number)</span></label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_copy"></div>
+                        <button class="quiz-toggle button button-secondary mt-4" onclick="checkAnswer('q_copy', ['a', 'b', 'c', 'd', 'e'], true)">
+                             <span class="material-icons icon-arrow">expand_more</span><span class="button-text">检查答案</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> A, B, C, D, E</p>
+                            <p><strong>解析:</strong> <code>JSON.stringify</code> 会忽略函数、<code>undefined</code> 和 <code>Symbol</code> 类型的属性，会将 <code>Date</code> 对象转换为 ISO 格式的字符串，并且无法处理循环引用（会抛出 TypeError）。数字 (Number) 类型可以被正确处理。</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="error-handling" class="content-section fade-in-section" style="animation-delay: 0.1s;">
+                    <h2 class="flex items-center head2"><span class="material-icons">error_outline</span>错误处理 (try...catch...finally)</h2>
+                    <div class="content-card space-y-4"> <h3 class="head3"><span class="material-icons">construction</span>基本结构</h3>
+                        <p>JavaScript 使用 <code>try...catch...finally</code> 语句来处理代码执行期间可能发生的错误（异常）。</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li><strong><code>try</code> 块:</strong> 包含可能抛出错误的代码。</li>
+                            <li><strong><code>catch (error)</code> 块:</strong> 如果 <code>try</code> 块中发生错误，则执行此块。<code>error</code> 对象包含错误信息 (如 <code>error.message</code>, <code>error.stack</code>)。</li>
+                            <li><strong><code>finally</code> 块 (可选):</strong> 无论是否发生错误，<strong class="text-red-600">总是</strong>会执行此块中的代码，通常用于<strong class="text-blue-600">清理操作</strong>（如关闭文件、断开连接）。</li>
+                        </ul>
+                        <pre><code class="language-javascript">function divide(a, b) {
+  console.log(`\nAttempting to divide ${a} by ${b}...`);
+  try {
+    if (b === 0) {
+      // 主动抛出错误，可以自定义错误类型
+      throw new Error("Division by zero is not allowed.");
+    }
+    if (typeof a !== 'number' || typeof b !== 'number') {
+        throw new TypeError("Both arguments must be numbers.");
+    }
+    let result = a / b;
+    console.log("✅ Result:", result);
+    return result; // 如果成功，在这里返回
+  } catch (error) {
+    // 根据错误类型进行不同处理
+    if (error instanceof TypeError) {
+         console.error("❌ Type Error:", error.message);
+    } else {
+         console.error("❌ Runtime Error:", error.message);
+    }
+    // console.error("Stack trace:", error.stack); // 可以记录更详细的堆栈信息
+    return null; // 或者返回一个表示失败的值
+  } finally {
+    // 无论成功还是失败，都会执行
+    console.log("🔚 Division attempt finished.");
+  }
+}
+
+divide(10, 2);
+divide(10, 0);
+divide("10", 2);
+divide(5, 1);</code></pre>
+                        <p class="mt-4">✨ <strong>面试考点：</strong> 理解 <code>try</code>, <code>catch</code>, <code>finally</code> 各自的作用和执行时机。知道可以主动使用 <code>throw</code> 抛出错误，以及 <code>error</code> 对象包含哪些信息。</p>
+                    </div>
+                </section>
+
+                <section id="json" class="content-section fade-in-section" style="animation-delay: 0.15s;">
+                    <h2 class="flex items-center head2"><span class="material-icons">data_object</span>JSON (JavaScript Object Notation)</h2>
+                    <div class="content-card space-y-4"> <h3 class="head3"><span class="material-icons">swap_horiz</span>转换方法</h3>
+                        <p>JSON 是一种轻量级的数据交换格式，基于 JavaScript 对象字面量语法的一个子集，但有更严格的规则（如键必须是双引号字符串）。</p>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong><code>JSON.stringify(value[, replacer[, space]])</code>:</strong>
+                                <p>将 JavaScript 值（通常是对象或数组）转换为 JSON <strong class="text-red-600">字符串</strong>。</p>
+                                <ul class="list-circle list-inside ml-6 text-sm text-gray-600 space-y-1">
+                                    <li><code>replacer</code>: 函数或数组，用于过滤或转换属性。</li>
+                                    <li><code>space</code>: 数字或字符串，用于美化输出（缩进）。</li>
+                                    <li>常用于发送数据到服务器或存储在 `localStorage`。</li>
+                                    <li><strong class="text-red-500">注意局限性:</strong> 忽略函数、<code>undefined</code>、<code>Symbol</code>；<code>Date</code> 转字符串；无法处理循环引用。</li>
+                                </ul>
+                            </li>
+                            <li><strong><code>JSON.parse(text[, reviver])</code>:</strong>
+                                <p>将 JSON <strong class="text-red-600">字符串</strong>解析为相应的 JavaScript 值。</p>
+                                 <ul class="list-circle list-inside ml-6 text-sm text-gray-600 space-y-1">
+                                     <li><code>reviver</code>: 函数，用于在解析过程中转换键值对。</li>
+                                     <li>常用于处理从服务器接收的数据。</li>
+                                     <li><strong class="text-red-500">注意:</strong> 若字符串不是有效 JSON，会抛出 <code>SyntaxError</code>，建议在 <code>try...catch</code> 中使用。</li>
+                                 </ul>
+                            </li>
+                        </ul>
+                        <pre><code class="language-javascript">const user = {
+  id: 123,
+  name: "Alice",
+  isAdmin: false,
+  courses: ["Math", "Physics"],
+  registerDate: new Date(), // Date object
+  secret: undefined,       // Will be ignored
+  toJSON: () => ({ id: user.id, name: user.name }) // Custom serialization
+};
+
+// 转换为 JSON 字符串 (使用 toJSON 和 space)
+const jsonString = JSON.stringify(user, null, 2); // 使用 2 个空格缩进
+console.log("JSON String (using toJSON):\n", jsonString);
+/* Output:
+{
+  "id": 123,
+  "name": "Alice"
+}
+*/
+
+// 转换为 JSON 字符串 (不使用 toJSON, 演示 Date 转换)
+const fullJsonString = JSON.stringify({ ...user, toJSON: undefined }, null, 2);
+console.log("\nFull JSON String (Date becomes string):\n", fullJsonString);
+/* Output (Date string format may vary slightly):
+{
+  "id": 123,
+  "name": "Alice",
+  "isAdmin": false,
+  "courses": [
+    "Math",
+    "Physics"
+  ],
+  "registerDate": "2025-04-24T23:17:00.000Z" // Example Date string
+}
+*/
+
+
+// 从 JSON 字符串解析回对象 (带 reviver 转换日期)
+const dataFromServer = `{"id": 456, "name": "Bob", "lastLogin": "2025-04-23T10:00:00.000Z"}`;
+try {
+  const parsedUser = JSON.parse(dataFromServer, (key, value) => {
+    // 如果 key 是 'lastLogin' 并且 value 是字符串, 尝试转回 Date 对象
+    if (key === 'lastLogin' && typeof value === 'string') {
+      const date = new Date(value);
+      // 简单验证是否是有效日期
+      return !isNaN(date.getTime()) ? date : value;
+    }
+    return value; // 其他情况正常返回
+  });
+  console.log("\nParsed User Object (with reviver):", parsedUser);
+  console.log("Last Login Type:", Object.prototype.toString.call(parsedUser.lastLogin)); // "[object Date]"
+} catch (error) {
+  console.error("Failed to parse JSON:", error);
+}</code></pre>
+                        <p class="mt-4">✨ <strong>面试考点：</strong> 掌握 <code>JSON.stringify</code> 和 <code>JSON.parse</code> 的基本用法及可选参数 (<code>replacer</code>, <code>space</code>, <code>reviver</code>)。理解 JSON 格式的规则（键必须是双引号字符串等）。了解 <code>stringify</code> 的局限性。</p>
+                    </div>
+                </section>
+
+                <section id="debounce-throttle" class="content-section fade-in-section" style="animation-delay: 0.2s;">
+                    <h2 class="flex items-center head2"><span class="material-icons">timer</span>防抖 (Debounce) 与 节流 (Throttle)</h2>
+                    <p class="mb-8 leading-relaxed">防抖和节流是两种常用的前端性能优化技术，核心目标都是<strong class="text-blue-600">减少</strong>高频触发事件（如 `resize`, `scroll`, `input`, `mousemove`）的回调函数的<strong class="text-blue-600">实际执行次数</strong>，但策略不同。</p>
+
+                     <svg class="svg-diagram" viewBox="0 0 450 220" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"> <defs>
+                            <marker id="arrowhead-dt" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+                                <polygon points="0 0, 7 2.5, 0 5" fill="#6b7280"/>
+                            </marker>
+                        </defs>
+
+                        <line x1="20" y1="180" x2="430" y2="180" stroke="#9ca3af" stroke-width="1" marker-end="url(#arrowhead-dt)"/>
+                        <text x="435" y="185" font-size="10">Time</text>
+
+                        <text x="20" y="20" class="label">防抖 (Debounce) - 停止触发后执行一次</text>
+                        <text x="20" y="40" font-size="10">事件触发 (Input):</text>
+                        <circle cx="50" cy="50" r="3" fill="#f97316"/>
+                        <circle cx="70" cy="50" r="3" fill="#f97316"/>
+                        <circle cx="90" cy="50" r="3" fill="#f97316"/>
+                        <circle cx="150" cy="50" r="3" fill="#f97316"/>
+                        <circle cx="170" cy="50" r="3" fill="#f97316"/>
+
+                        <text x="20" y="70" font-size="10">函数执行:</text>
+                        <rect x="200" y="75" width="30" height="10" fill="#3b82f6" rx="2"/>
+                        <line x1="170" y1="50" x2="215" y2="75" class="line"/>
+                        <text x="215" y="95" font-size="10">Delay后执行</text>
+
+                        <text x="20" y="120" class="label">节流 (Throttle) - 固定间隔最多执行一次</text>
+                        <text x="20" y="140" font-size="10">事件触发 (Scroll):</text>
+                        <circle cx="50" cy="150" r="3" fill="#f97316"/>
+                        <circle cx="70" cy="150" r="3" fill="#f97316"/>
+                        <circle cx="90" cy="150" r="3" fill="#f97316"/>
+                        <circle cx="110" cy="150" r="3" fill="#f97316"/>
+                        <circle cx="130" cy="150" r="3" fill="#f97316"/>
+                        <circle cx="190" cy="150" r="3" fill="#f97316"/>
+                        <circle cx="210" cy="150" r="3" fill="#f97316"/>
+
+                        <text x="20" y="170" font-size="10">函数执行:</text>
+                        <rect x="50" y="175" width="30" height="10" fill="#10b981" rx="2"/>
+                        <rect x="190" y="175" width="30" height="10" fill="#10b981" rx="2"/>
+                        <line x1="50" y1="150" x2="65" y2="175" class="line"/>
+                        <line x1="190" y1="150" x2="205" y2="175" class="line"/>
+                        <text x="120" y="195" font-size="10">间隔内只执行一次</text>
+                    </svg>
+
+
+                    <div class="content-card mb-8"> <h3 class="head3"><span class="material-icons">history_toggle_off</span>防抖 (Debounce)</h3>
+                        <p><strong>概念：</strong> 在事件触发后<strong class="text-red-600">延迟</strong> `n` 秒执行回调。如果在这 `n` 秒内事件<strong class="text-red-600">再次</strong>触发，则<strong class="text-red-600">重新计时</strong>。只有当事件<strong class="text-blue-600">停止触发</strong>并且等待了 `n` 秒后，回调才会最终执行<strong class="text-red-600">一次</strong>。</p>
+                        <p><strong>核心思想：</strong> 等待用户操作<strong class="text-blue-600">稳定</strong>下来后再响应。</p>
+                        <p><strong>常见场景：</strong></p>
+                        <ul class="list-disc list-inside ml-4 text-sm text-gray-600">
+                             <li>搜索框输入建议 (停止输入后才发请求)</li>
+                             <li>窗口大小调整 (`resize`) 后的布局重新计算 (停止调整后才计算)</li>
+                             <li>表单验证 (停止输入后才校验)</li>
+                        </ul>
+                        <pre><code class="language-javascript">// 简易防抖实现 (立即执行版可选)
+function debounce(func, delay, immediate = false) {
+  let timeoutId;
+  return function(...args) {
+    const context = this;
+    const later = function() {
+      timeoutId = null;
+      if (!immediate) func.apply(context, args);
+    };
+    const callNow = immediate && !timeoutId;
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(later, delay);
+    if (callNow) func.apply(context, args);
+  };
+}</code></pre>
+                    </div>
+
+                    <div class="content-card mb-8"> <h3 class="head3"><span class="material-icons">speed</span>节流 (Throttle)</h3>
+                        <p><strong>概念：</strong> 在<strong class="text-red-600">固定时间间隔</strong> `n` 秒内，回调函数<strong class="text-red-600">最多只执行一次</strong>。无论事件触发多么频繁，都会以<strong class="text-blue-600">固定的频率</strong>执行。</p>
+                         <p><strong>核心思想：</strong> <strong class="text-blue-600">稀释</strong>高频事件的响应频率。</p>
+                         <p><strong>常见场景：</strong></p>
+                         <ul class="list-disc list-inside ml-4 text-sm text-gray-600">
+                              <li>页面滚动事件 (`scroll`) 监听 (如懒加载、滚动动画)</li>
+                              <li>拖拽 (`mousemove`) 时的位置更新</li>
+                              <li>游戏中的射击频率控制</li>
+                         </ul>
+                        <pre><code class="language-javascript">// 简易节流实现 (时间戳 + 定时器 结合版)
+function throttle(func, delay) {
+  let timeoutId = null;
+  let lastExecTime = 0;
+  return function(...args) {
+    const context = this;
+    const now = Date.now();
+    const remaining = delay - (now - lastExecTime);
+
+    clearTimeout(timeoutId); // 清除可能存在的尾部调用定时器
+
+    if (remaining <= 0 || remaining > delay) { // 立即执行的情况
+      lastExecTime = now;
+      func.apply(context, args);
+    } else { // 延迟到时间间隔结束时执行 (尾部调用)
+      timeoutId = setTimeout(() => {
+        lastExecTime = Date.now();
+        timeoutId = null;
+        func.apply(context, args);
+      }, remaining);
+    }
+  };
+}</code></pre>
+                    </div>
+
+                     <div class="interactive-demo">
+                        <h4 class="head4 mb-4 text-lg font-medium">交互式防抖/节流示例 (延迟 500ms)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="debounceInput">防抖输入框:</label>
+                                <input type="text" id="debounceInput" placeholder="快速输入，停止后看效果">
+                                <label for="debounceOutput" class="mt-2">防抖输出 (函数执行日志):</label>
+                                <div id="debounceOutput" class="output-area h-24 overflow-auto"></div>
+                            </div>
+                             <div>
+                                <label for="throttleInput">节流输入框:</label>
+                                <input type="text" id="throttleInput" placeholder="快速输入，看固定频率效果">
+                                <label for="throttleOutput" class="mt-2">节流输出 (函数执行日志):</label>
+                                <div id="throttleOutput" class="output-area h-24 overflow-auto"></div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="quiz-card mt-8" id="quiz-debounce-throttle"> <div class="quiz-question"><span class="material-icons mr-1">quiz</span>测验：如果用户在输入框中快速连续输入，哪个技术更适合用于触发搜索建议的 API 请求？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"><input type="radio" name="q_dt" value="a"><span>防抖 (Debounce)</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_dt" value="b"><span>节流 (Throttle)</span></label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_dt"></div>
+                        <button class="quiz-toggle button button-secondary mt-4" onclick="checkAnswer('q_dt', 'a')">
+                             <span class="material-icons icon-arrow">expand_more</span><span class="button-text">检查答案</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> A. 防抖 (Debounce)</p>
+                            <p><strong>解析:</strong> 对于搜索建议，我们通常希望在用户<strong class="text-blue-600">停止输入</strong>一小段时间后才发送请求，以避免在用户快速打字过程中频繁发送无效请求。防抖的特性（停止触发后才执行一次）正好符合这个需求。节流（固定频率执行）可能会在用户输入过程中就发送请求。</p>
+                        </div>
+                    </div>
+                </section>
+
+            </article>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+        // --- Utility Functions (Debounce, Throttle) ---
+        function debounce(func, delay, immediate = false) {
+          let timeoutId;
+          return function(...args) {
+            const context = this;
+            const later = function() {
+              timeoutId = null;
+              if (!immediate) func.apply(context, args);
+            };
+            const callNow = immediate && !timeoutId;
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(later, delay);
+            if (callNow) func.apply(context, args);
+          };
+        }
+
+        function throttle(func, delay) {
+          let timeoutId = null;
+          let lastExecTime = 0;
+          return function(...args) {
+            const context = this;
+            const now = Date.now();
+            // Calculate remaining time until next execution is allowed
+            // If lastExecTime is 0, remaining will be negative, allowing immediate execution
+            const remaining = delay - (now - lastExecTime);
+
+            clearTimeout(timeoutId); // Clear any pending timeout for the trailing edge call
+
+            if (remaining <= 0 || remaining > delay) { // Allow execution if delay has passed or it's the first call
+              lastExecTime = now;
+              func.apply(context, args);
+            } else { // Schedule the trailing edge call if needed
+              timeoutId = setTimeout(() => {
+                lastExecTime = Date.now();
+                timeoutId = null;
+                func.apply(context, args);
+              }, remaining);
+            }
+          };
+        }
+
+
+        // --- Ripple Effect Logic ---
+        function createRipple(event) {
+            const button = event.currentTarget;
+            if (!button || typeof button.getBoundingClientRect !== 'function') return;
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+            const primaryColorRgb = getComputedStyle(document.documentElement).getPropertyValue('--primary-color-rgb') || '59, 130, 246';
+            circle.style.width = circle.style.height = `${diameter}px`;
+            const rect = button.getBoundingClientRect();
+            circle.style.left = `${event.clientX - rect.left - radius}px`;
+            circle.style.top = `${event.clientY - rect.top - radius}px`;
+            circle.style.backgroundColor = `rgba(${primaryColorRgb}, 0.4)`;
+            circle.classList.add("ripple");
+            const existingRipple = button.querySelector(".ripple");
+            if (existingRipple) existingRipple.remove();
+            button.appendChild(circle);
+            setTimeout(() => circle.remove(), 600);
+        }
+
+        // --- Quiz Toggle Logic ---
+        function toggleAnswer(quizId, buttonElement) {
+            const quizCard = document.getElementById(quizId);
+            if (!quizCard) return;
+            const answer = quizCard.querySelector('.quiz-answer');
+            const icon = buttonElement.querySelector('.icon-arrow');
+            const buttonTextSpan = buttonElement.querySelector('.button-text');
+            if (!answer || !icon || !buttonTextSpan) return;
+            const isVisible = answer.classList.contains('visible');
+            if (isVisible) {
+                answer.style.maxHeight = '0';
+                answer.style.opacity = '0';
+                answer.style.marginTop = '0';
+                answer.style.paddingTop = '0';
+                answer.style.paddingBottom = '0';
+                answer.classList.remove('visible');
+                icon.classList.remove('rotated');
+                buttonTextSpan.textContent = ' 查看答案';
+                setTimeout(() => { if (!answer.classList.contains('visible')) { answer.style.display = 'none'; } }, 500);
+            } else {
+                answer.style.display = 'block';
+                answer.style.paddingTop = '1rem';
+                answer.style.paddingBottom = '1rem';
+                answer.style.marginTop = '1rem';
+                requestAnimationFrame(() => {
+                    answer.style.maxHeight = answer.scrollHeight + 'px';
+                    answer.style.opacity = '1';
+                    answer.classList.add('visible');
+                    icon.classList.add('rotated');
+                    buttonTextSpan.textContent = ' 隐藏答案';
+                });
+            }
+        }
+
+       // --- Quiz Check Answer Logic ---
+        function checkAnswer(questionName, correctAnswerValue, isCheckbox = false) {
+            const options = document.querySelectorAll(`input[name="${questionName}"]`);
+            const feedbackElement = document.getElementById(`feedback-${questionName}`);
+            const quizCard = feedbackElement ? feedbackElement.closest('.quiz-card') : null;
+            let selectedValues = [];
+            let correctValuesArray = Array.isArray(correctAnswerValue) ? correctAnswerValue : [correctAnswerValue];
+            if (!feedbackElement || !quizCard) return;
+            quizCard.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+            feedbackElement.style.display = 'none';
+            options.forEach(option => {
+                if (option.checked) {
+                    selectedValues.push(option.value);
+                    const selectedLabel = option.closest('.quiz-option');
+                    if (selectedLabel) selectedLabel.classList.add('selected');
+                }
+            });
+            if (selectedValues.length === 0) {
+                feedbackElement.textContent = "请选择至少一个选项！";
+                feedbackElement.className = 'quiz-feedback warning';
+                feedbackElement.style.display = 'block';
+                return;
+            }
+            let isCorrect = false;
+            if (isCheckbox) {
+                isCorrect = selectedValues.length === correctValuesArray.length && selectedValues.every(val => correctValuesArray.includes(val));
+            } else {
+                isCorrect = selectedValues.length === 1 && selectedValues[0] === correctAnswerValue;
+            }
+            if (isCorrect) {
+                feedbackElement.textContent = "回答正确！";
+                feedbackElement.className = 'quiz-feedback correct';
+                quizCard.querySelectorAll('.quiz-option.selected').forEach(opt => opt.classList.add('correct'));
+            } else {
+                feedbackElement.textContent = "回答错误。";
+                 feedbackElement.className = 'quiz-feedback incorrect';
+                options.forEach(opt => {
+                     const label = opt.closest('.quiz-option');
+                     if (!label) return;
+                     if (correctValuesArray.includes(opt.value)) { label.classList.add('correct'); }
+                     if (opt.checked && !correctValuesArray.includes(opt.value)) { label.classList.add('incorrect'); }
+                });
+            }
+            feedbackElement.style.display = 'block';
+            const answerSection = quizCard.querySelector('.quiz-answer');
+            const toggleButton = quizCard.querySelector('.quiz-toggle');
+            if (answerSection && toggleButton && !answerSection.classList.contains('visible')) {
+                 toggleAnswer(quizCard.id, toggleButton);
+            }
+        }
+
+        // --- Deep/Shallow Copy Interactive Demo Logic ---
+        function setupCopyDemo() {
+            const originalDisplay = document.getElementById('originalObjectDisplay');
+            const copiedDisplay = document.getElementById('copiedObjectDisplay');
+            const shallowCopyBtn = document.getElementById('shallowCopyBtn');
+            const deepCopyJsonBtn = document.getElementById('deepCopyJsonBtn');
+            const modifyCopyBtn = document.getElementById('modifyCopyBtn');
+            const resetCopyBtn = document.getElementById('resetCopyBtn');
+            const copyStatus = document.getElementById('copyStatus');
+
+            let originalObject = {};
+            let copiedObject = null;
+            let currentCopyType = ''; // To track which copy was made
+
+            // Utility to safely stringify (handles potential circular refs if we add other deep copy methods)
+            function safeStringify(obj) {
+                try {
+                    return JSON.stringify(obj, (key, value) => {
+                        // Handle Date objects specifically for display
+                        if (value instanceof Date) {
+                            return `Date(${value.toISOString()})`; // Indicate it's a Date
+                        }
+                        return value;
+                    }, 2);
+                } catch (e) {
+                    return `// Error stringifying: ${e.message}`;
+                }
+            }
+
+
+            function resetState() {
+                // Resetting the object structure
+                originalObject = {
+                    a: 1,
+                    b: { c: 2, d: ['x', 'y'] },
+                    date: new Date() // Include date for JSON copy demo
+                };
+                copiedObject = null;
+                currentCopyType = '';
+                originalDisplay.textContent = safeStringify(originalObject);
+                copiedDisplay.textContent = '// 点击按钮进行拷贝';
+                modifyCopyBtn.disabled = true;
+                copyStatus.textContent = '状态已重置。点击按钮进行拷贝操作。';
+            }
+
+            shallowCopyBtn.addEventListener('click', () => {
+                // Correct Shallow Copy: Only copy top-level properties. Nested objects/arrays are referenced.
+                copiedObject = { ...originalObject };
+                // DO NOT do copiedObject.b = { ...originalObject.b }; that's a nested shallow copy
+                // DO NOT do copiedObject.b.d = [...originalObject.b.d];
+
+                currentCopyType = 'shallow';
+                copiedDisplay.textContent = safeStringify(copiedObject);
+                modifyCopyBtn.disabled = false;
+                copyStatus.textContent = '已执行浅拷贝 (使用 ...)。嵌套对象 b 和数组 d 是共享引用。请尝试修改拷贝对象。';
+            });
+
+            deepCopyJsonBtn.addEventListener('click', () => {
+                 try {
+                    copiedObject = JSON.parse(JSON.stringify(originalObject));
+                    currentCopyType = 'deep-json';
+                    copiedDisplay.textContent = safeStringify(copiedObject); // Use safeStringify here too
+                    modifyCopyBtn.disabled = false;
+                    copyStatus.textContent = '已执行深拷贝 (使用 JSON)。注意 Date 已变字符串。请尝试修改拷贝对象。';
+                 } catch (e) {
+                     copiedDisplay.textContent = `// JSON 深拷贝失败: ${e.message}`;
+                     copyStatus.textContent = `JSON 深拷贝失败: ${e.message}`;
+                     modifyCopyBtn.disabled = true;
+                     currentCopyType = '';
+                 }
+            });
+
+            modifyCopyBtn.addEventListener('click', () => {
+                if (copiedObject && copiedObject.b) {
+                    copiedObject.a = 55; // Modify top-level primitive
+                    copiedObject.b.c = 99; // Modify nested property
+                    if (Array.isArray(copiedObject.b.d)) {
+                         copiedObject.b.d.push('z'); // Modify nested array
+                    } else if (currentCopyType === 'deep-json' && !copiedObject.b.d) {
+                         // Handle case where JSON stringify might have removed an empty array if it was initially so
+                         // This part is less likely with the current initial object but good to consider
+                    }
+
+                    // Update displays
+                    copiedDisplay.textContent = safeStringify(copiedObject);
+                    originalDisplay.textContent = safeStringify(originalObject); // Update original display to show if it changed
+
+                    // Update status based on copy type
+                    if (currentCopyType === 'shallow') {
+                        copyStatus.textContent = '修改了浅拷贝对象: a=55, b.c=99, b.d.push("z")。观察原始对象：a 不变，但 b.c 和 b.d 改变了 (共享引用)。';
+                    } else if (currentCopyType === 'deep-json') {
+                        copyStatus.textContent = '修改了深拷贝对象: a=55, b.c=99, b.d.push("z")。观察原始对象：所有属性均未改变 (完全独立)。';
+                    } else {
+                         copyStatus.textContent = '已修改拷贝对象。请注意拷贝类型。';
+                    }
+                }
+            });
+
+            resetCopyBtn.addEventListener('click', resetState);
+
+            // Initial setup
+            resetState();
+        }
+
+
+        // --- Debounce/Throttle Interactive Demo Logic ---
+        function setupDebounceThrottleDemo() {
+            const debounceInput = document.getElementById('debounceInput');
+            const debounceOutput = document.getElementById('debounceOutput');
+            const throttleInput = document.getElementById('throttleInput');
+            const throttleOutput = document.getElementById('throttleOutput');
+            const delay = 500; // ms
+
+            const logDebounce = (value) => {
+                const time = new Date().toLocaleTimeString();
+                debounceOutput.textContent += `[${time}] Debounced: ${value}\n`;
+                debounceOutput.scrollTop = debounceOutput.scrollHeight; // Scroll to bottom
+            };
+
+            const logThrottle = (value) => {
+                 const time = new Date().toLocaleTimeString();
+                 throttleOutput.textContent += `[${time}] Throttled: ${value}\n`;
+                 throttleOutput.scrollTop = throttleOutput.scrollHeight; // Scroll to bottom
+            };
+
+            const debouncedLog = debounce(logDebounce, delay);
+            const throttledLog = throttle(logThrottle, delay);
+
+            debounceInput.addEventListener('input', (event) => {
+                debouncedLog(event.target.value);
+            });
+
+            throttleInput.addEventListener('input', (event) => {
+                throttledLog(event.target.value);
+            });
+        }
+
+
+        // --- DOMContentLoaded Event Listener ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- TOC Highlighting Logic ---
+            const sections = document.querySelectorAll('main section[id]');
+            const tocLinks = document.querySelectorAll('#local-toc a');
+            let lastActiveTocLink = null;
+            const tocObserverOptions = { root: null, rootMargin: '-20% 0px -60% 0px', threshold: 0 };
+            const tocObserverCallback = (entries) => {
+                let bestVisibleEntry = null;
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (!bestVisibleEntry || entry.boundingClientRect.top < bestVisibleEntry.boundingClientRect.top) {
+                            bestVisibleEntry = entry;
+                        }
+                    }
+                });
+                if (bestVisibleEntry) {
+                    const id = bestVisibleEntry.target.getAttribute('id');
+                    const activeLink = document.querySelector(`#local-toc a[href="#${id}"]`);
+                    if (activeLink && activeLink !== lastActiveTocLink) {
+                        if (lastActiveTocLink) lastActiveTocLink.classList.remove('active');
+                        activeLink.classList.add('active');
+                        lastActiveTocLink = activeLink;
+                    }
+                }
+            };
+            const tocObserver = new IntersectionObserver(tocObserverCallback, tocObserverOptions);
+            sections.forEach(section => tocObserver.observe(section));
+            const currentHash = window.location.hash;
+            if (currentHash) {
+                const initialActiveLink = document.querySelector(`#local-toc a[href="${currentHash}"]`);
+                if (initialActiveLink) {
+                    tocLinks.forEach(link => link.classList.remove('active'));
+                    initialActiveLink.classList.add('active');
+                    lastActiveTocLink = initialActiveLink;
+                }
+            } else if (tocLinks.length > 0 && !lastActiveTocLink) {
+                 tocLinks.forEach(link => link.classList.remove('active'));
+                 tocLinks[0].classList.add('active');
+                 lastActiveTocLink = tocLinks[0];
+            }
+
+            // --- Fade-in Animation Logic ---
+            const mainContentSections = document.querySelectorAll('main > article > section.content-section');
+            const fadeObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+            const fadeObserverCallback = (entries, observer) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        const delayIndex = Array.from(mainContentSections).indexOf(entry.target);
+                        entry.target.style.animationDelay = `${delayIndex * 0.05}s`;
+                        entry.target.classList.add('fade-in-section');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            };
+            const fadeObserver = new IntersectionObserver(fadeObserverCallback, fadeObserverOptions);
+            mainContentSections.forEach(section => fadeObserver.observe(section));
+
+            // --- Attach Ripple Effect to Buttons ---
+             document.querySelectorAll('.button, .quiz-toggle').forEach(button => {
+                 button.addEventListener('click', createRipple);
+             });
+
+            // --- Initialize Interactive Demos ---
+            try {
+                 setupCopyDemo();
+                 setupDebounceThrottleDemo();
+            } catch (e) {
+                console.error("Error initializing interactive demos:", e);
+            }
+
+        });
+    </script>
+
+</body>
+
+</html>
