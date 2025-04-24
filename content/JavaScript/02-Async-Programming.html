@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript 异步编程与事件循环</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../../global.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+
+    <style>
+        /* --- Page-Specific Styles (Minimal, rely on global.css) --- */
+        html { scroll-padding-top: 2rem; }
+
+        /* Styles for the initial checklist (can be removed if replaced by full content) */
+        .knowledge-list { list-style: none; padding-left: 0; }
+        .knowledge-list li { display: flex; align-items: flex-start; margin-bottom: 1rem; padding: 1rem; background-color: var(--bg-color-white); border-radius: 0.5rem; box-shadow: var(--card-shadow-default); border: 1px solid var(--border-color-light); transition: box-shadow 0.2s ease; }
+        .knowledge-list li:hover { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
+        .knowledge-list input[type="checkbox"] { margin-top: 0.25rem; margin-right: 0.75rem; flex-shrink: 0; width: 1rem; height: 1rem; accent-color: var(--primary-color); cursor: pointer; }
+        .knowledge-list .item-content { flex-grow: 1; display: flex; flex-direction: column; }
+        .knowledge-list .item-content a { color: var(--text-color-dark); font-weight: 500; text-decoration: none; margin-bottom: 0.5rem; transition: color 0.2s ease; }
+        .knowledge-list .item-content a:hover { color: var(--primary-color-dark); text-decoration: underline; }
+        .knowledge-list .item-content a code { font-family: var(--font-family-mono); font-size: 0.85em; background-color: var(--primary-color-light); color: var(--primary-color-dark); padding: 0.1rem 0.3rem; border-radius: 0.25rem; }
+        .knowledge-list .item-tags { display: flex; gap: 0.5rem; margin-top: auto; }
+        .knowledge-list .item-tag { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; line-height: 1.2; }
+        .tag-freq-high { background-color: #fee2e2; color: #b91c1c; }
+        .tag-freq-medium { background-color: #fff7ed; color: #c2410c; }
+        .tag-diff-basic { background-color: #eff6ff; color: #1e40af; }
+
+         /* --- Styles copied/adapted from the V4 example --- */
+         /* Ensure consistency with global.css variables */
+         :root {
+             --stack-color: #fda4af; /* red-300 */
+             --stack-bg: #fff1f2;    /* red-50 */
+             --stack-text: #9f1239;   /* red-900 */
+             --api-color: #86efac;   /* green-300 */
+             --api-bg: #f0fdf4;     /* green-50 */
+             --api-text: #15803d;    /* green-700 */
+             --micro-color: #fcd34d; /* yellow-300 */
+             --micro-bg: #fefce8;    /* yellow-50 */
+             --micro-text: #a16207;   /* yellow-700 */
+             --macro-color: #a5b4fc; /* indigo-300 */
+             --macro-bg: #eef2ff;    /* indigo-50 */
+             --macro-text: #4338ca;   /* indigo-700 */
+             --output-bg: var(--bg-color-lighter); /* Use global variable */
+             --output-text: var(--text-color-default); /* Use global variable */
+         }
+        /* Sidebar active link style */
+        .local-side-nav li a.current { background-color: var(--primary-color-light); color: var(--primary-color-dark); font-weight: 500; border-left-color: var(--primary-color); }
+
+        /* Content section titles (using global.css head classes) */
+        .content-section h2 { border-bottom: 1px solid var(--border-color-light); padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+        .content-section h3 { margin-top: 1.5rem; margin-bottom: 1rem; } /* Adjust margins */
+        .content-section h4 { margin-top: 1rem; margin-bottom: 0.75rem; font-size: 1.1rem; } /* Adjust margins/size */
+
+        /* Card styles (rely on global.css .content-card) */
+        .info-card { /* Specific background/border if needed, else use .content-card */
+            background-color: var(--bg-color-white); /* Default card background */
+            border: 1px solid var(--border-color-light);
+            padding: var(--card-padding-nested); /* Use nested padding */
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem; /* Ensure rounding */
+            box-shadow: var(--card-shadow-nested-level1); /* Use nested shadow */
+        }
+        .info-card.accent-blue { background-color: var(--primary-color-light); border-color: var(--primary-color); }
+        .info-card.accent-yellow { background-color: var(--warning-color-light); border-color: var(--warning-color); }
+        .info-card.accent-indigo { background-color: var(--macro-bg); border-color: var(--macro-color); }
+
+        /* Code block style (rely on global.css pre/code) */
+        /* Use a specific class if overrides needed, e.g., .example-code */
+        .my-code-block { /* Class from example, ensure it matches global pre styles */
+            background-color: var(--text-color-dark); /* Dark background */
+            color: var(--bg-color-lighter); /* Light text */
+            padding: 1rem;
+            border-radius: 0.375rem;
+            overflow-x: auto;
+            font-family: var(--font-family-mono);
+            font-size: 0.875rem;
+            line-height: 1.4;
+            margin: 1rem 0;
+        }
+        .my-code-block code { /* Reset inline styles within */
+            background: none; color: inherit; padding: 0; border-radius: 0; font-size: inherit; font-family: inherit;
+        }
+
+        /* Explanation Box */
+        .explanation-box { background-color: var(--bg-color-lighter); border: 1px solid var(--border-color-light); padding: 1rem; border-radius: 0.375rem; margin-top: 1rem; font-size: 0.9rem; color: var(--text-color-light); }
+        .explanation-box strong { color: var(--text-color-default); }
+        .explanation-box ol, .explanation-box ul { padding-left: 1.25rem; margin-top: 0.5rem; }
+
+        /* Quiz Card (rely on global.css .quiz-card, but add V4 specifics if needed) */
+        /* Assuming global.css covers most quiz styles */
+        .quiz-card { margin-top: 1.5rem; margin-bottom: 1.5rem; }
+        .quiz-options button { /* Style as buttons if needed */ }
+        .quiz-feedback { /* Styles from global.css */ }
+        .feedback-correct { /* Styles from global.css */ }
+        .feedback-incorrect { /* Styles from global.css */ }
+        .button-correct { background-color: var(--success-color-light) !important; border-color: var(--success-color) !important; color: var(--success-color) !important; font-weight: 600 !important; }
+        .button-incorrect { background-color: var(--danger-color-light) !important; border-color: var(--danger-color) !important; color: var(--danger-color) !important; }
+        .button-dimmed { opacity: 0.6; }
+
+        /* Diagram Styles */
+        .diagram-container { text-align: center; padding: 1.5rem; margin-top: 1rem; background-color: var(--bg-color-white); border-radius: 0.5rem; border: 1px solid var(--border-color-light); box-shadow: var(--card-shadow-default); }
+        .diagram-title { font-weight: 600; color: var(--primary-color-dark); margin-bottom: 1.5rem; font-size: 1.1rem; }
+        .mermaid svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+
+        /* Simulator Styles */
+        .simulator-container { background-color: #f5f3ff; /* violet-50 */ border: 1px solid #c4b5fd; /* violet-300 */ border-radius: 0.5rem; padding: 1.5rem; margin-top: 1.5rem; }
+        .simulator-title { font-weight: 600; color: #5b21b6; /* violet-800 */ margin-bottom: 1.5rem; font-size: 1.25rem; }
+        .simulator-layout { display: grid; grid-template-columns: repeat(1, 1fr); gap: 1.5rem; }
+        @media (min-width: 1024px) { .simulator-layout { grid-template-columns: 1.5fr 1fr 1fr; grid-template-areas: "code queues output" "controls queues output"; } }
+        .sim-panel { border: 1px solid #ddd6fe; /* violet-200 */ border-radius: 0.5rem; padding: 1rem; background-color: white; min-height: 150px; display: flex; flex-direction: column; }
+        .sim-panel-title { font-weight: 600; color: #6d28d9; /* violet-700 */ margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e9d5ff; /* violet-100 */ font-size: 0.9rem; }
+        @media (min-width: 1024px) { .sim-code-panel { grid-area: code; } .sim-queues-panel { grid-area: queues; } .sim-output-panel { grid-area: output; } .sim-controls { grid-area: controls; } }
+        .sim-code pre { margin-bottom: 0; flex-grow: 1; background-color: var(--text-color-dark); color: var(--bg-color-lighter); padding: 1rem; font-size: 0.85em; border-radius: 0.25rem; }
+        .sim-code .line-highlight { background-color: #a78bfa; /* violet-400 */ color: #1e1b4b; /* violet-950 */ display: block; margin: 0 -1rem; padding: 0 1rem; border-radius: 0.2rem; }
+        .sim-controls { display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap; }
+        .sim-btn { background-color: #7c3aed; /* violet-600 */ color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; cursor: pointer; font-weight: 500; transition: background-color 0.2s; font-size: 0.875rem; }
+        .sim-btn:hover:not(:disabled) { background-color: #6d28d9; /* violet-700 */ }
+        .sim-btn:disabled { background-color: #a78bfa; /* violet-400 */ cursor: not-allowed; opacity: 0.7; }
+        .sim-queue { border: 1px dashed; border-radius: 0.375rem; padding: 0.75rem; margin-bottom: 1rem; min-height: 80px; font-size: 0.85em; flex-grow: 1; display: flex; flex-direction: column; gap: 0.3rem; overflow-y: auto; }
+        .sim-queue-item { background-color: #f5f3ff; border: 1px solid #ddd6fe; padding: 0.3rem 0.6rem; border-radius: 0.25rem; font-family: var(--font-family-mono); word-break: break-all; }
+        .sim-call-stack { border-color: var(--stack-color); }
+        .sim-call-stack .sim-queue-item { background-color: var(--stack-bg); border-color: var(--stack-color); color: var(--stack-text); }
+        .sim-web-apis { border-color: var(--api-color); }
+        .sim-web-apis .sim-queue-item { background-color: var(--api-bg); border-color: var(--api-color); color: var(--api-text); }
+        .sim-micro-queue { border-color: var(--micro-color); }
+        .sim-micro-queue .sim-queue-item { background-color: var(--micro-bg); border-color: var(--micro-color); color: var(--micro-text); }
+        .sim-macro-queue { border-color: var(--macro-color); }
+        .sim-macro-queue .sim-queue-item { background-color: var(--macro-bg); border-color: var(--macro-color); color: var(--macro-text); }
+        .sim-output-log { background-color: var(--output-bg); border: 1px solid var(--border-color-default); color: var(--output-text); font-family: var(--font-family-mono); white-space: pre-wrap; min-height: 100px; flex-grow: 1; font-size: 0.9em; padding: 0.75rem; border-radius: 0.375rem; overflow-y: auto; }
+        .sim-explanation { font-size: 0.8rem; color: var(--text-color-light); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed #ddd6fe; min-height: 3em; }
+
+         /* Playground Styles */
+        .playground-card { background-color: #f0fdfa; /* teal-50 */ border: 1px solid #5eead4; /* teal-200 */ margin-top: 1.5rem; padding: 1.5rem; border-radius: 0.5rem; }
+        .playground-title { font-weight: 600; color: #115e59; /* teal-800 */ margin-bottom: 1.25rem; font-size: 1.1rem; }
+        .playground-options { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px dashed #bae6fd; /* sky-200 */ font-size: 0.9em; }
+        .playground-options label { display: flex; align-items: center; gap: 0.5rem; color: var(--text-color-default); }
+        .playground-options input[type="number"] { width: 60px; padding: 0.25rem 0.5rem; border: 1px solid #7dd3fc; /* sky-300 */ border-radius: 0.25rem; }
+        .playground-options input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: #0ea5e9; /* sky-500 */ }
+        .playground-controls { margin-top: 1rem; display: flex; gap: 0.5rem; align-items: center; }
+        .playground-run-btn { background-color: #0ea5e9; /* sky-500 */ color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s; font-size: 0.875rem; }
+        .playground-run-btn:hover:not(:disabled) { background-color: #0284c7; /* sky-600 */ }
+        .playground-run-btn:disabled { background-color: #7dd3fc; /* sky-300 */ cursor: not-allowed; opacity: 0.7; }
+        .playground-output { margin-top: 1rem; background-color: var(--bg-color-light); border: 1px solid var(--border-color-light); border-radius: 0.5rem; padding: 1rem; min-height: 60px; font-family: var(--font-family-mono); font-size: 0.85em; color: var(--text-color-default); white-space: pre-wrap; overflow-x: auto; }
+        .playground-output .log-error { color: var(--danger-color); font-weight: bold; }
+        .playground-output .log-info { color: var(--text-color-light); font-style: italic; }
+        .playground-output .log-success { color: var(--success-color); font-weight: bold; }
+        /* Added styles for simple playground (from V4) */
+        .playground-input { display: inline-block; width: 40px; /* Smaller input */ padding: 0.4rem; border: 1px solid #99f6e4; /* teal-300 */ border-radius: 0.375rem; margin: 0 0.25rem; text-align: center; font-family: var(--font-family-mono); font-size: 0.9em; }
+        .playground-check-btn { display: inline-block; background-color: #14b8a6; /* teal-500 */ color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s; margin-top: 0; /* Align with inputs */ border: none; font-size: 0.875rem; }
+        .playground-check-btn:hover:not(:disabled) { background-color: #0d9488; /* teal-600 */ }
+        .playground-check-btn:disabled { background-color: #9ca3af; /* gray-400 */ cursor: not-allowed; opacity: 0.7; }
+        .playground-feedback { margin-top: 1rem; font-weight: 500; font-size: 0.9rem; }
+
+
+        /* Interview Prep Card */
+        .interview-card { border-left: 4px solid var(--primary-color); background-color: var(--bg-color-white); padding: 1.5rem; border-radius: 0 0.5rem 0.5rem 0; box-shadow: var(--card-shadow-default); margin-top: 1.5rem; }
+        .interview-card h4 { margin-top: 0; color: var(--primary-color-dark); border-bottom: 1px solid var(--primary-color-light); padding-bottom: 0.75rem; margin-bottom: 1.25rem; font-size: 1.1rem; }
+        .interview-card .answer-points { font-size: 0.95rem; color: var(--text-color-default); }
+        .interview-card .answer-points ul, .interview-card .answer-points ol { padding-left: 1.5rem; margin-top: 0.5rem; }
+        .interview-card .review-link { display: inline-block; margin-top: 1rem; font-size: 0.8rem; font-weight: 500; color: var(--primary-color-dark); text-decoration: none; padding: 0.25rem 0.5rem; border-radius: 0.25rem; background-color: var(--primary-color-light); transition: all 0.2s ease; }
+        .interview-card .review-link:hover { color: var(--primary-color); background-color: #dbeafe; /* blue-100 */ text-decoration: underline; transform: translateY(-1px); }
+
+        /* Fade-in Animation */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in-section { opacity: 0; animation: fadeIn 0.5s ease-out forwards; }
+
+    </style>
+</head>
+
+<body class="bg-gray-100"> <div class="page-container"> <aside class="local-side-nav"> <h4 class="head4">JS 核心基础</h4> <ul id="local-toc">
+                 <li><a href="#async-concepts"><span class="material-icons nav-icon">info</span>同步与异步</a></li>
+                 <li><a href="#callbacks"><span class="material-icons nav-icon">call_split</span>回调函数</a></li>
+                 <li><a href="#promise-basics"><span class="material-icons nav-icon">hourglass_empty</span>Promise 基础</a></li>
+                 <li><a href="#promise-methods"><span class="material-icons nav-icon">list_alt</span>Promise 静态方法</a></li>
+                 <li><a href="#async-await"><span class="material-icons nav-icon">auto_awesome</span>async/await</a></li>
+                 <li><a href="#event-loop-details"><span class="material-icons nav-icon">sync</span>事件循环详解</a></li>
+                 <li><a href="#playground"><span class="material-icons nav-icon">science</span>交互式演练场</a></li>
+                 <li><a href="#async-interview-prep"><span class="material-icons nav-icon">question_answer</span>异步面试题</a></li>
+                 <li><a href="01-Language-Basics.html"><span class="material-icons nav-icon">arrow_back</span>返回 JS 基础</a></li>
+             </ul>
+             <a href="../../index.html" class="back-link">
+                 &larr; 返回大纲目录
+             </a>
+         </aside>
+
+        <main class="content-main"> <article>
+                <section id="async-intro" class="content-section fade-in-section">
+                    <h1 class="head1 flex items-center gap-2">
+                        <span class="material-icons text-3xl text-blue-600">hourglass_empty</span>
+                        JavaScript 异步编程与事件循环
+                    </h1>
+                    <p>
+                        JavaScript 引擎本身是<strong class="text-red-600">单线程</strong>执行的，这意味着在任意时刻，它只能执行一个任务。然而，现代 Web 应用充满了需要等待的操作，比如从服务器获取数据、设置定时器、响应用户点击等。如果 JS
+                        完全同步地执行这些操作，那么在等待期间，整个页面（尤其是用户界面）将会被<strong class="text-red-600">阻塞</strong>，无法响应用户输入，导致极差的用户体验。
+                    </p>
+                    <p>
+                        为了解决这个问题，JavaScript 依赖其<strong class="text-blue-600">宿主环境</strong>（如浏览器或 Node.js）提供的能力来处理<strong class="text-red-600">异步 (Asynchronous)</strong> 操作。异步编程允许我们启动一个耗时操作，然后继续执行其他代码，而无需等待该操作完成。当异步操作完成后，环境会通过某种机制（通常是回调函数或 Promise）通知我们的代码。
+                    </p>
+                    <p>
+                        <strong class="text-red-600">事件循环 (Event Loop)</strong> 机制是这一切的核心，它协调了 JS 引擎、宿主环境 API 和任务队列之间的交互，使得单线程的 JS 能够高效地处理并发任务，实现非阻塞 I/O。
+                    </p>
+                    <p>
+                        本章将深入探讨 JS 中异步编程的基础概念（同步 vs 异步、回调函数），以及现代 JS 中处理异步的主要方式（Promise、async/await），并最终揭示事件循环（宏任务与微任务）的工作原理。
+                    </p>
+                </section>
+
+                <section id="async-concepts" class="content-section fade-in-section">
+                    <h2 class="head2 flex items-center"><span class="material-icons mr-2 text-blue-600">compare_arrows</span>同步 vs 异步 & 回调函数</h2>
+
+                    <div class="content-card">
+                        <h3 class="head3">同步 (Synchronous)</h3>
+                        <p>
+                            同步操作意味着代码按顺序<strong class="text-red-600">逐行执行</strong>。后一个任务必须等待前一个任务完成后才能开始。如果前一个任务耗时很长，整个程序就会被阻塞。
+                        </p>
+                        <pre class="my-code-block"><code class="language-javascript">// 同步示例
+console.log('任务 1 开始');
+
+// 假设这是一个耗时的同步操作 (例如复杂的计算)
+let result = 0;
+for (let i = 0; i < 1e8; i++) { // 模拟耗时
+  result += i;
+}
+console.log('任务 1 完成, 结果:', result); // 必须等待循环结束
+
+console.log('任务 2 开始'); // 只有在任务1完成后才会执行</code></pre>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3">异步 (Asynchronous)</h3>
+                        <p>
+                            异步操作则不同。当你启动一个异步任务时，程序<strong class="text-red-600">不会等待</strong>它完成，而是立即继续执行后续的代码。异步任务通常交给宿主环境（浏览器/Node.js）在后台处理。当该任务完成后，环境会通过某种方式通知 JS，通常是执行一个预先指定的回调函数。
+                        </p>
+                        <pre class="my-code-block"><code class="language-javascript">// 异步示例 (使用 setTimeout 模拟)
+console.log('任务 1 开始');
+
+// 启动一个异步任务 (定时器)
+setTimeout(function task1Callback() {
+  // 这个函数不会立即执行
+  console.log('任务 1 的异步回调执行');
+}, 100); // 延迟 100毫秒 (交给环境API处理)
+
+console.log('任务 2 开始'); // 这行代码会几乎立即执行，无需等待 setTimeout 完成
+
+// 输出顺序:
+// 任务 1 开始
+// 任务 2 开始
+// (大约 100ms 后)
+// 任务 1 的异步回调执行</code></pre>
+                    </div>
+
+                    <div class="content-card" id="callbacks">
+                        <h3 class="head3">回调函数 (Callback Functions)</h3>
+                        <p>
+                            回调函数是实现异步的一种<strong class="text-red-600">基本模式</strong>。它是一个<strong class="text-red-600">作为参数传递给另一个函数</strong>的函数。当那个外部函数完成某个（通常是异步的）操作后，它会<strong class="text-red-600">调用</strong>（"回调"）我们传入的这个函数。
+                        </p>
+                        <p>
+                            在上面的 <code>setTimeout</code> 例子中，<code>function task1Callback() { ... }</code> 就是一个回调函数。我们把它传给 <code>setTimeout</code>，浏览器在 100ms 后将它放入任务队列，事件循环最终会执行它。
+                        </p>
+                        <p>
+                            <strong>优点：</strong> 简单直观，是异步的基础。
+                        </p>
+                        <p>
+                            <strong>缺点：回调地狱 (Callback Hell / Pyramid of Doom)</strong>
+                        </p>
+                        <p>
+                            当需要按顺序执行多个相互依赖的异步操作时，回调函数嵌套会变得非常深，代码难以阅读、理解和维护。
+                        </p>
+                        <pre class="my-code-block"><code class="language-javascript">// 回调地狱示例
+asyncOperation1(function(result1) {
+  console.log('Step 1 done:', result1);
+  asyncOperation2(result1, function(result2) {
+    console.log('Step 2 done:', result2);
+    asyncOperation3(result2, function(result3) {
+      console.log('Step 3 done:', result3);
+      // ... 更多的嵌套 ...
+      console.log('All steps finished!');
+    }, function(error3) {
+      console.error('Error in step 3:', error3);
+    });
+  }, function(error2) {
+    console.error('Error in step 2:', error2);
+  });
+}, function(error1) {
+  console.error('Error in step 1:', error1);
+});
+
+// 错误处理也变得复杂和分散</code></pre>
+                        <p>
+                            为了解决回调地狱的问题，现代 JavaScript 引入了更优雅的异步处理方案，如 Promise 和 async/await。
+                        </p>
+                    </div>
+                </section>
+
+                <section id="promise-basics" class="content-section fade-in-section">
+                     <h2 class="head2 flex items-center"><span class="material-icons mr-2 text-blue-600">hourglass_empty</span>Promise 基础</h2>
+                     <div class="content-card" id="promise"> <h3 class="head3">背景：为什么需要 Promise？</h3>
+                         <p>在 Promise 出现之前，处理异步操作（尤其是需要按顺序执行多个异步操作时）通常依赖于回调函数嵌套。当嵌套层数过多时，会导致代码难以阅读和维护，形成所谓的 "回调地狱" (Callback Hell)。</p>
+                         <pre class="my-code-block"><code class="language-javascript">// 回调地狱示例 (Pyramid of Doom)
+getData(function(a) {
+  parseData(a, function(b) {
+    processData(b, function(c) {
+      displayData(c, function() {
+        // ... Code becomes deeply nested and hard to follow
+      });
+    });
+  });
+});</code></pre>
+
+                         <h3 class="head3">技术是什么：Promise 的核心概念</h3>
+                         <p>Promise 是一个对象，代表一个异步操作的<strong class="text-red-600">最终完成（或失败）</strong>及其结果值。它本质上是一个<strong class="text-blue-600">状态机</strong>，用于更优雅地管理异步流程。</p>
+                         <div class="diagram-container">
+                             <p class="diagram-title">Promise 状态机</p>
+                             <div class="mermaid">
+stateDiagram-v2
+    [*] --> Pending : Start
+    Pending --> Fulfilled : resolve(value)
+    Pending --> Rejected : reject(reason)
+    Fulfilled --> [*] : Settled (End)
+    Rejected --> [*] : Settled (End)
+
+    note right of Pending: 初始状态, 操作进行中
+    note left of Fulfilled: 操作成功, 拥有 value
+    note left of Rejected: 操作失败, 拥有 reason
+                             </div>
+                             <div class="explanation-box mt-6">
+                                 <strong>状态特点:</strong>
+                                 <ul class="list-disc pl-4 text-sm mt-2 space-y-1.5">
+                                     <li>初始状态为 <strong>Pending</strong> (进行中)。</li>
+                                     <li>从 Pending 可以通过调用 <code>resolve(value)</code> 变为 <strong>Fulfilled</strong> (已成功)。</li>
+                                     <li>从 Pending 可以通过调用 <code>reject(reason)</code> 变为 <strong>Rejected</strong> (已失败)。</li>
+                                     <li>状态一旦从 Pending 变为 Fulfilled 或 Rejected (即 settled)，就<strong class="text-red-600">不可再次改变</strong>。</li>
+                                     <li>Promise 必须有一个 <code>.then</code> 方法来访问其最终结果或失败原因。</li>
+                                 </ul>
+                             </div>
+                         </div>
+
+                         <h3 class="head3">怎么解决问题：Promise 的使用</h3>
+                         <div class="info-card"> <ul class="list-none space-y-6">
+                                 <li>
+                                     <strong>创建 Promise:</strong> 使用 <code>new Promise((resolve, reject) => { ... })</code> 构造函数。执行器函数会<strong class="text-red-600">立即同步执行</strong>。
+                                     <pre class="my-code-block"><code class="language-javascript">const fetchData = new Promise((resolve, reject) => {
+  console.log('Promise executor started...'); // 同步执行
+  // 模拟异步操作
+  setTimeout(() => {
+    const success = Math.random() > 0.3; // 模拟成功或失败
+    if (success) {
+      resolve({ data: 'Some fetched data' }); // 操作成功，状态变为 Fulfilled
+    } else {
+      reject(new Error('Failed to fetch data')); // 操作失败，状态变为 Rejected
+    }
+  }, 1000);
+});</code></pre>
+                                 </li>
+                                 <li>
+                                     <strong><code>.then(onFulfilled, onRejected?)</code>:</strong> 注册回调来处理 Promise 的最终状态。<code>onFulfilled</code> 在 Promise 变为 Fulfilled 时调用，<code>onRejected</code> (可选) 在变为 Rejected 时调用。<code>.then</code> <strong class="text-red-600">返回一个新的 Promise</strong>，允许链式调用。
+                                     <pre class="my-code-block"><code class="language-javascript">fetchData.then(
+  result => { // onFulfilled
+    console.log('Success:', result.data);
+    return result.data.toUpperCase(); // 返回值将作为下一个 then 的输入
+  },
+  error => { // onRejected (可选)
+    console.error('Initial fetch failed:', error.message);
+    // 可以返回一个值来“恢复”链，或者抛出错误继续传递
+    throw new Error('Handling initial error, but still failing.');
+  }
+).then(
+  processedData => { console.log('Processed Data:', processedData); }
+  // 注意：如果上一步的 onRejected 抛出错误，这里不会执行，错误会继续传递
+).catch(finalError => { // 通常用 catch 统一处理链中任何未捕获的错误
+    console.error("Caught error somewhere in the chain:", finalError.message);
+});</code></pre>
+                                 </li>
+                                 <li>
+                                     <strong><code>.catch(onRejected)</code>:</strong> 专门用于注册错误处理回调，是 <code>.then(null, onRejected)</code> 的语法糖。通常放在链的末尾捕获任何前面未处理的错误。
+                                     <pre class="my-code-block"><code class="language-javascript">fetchData
+  .then(result => result.data)
+  .then(data => data.nonExistentProperty.toUpperCase()) // 这里会产生错误
+  .catch(error => { // 捕获 fetchData 的 reject 或上面 then 中的错误
+    console.error('Caught error in chain:', error);
+    return 'Default value after error'; // 可以返回默认值使链继续
+  })
+  .then(finalValue => {
+    console.log('Final value:', finalValue); // 输出 'Default value after error'
+  });</code></pre>
+                                 </li>
+                                 <li>
+                                     <strong><code>.finally(onFinally)</code>:</strong> 注册一个回调，无论 Promise 是 Fulfilled 还是 Rejected 都会执行。常用于执行清理操作。<code>finally</code> 回调不接收参数，其返回值（除非抛错）不影响链的结果。
+                                     <pre class="my-code-block"><code class="language-javascript">fetchData
+  .then(result => console.log('Data:', result))
+  .catch(error => console.error('Error:', error))
+  .finally(() => {
+    console.log('Fetch operation finished (finally).'); // 总会执行
+  });</code></pre>
+                                 </li>
+                                 <li>
+                                     <strong>链式调用 & 错误冒泡:</strong> Promise 链允许将异步操作串联。错误会沿着链向下传递，直到被 <code>.catch</code> 捕获。
+                                     <pre class="my-code-block"><code class="language-javascript">Promise.resolve(1)
+  .then(value => { console.log(value); return value + 1; }) // 1, returns 2
+  .then(value => { console.log(value); throw new Error('Something went wrong'); }) // 2, throws error
+  .then(value => console.log('This will not run')) // Skipped
+  .catch(error => { console.error('Caught:', error.message); return 'recovered'; }) // Caught: Something went wrong, returns 'recovered'
+  .then(value => console.log('After catch:', value)); // After catch: recovered</code></pre>
+                                 </li>
+                             </ul>
+                         </div>
+                         <div class="quiz-card" id="quiz-promise">
+                             <p class="quiz-question">🧠 Quiz: Promise 的 <code>.then</code> 方法最多可以接收几个函数作为参数？</p>
+                             <div class="quiz-options">
+                                 <button class="button button-secondary w-full text-left justify-start" data-option="A" onclick="checkAnswer('quiz-promise', 'A', 'B')">A) 1 个 (onFulfilled)</button>
+                                 <button class="button button-secondary w-full text-left justify-start" data-option="B" onclick="checkAnswer('quiz-promise', 'B', 'B')">B) 2 个 (onFulfilled, onRejected)</button>
+                                 <button class="button button-secondary w-full text-left justify-start" data-option="C" onclick="checkAnswer('quiz-promise', 'C', 'B')">C) 3 个 (onFulfilled, onRejected, onFinally)</button>
+                                 <button class="button button-secondary w-full text-left justify-start" data-option="D" onclick="checkAnswer('quiz-promise', 'D', 'B')">D) 不定数量的回调函数</button>
+                             </div>
+                             <div class="quiz-feedback mt-4" style="display: none;"></div>
+                             <div class="explanation-box mt-4 text-xs" style="display: none;">
+                                 <code>.then()</code> 方法设计上接收两个可选参数：第一个是成功回调 (<code>onFulfilled</code>)，第二个是失败回调 (<code>onRejected</code>)。<code>.finally()</code> 是一个独立的方法。
+                             </div>
+                         </div>
+                     </div>
+                 </section>
+
+                <section id="promise-methods" class="content-section fade-in-section">
+                    <h2 class="head2 flex items-center"><span class="material-icons mr-2 text-blue-600">list_alt</span>Promise 静态方法</h2>
+                    <p>当需要并发处理多个异步操作并根据它们的结果进行不同处理时，Promise 提供了一些强大的静态方法。通过下面的 Playground，你可以修改参数并观察结果，以便更好地理解它们的行为。</p>
+                    <div class="space-y-8 mt-4">
+                        <div class="info-card border-l-4 border-green-500 bg-green-50">
+                            <h4 class="head4 text-green-800 mb-3">Promise.all(iterable)</h4>
+                            <p class="text-sm text-gray-700 mb-3">接收一个 Promise 迭代器（如数组）。它返回一个新的 Promise，该 Promise 会在迭代器中<b>所有</b> Promise 都成功 (fulfilled) 后才成功，并将所有成功的结果按原始顺序组成一个数组传递给 <code>.then</code>。如果迭代器中<b>任何一个</b> Promise 失败 (rejected)，<code>Promise.all</code> 返回的 Promise 会<b>立即失败</b>，并将第一个失败的原因传递给 <code>.catch</code>。</p>
+                            <pre class="my-code-block"><code class="language-javascript" id="code-promise-all">// Get values from playground controls specific to this container
+const delayP1 = parseInt(playgroundContainer.querySelector('#all-delay-p1').value) || 50;
+const delayP2 = parseInt(playgroundContainer.querySelector('#all-delay-p2').value) || 100;
+const rejectP3 = playgroundContainer.querySelector('#all-reject-p3').checked;
+
+const p1 = createPromise('P1', delayP1); // createPromise is passed in
+const p2 = createPromise('P2', delayP2);
+const p3 = createPromise('P3', 75, rejectP3); // P3 uses a fixed delay (75ms)
+
+console.log(`Starting Promise.all with P1(${delayP1}ms), P2(${delayP2}ms), P3(75ms, reject=${rejectP3})...`);
+
+Promise.all([p1, p2, p3])
+  .then(results => { console.log('%cAll succeeded:', 'color: green; font-weight: bold;', results); })
+  .catch(error => { console.error('%cAt least one failed:', 'color: red; font-weight: bold;', error); });</code></pre>
+                            <p class="text-xs text-gray-600 mt-2"><strong>场景:</strong> 需要等待多个独立的异步操作全部成功完成才能继续下一步，例如并行加载多个资源。</p>
+                            <div class="playground-card" data-code-id="code-promise-all"> <p class="playground-title">▶️ Playground: Promise.all 实验</p>
+                                <p class="text-sm text-gray-600 mb-4">调整下面 Promise 的延迟时间和 P3 是否失败，然后运行代码观察 <code>Promise.all</code> 的行为。</p>
+                                <div class="playground-options">
+                                    <label>P1 延迟 (ms): <input type="number" id="all-delay-p1" value="50" min="0"></label>
+                                    <label>P2 延迟 (ms): <input type="number" id="all-delay-p2" value="100" min="0"></label>
+                                    <label>让 P3 (75ms) 失败? <input type="checkbox" id="all-reject-p3"></label>
+                                </div>
+                                <div class="playground-controls"> <button class="playground-run-btn">运行代码</button> </div>
+                                <div class="playground-output">点击 "运行代码" 查看输出...</div>
+                            </div>
+                        </div>
+
+                        <div class="info-card border-l-4 border-blue-500 bg-blue-50">
+                            <h4 class="head4 text-blue-800 mb-3">Promise.race(iterable)</h4>
+                            <p class="text-sm text-gray-700 mb-3">接收一个 Promise 迭代器。它返回一个新的 Promise，该 Promise 的状态会<b>镜像</b>迭代器中<b>第一个</b> settled (无论是 fulfilled 还是 rejected) 的 Promise 的状态。</p>
+                            <pre class="my-code-block"><code class="language-javascript" id="code-promise-race">// Get values from playground controls specific to this container
+const delayFast = parseInt(playgroundContainer.querySelector('#race-delay-fast').value) || 50;
+const delaySlow = parseInt(playgroundContainer.querySelector('#race-delay-slow').value) || 200;
+const rejectError = playgroundContainer.querySelector('#race-reject-error').checked;
+const delayError = parseInt(playgroundContainer.querySelector('#race-delay-error').value) || 100;
+
+const fastPromise = createPromise('Fast', delayFast); // createPromise is passed in
+const slowPromise = createPromise('Slow', delaySlow);
+const errorPromise = createPromise('Error', delayError, rejectError);
+
+console.log(`Starting Promise.race with Fast(${delayFast}ms), Slow(${delaySlow}ms), Error(${delayError}ms, reject=${rejectError})...`);
+
+Promise.race([fastPromise, slowPromise, errorPromise])
+  .then(result => { console.log('%cFirst settled (fulfilled):', 'color: green; font-weight: bold;', result); })
+  .catch(error => { console.error('%cFirst settled (rejected):', 'color: red; font-weight: bold;', error); });</code></pre>
+                            <p class="text-xs text-gray-600 mt-2"><strong>场景:</strong> 取多个源中最快返回的结果，或者实现超时控制。</p>
+                            <div class="playground-card" data-code-id="code-promise-race">
+                                <p class="playground-title">▶️ Playground: Promise.race 实验</p>
+                                <p class="text-sm text-gray-600 mb-4">调整下面三个 Promise 的延迟时间，并选择 Error Promise 是否失败，观察哪个 Promise 最先 "胜出"。</p>
+                                <div class="playground-options">
+                                    <label>Fast 延迟 (ms): <input type="number" id="race-delay-fast" value="50" min="0"></label>
+                                    <label>Slow 延迟 (ms): <input type="number" id="race-delay-slow" value="200" min="0"></label>
+                                    <label>Error 延迟 (ms): <input type="number" id="race-delay-error" value="100" min="0"></label>
+                                    <label>让 Error 失败? <input type="checkbox" id="race-reject-error"></label>
+                                </div>
+                                <div class="playground-controls"> <button class="playground-run-btn">运行代码</button> </div>
+                                <div class="playground-output">点击 "运行代码" 查看输出...</div>
+                            </div>
+                        </div>
+
+                        <div class="info-card border-l-4 border-yellow-500 bg-yellow-50">
+                             <h4 class="head4 text-yellow-800 mb-3">Promise.allSettled(iterable)</h4>
+                             <p class="text-sm text-gray-700 mb-3">接收一个 Promise 迭代器。它返回一个新的 Promise，该 Promise <b>总会成功</b> (fulfilled)，在迭代器中<b>所有</b> Promise 都 settled (无论成功或失败) 后，其解决值为一个对象数组，每个对象描述了对应 Promise 的最终状态 (<code>{status: 'fulfilled', value: ...}</code> 或 <code>{status: 'rejected', reason: ...}</code>)。</p>
+                             <pre class="my-code-block"><code class="language-javascript" id="code-promise-allsettled">// Get values from playground controls specific to this container
+const delaySettle1 = parseInt(playgroundContainer.querySelector('#settled-delay-1').value) || 50;
+const delaySettle2 = parseInt(playgroundContainer.querySelector('#settled-delay-2').value) || 150;
+const rejectSettle2 = playgroundContainer.querySelector('#settled-reject-2').checked;
+const delaySettle3 = parseInt(playgroundContainer.querySelector('#settled-delay-3').value) || 100;
+
+const pSettle1 = createPromise('P1', delaySettle1); // createPromise is passed in
+const pSettle2 = createPromise('P2', delaySettle2, rejectSettle2);
+const pSettle3 = createPromise('P3', delaySettle3);
+
+console.log(`Starting Promise.allSettled with P1(${delaySettle1}ms), P2(${delaySettle2}ms, reject=${rejectSettle2}), P3(${delaySettle3}ms)...`);
+
+Promise.allSettled([pSettle1, pSettle2, pSettle3])
+  .then(results => {
+    console.log('%cAll settled results:', 'color: blue; font-weight: bold;');
+    console.log(JSON.stringify(results, null, 2)); // Compact view
+  });</code></pre>
+                             <p class="text-xs text-gray-600 mt-2"><strong>场景:</strong> 当你需要知道一组独立异步操作各自的完成情况，而不关心它们是否全部成功时。</p>
+                            <div class="playground-card" data-code-id="code-promise-allsettled">
+                                <p class="playground-title">▶️ Playground: Promise.allSettled 实验</p>
+                                <p class="text-sm text-gray-600 mb-4">调整延迟和 P2 是否失败。注意 <code>Promise.allSettled</code> 本身总是成功，并返回每个 Promise 的状态和结果/原因。</p>
+                                <div class="playground-options">
+                                    <label>P1 延迟 (ms): <input type="number" id="settled-delay-1" value="50" min="0"></label>
+                                    <label>P2 延迟 (ms): <input type="number" id="settled-delay-2" value="150" min="0"></label>
+                                    <label>让 P2 失败? <input type="checkbox" id="settled-reject-2" checked></label>
+                                    <label>P3 延迟 (ms): <input type="number" id="settled-delay-3" value="100" min="0"></label>
+                                </div>
+                                <div class="playground-controls"> <button class="playground-run-btn">运行代码</button> </div>
+                                <div class="playground-output">点击 "运行代码" 查看输出...</div>
+                            </div>
+                        </div>
+
+                        <div class="info-card border-l-4 border-purple-500 bg-purple-50">
+                            <h4 class="head4 text-purple-800 mb-3">Promise.any(iterable)</h4>
+                            <p class="text-sm text-gray-700 mb-3">接收一个 Promise 迭代器。它返回一个新的 Promise，该 Promise 会在迭代器中<b>任何一个</b> Promise 成功 (fulfilled) 后<b>立即成功</b>，并将第一个成功的结果传递给 <code>.then</code>。只有当迭代器中<b>所有</b> Promise 都失败 (rejected) 时，<code>Promise.any</code> 返回的 Promise 才会失败，其失败原因是一个包含所有失败原因的 <code>AggregateError</code>。</p>
+                            <pre class="my-code-block"><code class="language-javascript" id="code-promise-any">// Get values from playground controls specific to this container
+const rejectAny1 = playgroundContainer.querySelector('#any-reject-1').checked;
+const delayAny1 = parseInt(playgroundContainer.querySelector('#any-delay-1').value) || 150;
+const rejectAny2 = playgroundContainer.querySelector('#any-reject-2').checked;
+const delayAny2 = parseInt(playgroundContainer.querySelector('#any-delay-2').value) || 200;
+const rejectAny3 = playgroundContainer.querySelector('#any-reject-3').checked;
+const delayAny3 = parseInt(playgroundContainer.querySelector('#any-delay-3').value) || 50;
+
+const pAny1 = createPromise('P1', delayAny1, rejectAny1); // createPromise is passed in
+const pAny2 = createPromise('P2', delayAny2, rejectAny2);
+const pAny3 = createPromise('P3', delayAny3, rejectAny3);
+
+console.log(`Starting Promise.any with P1(${delayAny1}ms, reject=${rejectAny1}), P2(${delayAny2}ms, reject=${rejectAny2}), P3(${delayAny3}ms, reject=${rejectAny3})...`);
+
+Promise.any([pAny1, pAny2, pAny3])
+  .then(firstSuccess => { console.log('%cFirst fulfilled:', 'color: green; font-weight: bold;', firstSuccess); })
+  .catch(aggregateError => {
+    if (aggregateError instanceof AggregateError) {
+      const errorMessages = aggregateError.errors.map(e => (e instanceof Error ? e.message : String(e)));
+      console.error('%cAll promises rejected:', 'color: red; font-weight: bold;', errorMessages);
+    } else { console.error('%cCaught unexpected error:', 'color: red; font-weight: bold;', aggregateError); }
+  });</code></pre>
+                            <p class="text-xs text-gray-600 mt-2"><strong>场景:</strong> 只要多个源中有一个成功即可，例如从多个镜像服务器获取资源，取最快成功的那个。</p>
+                            <div class="playground-card" data-code-id="code-promise-any">
+                                <p class="playground-title">▶️ Playground: Promise.any 实验</p>
+                                <p class="text-sm text-gray-600 mb-4">调整延迟和每个 Promise 是否失败。<code>Promise.any</code> 会返回第一个成功的 Promise 的结果。只有当所有 Promise 都失败时，它才会失败。</p>
+                                <div class="playground-options">
+                                    <label>P1 延迟 (ms): <input type="number" id="any-delay-1" value="150" min="0"></label>
+                                    <label>让 P1 失败? <input type="checkbox" id="any-reject-1" checked></label>
+                                    <label>P2 延迟 (ms): <input type="number" id="any-delay-2" value="200" min="0"></label>
+                                    <label>让 P2 失败? <input type="checkbox" id="any-reject-2"></label>
+                                    <label>P3 延迟 (ms): <input type="number" id="any-delay-3" value="50" min="0"></label>
+                                    <label>让 P3 失败? <input type="checkbox" id="any-reject-3"></label>
+                                </div>
+                                <div class="playground-controls"> <button class="playground-run-btn">运行代码</button> </div>
+                                <div class="playground-output">点击 "运行代码" 查看输出...</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="async-await" class="content-section fade-in-section">
+                    <h2 class="head2 flex items-center"><span class="material-icons mr-2 text-blue-600">auto_awesome</span>async/await 语法糖</h2>
+                    <div class="content-card" id="async-await-basics"> <h3 class="head3">背景：Promise 链的改进空间</h3>
+                        <p>虽然 Promise 解决了回调地狱，并且链式调用比嵌套回调清晰得多，但当异步步骤很多时，<code>.then</code> 链有时仍然显得有些冗长和分离。<code>async/await</code> (ES2017) 提供了一种更简洁、更像同步代码的方式来编写和理解基于 Promise 的异步逻辑。</p>
+
+                        <h3 class="head3">技术是什么：async/await 核心</h3>
+                        <div class="info-card accent-blue"> <ul class="list-none space-y-5">
+                                <li class="flex items-start gap-4">
+                                    <span class="material-icons text-purple-600 mt-1">functions</span>
+                                    <div>
+                                        <strong class="text-purple-700"><code>async</code> 关键字:</strong>
+                                        <p class="text-sm text-gray-600 mt-1">用于声明一个异步函数。<code>async</code> 函数<strong class="text-red-600">自动返回一个 Promise</strong>。<br>- 如果函数内部显式 <code>return</code> 一个值，这个值会被 <code>Promise.resolve()</code> 包装。<br>- 如果函数内部抛出一个错误，这个错误会被 <code>Promise.reject()</code> 包装。</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-4">
+                                    <span class="material-icons text-teal-600 mt-1">timer</span>
+                                    <div>
+                                        <strong class="text-teal-700"><code>await</code> 关键字:</strong>
+                                        <p class="text-sm text-gray-600 mt-1"><strong class="text-red-600">只能</strong>在 <code>async</code> 函数内部使用。它会<strong class="text-red-600">暂停</strong> <code>async</code> 函数的执行，等待 <code>await</code> 右侧的表达式（通常是一个 Promise）解析完成。<br>- 如果右侧是 Promise，<code>await</code> 等待其 settled。成功则返回解决值，失败则<strong class="text-red-600">抛出</strong>错误。<br>- 如果右侧不是 Promise，<code>await</code> 会将其转换为一个 resolved Promise，并立即返回该值。</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h3 class="head3">怎么解决问题：使用 async/await 简化异步</h3>
+                        <p>使用 <code>async/await</code> 可以将之前的 Promise 链示例改写得更像传统的同步代码，提高了可读性，并且错误处理可以使用标准的 <code>try...catch</code> 结构。</p>
+                        <pre class="my-code-block"><code class="language-javascript">// 假设 step1(), step2() 返回 Promise
+async function performSteps() {
+  console.log("Async function started...");
+  try {
+    const result1 = await step1(); // 等待 step1 完成
+    console.log('Step 1 completed with:', result1);
+    const result2 = await step2(result1); // 等待 step2 完成
+    console.log('Step 2 completed with:', result2);
+    return result2; // 最终结果
+  } catch (error) {
+    console.error('An error occurred during steps:', error.message);
+    throw error; // 重新抛出，让外部可以捕获
+  } finally {
+      console.log("Async function finished attempt (finally).");
+  }
+}
+
+performSteps()
+  .then(finalResult => { console.log('Async function succeeded:', finalResult); })
+  .catch(error => { console.error('Async function failed:', error.message); });
+
+// --- Helper functions (example) ---
+function step1() { /* ... returns a Promise ... */ }
+function step2(input) { /* ... returns a Promise ... */ }</code></pre>
+                        <p class="mt-4"><strong>优点:</strong></p>
+                        <ul class="list-disc pl-5 space-y-1 text-sm">
+                            <li><b>代码结构清晰:</b> 异步代码看起来更像同步代码。</li>
+                            <li><b>错误处理直观:</b> 使用 <code>try...catch...finally</code>。</li>
+                            <li><b>调试方便:</b> 更容易单步执行。</li>
+                        </ul>
+                        <p class="mt-2"><strong>重要提醒:</strong> <code>async/await</code> 本质上是 Promise 的语法糖。<code>await</code> <strong class="text-red-600">不会阻塞</strong>整个 JS 线程，仅暂停当前 <code>async</code> 函数，允许事件循环处理其他任务。</p>
+
+                        <h3 class="head3">面试高频：async/await 与事件循环</h3>
+                        <div class="explanation-box">
+                            <strong><code>await</code> 的真正含义:</strong>
+                            <ol class="list-decimal pl-5 space-y-1.5 mt-2 text-sm">
+                                <li>遇到 <code>await expression;</code>：立即执行 <code>expression</code>。</li>
+                                <li>如果 <code>expression</code> 返回 Promise，<code>async</code> 函数暂停，引擎跳出，执行后续同步代码。</li>
+                                <li>当 Promise settled 后：<code>async</code> 函数<strong class="text-red-600">剩余部分</strong>的代码被包装成一个<strong class="text-red-600">微任务</strong>，添加到微任务队列。</li>
+                                <li>事件循环在清空当前微任务队列时，会执行这个微任务，恢复 <code>async</code> 函数。</li>
+                            </ol>
+                            <p class="mt-2 text-sm">这就是为什么在事件循环的 Quiz 中，<code>await</code> 后面的代码（如 <code>async1 end</code>）会在同步代码之后、<code>setTimeout</code> 之前作为微任务执行。</p>
+                        </div>
+                        <div class="quiz-card" id="quiz-async-basic">
+                            <p class="quiz-question">🧠 Quiz: 调用一个 <code>async</code> 函数会立即返回什么？</p>
+                            <div class="quiz-options">
+                                <button class="button button-secondary w-full text-left justify-start" data-option="A" onclick="checkAnswer('quiz-async-basic', 'A', 'C')">A) 函数内部 <code>return</code> 的值</button>
+                                <button class="button button-secondary w-full text-left justify-start" data-option="B" onclick="checkAnswer('quiz-async-basic', 'B', 'C')">B) <code>undefined</code></button>
+                                <button class="button button-secondary w-full text-left justify-start" data-option="C" onclick="checkAnswer('quiz-async-basic', 'C', 'C')">C) 一个 Promise</button>
+                                <button class="button button-secondary w-full text-left justify-start" data-option="D" onclick="checkAnswer('quiz-async-basic', 'D', 'C')">D) 第一个 <code>await</code> 表达式的结果</button>
+                            </div>
+                            <div class="quiz-feedback mt-4" style="display: none;"></div>
+                            <div class="explanation-box mt-4 text-xs" style="display: none;">
+                                <code>async</code> 函数的核心特性就是它总是立即返回一个 Promise。如果函数内部有 <code>return value;</code>，返回的 Promise 会 resolve 这个 <code>value</code>。如果函数内部抛出错误，返回的 Promise 会 reject 这个错误。
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="event-loop-details" class="content-section fade-in-section">
+                    <h2 class="head2 flex items-center"><span class="material-icons mr-2 text-blue-600">sync</span>事件循环详解 (宏任务与微任务)</h2>
+
+                    <div class="content-card">
+                         <div class="info-card accent-blue shadow-lg">
+                             <h4 class="head4 text-blue-800 mb-3">回顾：JS 引擎与宿主环境</h4>
+                             <p class="text-sm text-blue-700">JavaScript 引擎（如 V8）本身是单线程执行代码的。浏览器或 Node.js 等“宿主环境”提供了额外的异步 API（如 <code>setTimeout</code>、网络请求等），这些 API 由环境在后台处理。事件循环是宿主环境管理这些异步操作结果并调度回 JS 引擎执行的机制。</p>
+                         </div>
+
+                         <h3 class="head3">核心概念回顾</h3>
+                         <div class="info-card">
+                             <ul class="list-none space-y-5">
+                                 <li class="flex items-start gap-4"> <span class="material-icons text-red-500 mt-1">layers</span> <div> <strong class="text-red-700">调用栈 (Call Stack):</strong> <p class="text-sm text-gray-600 mt-1">LIFO 结构，追踪函数调用，执行同步代码。</p> </div> </li>
+                                 <li class="flex items-start gap-4"> <span class="material-icons text-green-500 mt-1">settings_ethernet</span> <div> <strong class="text-green-700">环境 APIs:</strong> <p class="text-sm text-gray-600 mt-1">宿主提供的异步接口 (<code>setTimeout</code>, <code>fetch</code> 等)，后台执行。</p> </div> </li>
+                                 <li class="flex items-start gap-4"> <span class="material-icons text-indigo-500 mt-1">queue</span> <div> <strong class="text-indigo-700">宏任务队列 (Task Queue):</strong> <p class="text-sm text-gray-600 mt-1">FIFO 队列，存放宏任务回调 (<code>setTimeout</code>, I/O 等)。</p> </div> </li>
+                                 <li class="flex items-start gap-4"> <span class="material-icons text-yellow-500 mt-1">flash_on</span> <div> <strong class="text-yellow-700">微任务队列 (Microtask Queue):</strong> <p class="text-sm text-gray-600 mt-1">更高优先级的 FIFO 队列，存放微任务回调 (Promise, <code>queueMicrotask</code>)。</p> </div> </li>
+                                 <li class="flex items-start gap-4"> <span class="material-icons text-orange-500 mt-1">loop</span> <div> <strong class="text-orange-700">事件循环 (Event Loop):</strong> <p class="text-sm text-gray-600 mt-1">持续监控调用栈和任务队列的进程。</p> </div> </li>
+                             </ul>
+                         </div>
+
+                         <h3 class="head3">事件循环流程图</h3>
+                         <div class="diagram-container">
+                             <p class="diagram-title">事件循环核心流程示意图</p>
+                             <div class="mermaid">
+                                graph TD
+                                subgraph "JavaScript Engine"
+                                A[调用栈 Call Stack]
+                                end
+    
+                                subgraph "Host Environment"
+                                B(Web/Node APIs) -- 异步操作完成 --> C{宏任务队列 Macrotask};
+                                B -- 异步操作完成 --> D{微任务队列 Microtask};
+                                end
+    
+                                E((事件循环 Event Loop))
+    
+                                A -- 同步执行 --> A;
+                                A -- 栈空 --> E;
+                                E -- 检查微任务 --> D;
+                                D -- 取出所有微任务 --> A;
+                                E -- 检查宏任务 --> C;
+                                C -- 取出1个宏任务 --> A;
+    
+                                %% Styling (optional, Mermaid handles defaults)
+                                style A fill:#fff1f2,stroke:#fda4af,stroke-width:2px;
+                                style B fill:#f0fdf4,stroke:#86efac,stroke-width:2px;
+                                style C fill:#eef2ff,stroke:#a5b4fc,stroke-width:2px;
+                                style D fill:#fefce8,stroke:#fcd34d,stroke-width:2px;
+                                style E fill:#fff7ed,stroke:#fb923c,stroke-width:3px,font-weight:bold;
+    
+    
+                             </div>
+                             <div class="explanation-box mt-8">
+                                 <strong class="text-gray-700">执行步骤 (Tick):</strong>
+                                 <ol class="list-decimal pl-5 text-sm mt-2 space-y-1.5">
+                                     <li>执行调用栈中的同步代码，直到栈空。</li>
+                                     <li>检查<strong class="text-yellow-700">微任务队列</strong>，执行并<strong class="text-red-600">清空所有</strong>微任务（包括执行期间新加入的）。</li>
+                                     <li>（浏览器可选）检查是否需要<strong class="text-sky-600">渲染 UI</strong>。</li>
+                                     <li>检查<strong class="text-indigo-700">宏任务队列</strong>，如果队列不为空，取出<strong class="text-red-600">一个</strong>宏任务执行。</li>
+                                     <li>重复步骤 2-4，开始新的循环 tick。</li>
+                                 </ol>
+                             </div>
+                         </div>
+                    </div>
+
+                    <div class="content-card mt-6">
+                        <h3 class="head3">宏任务 vs 微任务 详解</h3>
+                        <p>理解宏任务和微任务的区别以及它们的执行顺序，对于预测和控制异步代码的行为至关重要。</p>
+
+                        <div class="grid md:grid-cols-2 gap-6 mt-4"> <div class="info-card accent-indigo border-l-4"> <h4 class="head4 text-indigo-800 mb-3">宏任务 (MacroTask / Task)</h4>
+                                <p class="text-sm text-indigo-700 mb-4">由事件循环机制调度，每次循环只执行<strong class="text-red-600">一个</strong>。</p>
+                                <ul class="list-disc pl-5 text-sm space-y-1.5 text-indigo-900">
+                                    <li><code>script</code> (整体代码块)</li>
+                                    <li><code>setTimeout</code>, <code>setInterval</code></li>
+                                    <li><code>setImmediate</code> (Node.js 环境)</li>
+                                    <li>I/O 操作 (文件读写、网络请求回调等)</li>
+                                    <li>UI 渲染 (浏览器环境)</li>
+                                    <li><code>postMessage</code>, MessageChannel</li>
+                                    <li>用户交互事件回调 (click, keydown 等)</li>
+                                </ul>
+                            </div>
+                            <div class="info-card accent-yellow border-l-4"> <h4 class="head4 text-yellow-800 mb-3">微任务 (MicroTask / Job)</h4>
+                                <p class="text-sm text-yellow-700 mb-4">在当前宏任务执行结束后、下一个宏任务开始前，需要被<strong class="text-red-600">全部</strong>清空的队列。</p>
+                                <ul class="list-disc pl-5 text-sm space-y-1.5 text-yellow-900">
+                                    <li><code>Promise.then/catch/finally</code> 的回调</li>
+                                    <li><code>async/await</code> 中 <code>await</code> 后面的代码</li>
+                                    <li><code>queueMicrotask()</code></li>
+                                    <li><code>MutationObserver</code> 回调</li>
+                                    <li><code>process.nextTick</code> (Node.js, <strong class="text-red-600">特殊，优先级最高</strong>，严格说比微任务还优先)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h3 class="head3 mt-6">执行顺序示例分析</h3>
+                        <p>回顾之前的例子，并标注任务类型：</p>
+                        <pre class="my-code-block"><code class="language-javascript">console.log('script start'); // 1. 同步 (属于 script 宏任务)
+
+setTimeout(function() {        // 注册宏任务 (A)
+  console.log('setTimeout'); // 5. 宏任务 (A) 的执行
+}, 0);
+
+Promise.resolve()
+  .then(function() {         // 注册微任务 (a)
+    console.log('promise1'); // 3. 微任务 (a) 的执行
+  })
+  .then(function() {         // 微任务 (a) 执行时注册微任务 (b)
+    console.log('promise2'); // 4. 微任务 (b) 的执行
+  });
+
+console.log('script end');   // 2. 同步 (属于 script 宏任务)</code></pre>
+                        <div class="explanation-box">
+                            <strong>执行流程:</strong>
+                            <ol class="list-decimal pl-4 space-y-1.5 text-sm mt-2">
+                                <li><strong>宏任务 (script):</strong>
+                                    <ul>
+                                        <li>执行同步代码: 输出 'script start' (1)。</li>
+                                        <li>遇到 <code>setTimeout</code>，将其回调注册为新的宏任务 (A)，放入宏任务队列。</li>
+                                        <li>遇到 <code>Promise.resolve().then()</code>，将第一个 <code>.then</code> 的回调注册为微任务 (a)，放入微任务队列。</li>
+                                        <li>执行同步代码: 输出 'script end' (2)。</li>
+                                    </ul>
+                                </li>
+                                <li><strong>script 宏任务结束，检查微任务队列:</strong>
+                                    <ul>
+                                        <li>微任务队列: [(a)]。</li>
+                                        <li>执行微任务 (a): 输出 'promise1' (3)。遇到第二个 <code>.then</code>，将其回调注册为新的微任务 (b)，放入微任务队列。</li>
+                                        <li>微任务队列: [(b)]。</li>
+                                        <li>执行微任务 (b): 输出 'promise2' (4)。</li>
+                                        <li>微任务队列: [] (已清空)。</li>
+                                    </ul>
+                                </li>
+                                <li><strong>(可选渲染)</strong></li>
+                                <li><strong>检查宏任务队列:</strong>
+                                    <ul>
+                                        <li>宏任务队列: [(A)]。</li>
+                                        <li>取出宏任务 (A) 执行: 输出 'setTimeout' (5)。</li>
+                                    </ul>
+                                </li>
+                                <li><strong>宏任务 (A) 结束，检查微任务队列 (空)。</strong></li>
+                                <li><strong>检查宏任务队列 (空)。</strong> 事件循环可能进入等待状态。</li>
+                            </ol>
+                             <strong>最终输出:</strong> <code>script start</code>, <code>script end</code>, <code>promise1</code>, <code>promise2</code>, <code>setTimeout</code>
+                        </div>
+
+                        <div class="quiz-card" id="quiz-macro-micro-recap">
+                             <p class="quiz-question">🧠 Quiz Recap: 下面代码的输出顺序是什么？</p>
+                             <pre class="my-code-block"><code class="language-javascript">async function async1() { console.log('async1 start'); await async2(); console.log('async1 end'); }
+async function async2() { console.log('async2'); }
+console.log('script start');
+setTimeout(function() { console.log('setTimeout'); }, 0);
+async1();
+new Promise(function(resolve) { console.log('promise1'); resolve(); }).then(function() { console.log('promise2'); });
+console.log('script end');</code></pre>
+                             <div class="quiz-options">
+                                 <button class="button button-secondary w-full text-left justify-start" data-option="A" onclick="checkAnswer('quiz-macro-micro-recap', 'A', 'C')">A) script start, async1 start, async2, promise1, script end, promise2, async1 end, setTimeout</button>
+                                 <button class="button button-secondary w-full text-left justify-start" data-option="B" onclick="checkAnswer('quiz-macro-micro-recap', 'B', 'C')">B) script start, async1 start, async2, promise1, script end, promise2, setTimeout, async1 end</button>
+                                 <button class="button button-secondary w-full text-left justify-start" data-option="C" onclick="checkAnswer('quiz-macro-micro-recap', 'C', 'C')">C) script start, async1 start, async2, promise1, script end, async1 end, promise2, setTimeout</button>
+                                 <button class="button button-secondary w-full text-left justify-start" data-option="D" onclick="checkAnswer('quiz-macro-micro-recap', 'D', 'C')">D) script start, async1 start, async2, script end, promise1, async1 end, promise2, setTimeout</button>
+                             </div>
+                             <div class="quiz-feedback mt-4" style="display: none;"></div>
+                             <div class="explanation-box mt-4 text-xs" style="display: none;">
+                                 <strong>详细步骤:</strong>
+                                 <ol class="list-decimal pl-4 mt-1 space-y-0.5">
+                                     <li>同步: 输出 'script start' (1)</li>
+                                     <li>调用 async1(): 输出 'async1 start' (2)</li>
+                                     <li>遇到 await async2(): 立即执行 async2(), 输出 'async2' (3). await 暂停 async1, 将 'async1 end' 放入微任务队列 (m1)</li>
+                                     <li>继续同步: 执行 new Promise(), 输出 'promise1' (4). resolve() 将 .then() 回调 (输出 'promise2') 放入微任务队列 (m2)</li>
+                                     <li>继续同步: 输出 'script end' (5)</li>
+                                     <li>同步结束, 执行微任务: 先执行 m1 ('async1 end') (6), 再执行 m2 ('promise2') (7)</li>
+                                     <li>微任务清空, 执行宏任务: 执行 setTimeout 回调, 输出 'setTimeout' (8)</li>
+                                 </ol> 所以顺序是: script start, async1 start, async2, promise1, script end, async1 end, promise2, setTimeout. (选项 C 正确)
+                             </div>
+                         </div>
+                    </div>
+                </section>
+
+                <section id="playground" class="content-section fade-in-section">
+                      <h2 class="head2 flex items-center"><span class="material-icons mr-2 text-blue-600">science</span>交互式演练场 (Playground)</h2>
+                      <p>通过下面的练习，尝试预测代码的输出顺序，加深对事件循环的理解。</p>
+
+                      <div class="playground-card" id="playground-1">
+                          <p class="playground-title">练习 1: 预测输出顺序</p>
+                          <p class="mb-4">考虑以下代码片段：</p>
+                          <pre class="my-code-block"><code class="language-javascript">
+console.log('A');
+
+setTimeout(() => console.log('B'), 0);
+
+Promise.resolve().then(() => console.log('C'));
+
+console.log('D');
+                          </code></pre>
+                          <p class="mb-3">请在下面的输入框中按执行顺序列出预期的输出字母 (A, B, C, D)：</p>
+                          <div class="flex items-center flex-wrap gap-2">
+                              <span>输出:</span>
+                              <input type="text" class="playground-input" data-index="0" maxlength="1">
+                              <input type="text" class="playground-input" data-index="1" maxlength="1">
+                              <input type="text" class="playground-input" data-index="2" maxlength="1">
+                              <input type="text" class="playground-input" data-index="3" maxlength="1">
+                              <button class="playground-check-btn"
+                                  onclick="checkPlaygroundOrder('playground-1', ['A', 'D', 'C', 'B'])">检查答案</button>
+                          </div>
+                          <div class="playground-feedback text-sm mt-4" style="display: none;"></div>
+                          <div class="explanation-box mt-4 text-xs" style="display: none;">
+                              <strong>解释:</strong>
+                              <ol class="list-decimal pl-4 mt-1 space-y-0.5">
+                                  <li>同步代码优先执行: 输出 'A' 和 'D'。</li>
+                                  <li><code>setTimeout</code> 回调 ('B') 是宏任务，放入宏任务队列。</li>
+                                  <li><code>Promise.then</code> 回调 ('C') 是微任务，放入微任务队列。</li>
+                                  <li>同步代码执行完毕后，清空微任务队列: 输出 'C'。</li>
+                                  <li>微任务队列清空后，执行下一个宏任务: 输出 'B'。</li>
+                              </ol> 因此正确顺序是 A, D, C, B。
+                          </div>
+                      </div>
+
+                      
+
+                  </section>
+
+                 <section id="simulator" class="content-section fade-in-section">
+                      <h2 class="head2 flex items-center"><span class="material-icons mr-2 text-blue-600">visibility</span>事件循环模拟器 (可视化)</h2>
+                      <p>通过逐步执行下面的代码，观察调用栈、Web APIs、任务队列和输出的变化，直观感受事件循环的过程。</p>
+                      <div class="simulator-container" id="event-loop-simulator">
+                          <p class="simulator-title">模拟执行示例</p>
+                          <div class="simulator-layout">
+                              <div class="sim-panel sim-code-panel">
+                                  <h4 class="sim-panel-title">代码</h4>
+                                  <div class="sim-code">
+                                      <pre class="my-code-block"><code id="sim-code-display" class="language-javascript"></code></pre>
+                                  </div>
+                              </div>
+                              <div class="sim-panel sim-queues-panel">
+                                  <h4 class="sim-panel-title">状态</h4>
+                                  <div>
+                                      <p class="text-xs font-semibold mb-1" style="color: var(--stack-text)">调用栈 (Call Stack)</p>
+                                      <div class="sim-queue sim-call-stack" id="sim-call-stack"></div>
+                                  </div>
+                                  <div>
+                                      <p class="text-xs font-semibold mb-1" style="color: var(--api-text)">Web APIs (模拟)</p>
+                                      <div class="sim-queue sim-web-apis" id="sim-web-apis"></div>
+                                  </div>
+                                  <div>
+                                      <p class="text-xs font-semibold mb-1" style="color: var(--micro-text)">微任务队列 (Microtask Queue)</p>
+                                      <div class="sim-queue sim-micro-queue" id="sim-micro-queue"></div>
+                                  </div>
+                                  <div>
+                                      <p class="text-xs font-semibold mb-1" style="color: var(--macro-text)">宏任务队列 (Macrotask Queue)</p>
+                                      <div class="sim-queue sim-macro-queue" id="sim-macro-queue">[script]</div>
+                                  </div>
+                              </div>
+                              <div class="sim-panel sim-output-panel">
+                                  <h4 class="sim-panel-title">输出 & 解释</h4>
+                                  <div class="sim-output-log" id="sim-output-log"></div>
+                                  <div class="sim-explanation" id="sim-explanation">点击 "下一步" 开始模拟。</div>
+                              </div>
+                              <div class="sim-controls">
+                                  <button id="sim-step-btn" class="sim-btn">下一步 (Step)</button>
+                                  <button id="sim-reset-btn" class="sim-btn">重置 (Reset)</button>
+                              </div>
+                          </div>
+                      </div>
+                  </section>
+
+                <section id="async-interview-prep" class="content-section fade-in-section">
+                     <h2 class="head2 flex items-center"><span class="material-icons mr-2 text-blue-600">question_answer</span>异步编程面试题</h2>
+                     <p class="mb-6">以下是一些在面试中，关于异步编程和事件循环常被问到的问题及其回答要点：</p>
+                     <div class="space-y-6"> <div class="interview-card">
+                             <h4>1. 请解释一下 JavaScript 的事件循环 (Event Loop) 机制。</h4>
+                             <div class="answer-points">
+                                 <strong>回答要点:</strong>
+                                 <ul class="list-disc">
+                                     <li><b>目的:</b> 解释 JS 如何在单线程模型下实现异步非阻塞 I/O。</li>
+                                     <li><b>关键组件:</b> 调用栈, 环境 API, 宏任务队列, 微任务队列。</li>
+                                     <li><b>核心流程:</b> 同步代码 -> 清空微任务 -> (渲染) -> 执行一个宏任务 -> 清空微任务 -> ...</li>
+                                     <li><b>强调:</b> 微任务优先级高于宏任务，并在每次宏任务后完整清空。</li>
+                                 </ul>
+                                 <a href="#event-loop-details" class="review-link">⤴️ 回顾事件循环详解</a>
+                             </div>
+                         </div>
+                         <div class="interview-card">
+                             <h4>2. 宏任务和微任务有什么区别？请举例说明。</h4>
+                             <div class="answer-points">
+                                 <strong>回答要点:</strong>
+                                 <ul class="list-disc">
+                                     <li><b>来源:</b> 宏任务通常由宿主环境发起；微任务通常由 JS 自身或特定 API (Promise) 产生。</li>
+                                     <li><b>执行时机:</b> 每次事件循环 tick 只执行一个宏任务；在每个宏任务后会清空所有微任务。</li>
+                                     <li><b>优先级:</b> 微任务 > 宏任务。</li>
+                                     <li><b>例子:</b> (宏: <code>setTimeout</code>, I/O; 微: <code>Promise.then</code>, <code>await</code> 后续)</li>
+                                 </ul>
+                                 <a href="#event-loop-details" class="review-link">⤴️ 回顾宏任务 vs 微任务</a>
+                             </div>
+                         </div>
+                         <div class="interview-card">
+                             <h4>3. Promise 有哪几种状态？状态改变的过程是怎样的？</h4>
+                             <div class="answer-points">
+                                 <strong>回答要点:</strong>
+                                 <ul class="list-disc">
+                                     <li><b>三种状态:</b> Pending, Fulfilled, Rejected。</li>
+                                     <li><b>状态改变:</b> Pending -> Fulfilled (via <code>resolve</code>), Pending -> Rejected (via <code>reject</code>)。</li>
+                                     <li><b>关键特性:</b> 状态一旦 settled (Fulfilled 或 Rejected)，就不可再变。</li>
+                                 </ul>
+                                 <a href="#promise-basics" class="review-link">⤴️ 回顾 Promise 基础</a>
+                             </div>
+                         </div>
+                         <div class="interview-card">
+                             <h4>4. <code>async/await</code> 是如何工作的？它和 Promise 是什么关系？</h4>
+                             <div class="answer-points">
+                                 <strong>回答要点:</strong>
+                                 <ul class="list-disc">
+                                     <li><b>关系:</b> <code>async/await</code> 是 Promise 的语法糖。</li>
+                                     <li><b><code>async</code>:</b> 标记函数，使其总返回 Promise。</li>
+                                     <li><b><code>await</code>:</b> 暂停 <code>async</code> 函数，等待 Promise 解决。成功返回值，失败抛错。</li>
+                                     <li><b>执行机制:</b> <code>await</code> 暂停后，函数剩余部分作为微任务调度。</li>
+                                     <li><b>错误处理:</b> 使用 <code>try...catch</code>。</li>
+                                 </ul>
+                                 <a href="#async-await" class="review-link">⤴️ 回顾 async/await</a>
+                             </div>
+                         </div>
+                         <div class="interview-card">
+                             <h4>5. <code>Promise.all</code>, <code>Promise.race</code>, <code>Promise.allSettled</code>, <code>Promise.any</code> 的区别和应用场景？</h4>
+                             <div class="answer-points">
+                                 <strong>回答要点:</strong>
+                                 <ul class="list-disc">
+                                     <li><b><code>all</code>:</b> 全部成功才成功，任一失败即失败。(场景: 所有依赖都需完成)</li>
+                                     <li><b><code>race</code>:</b> 返回第一个 settled 的结果 (成功或失败)。(场景: 取最快响应, 超时)</li>
+                                     <li><b><code>allSettled</code>:</b> 等待所有都 settled，返回各自状态和结果/原因。(场景: 需知道所有操作的最终状态)</li>
+                                     <li><b><code>any</code>:</b> 返回第一个成功的，所有都失败才失败。(场景: 任一成功即可)</li>
+                                 </ul>
+                                 <a href="#promise-methods" class="review-link">⤴️ 回顾 Promise 静态方法</a>
+                             </div>
+                         </div>
+                         <div class="interview-card">
+                             <h4>6. (代码题) 分析给定包含 <code>setTimeout</code>, <code>Promise</code>, <code>async/await</code> 的复杂代码片段的输出顺序。</h4>
+                             <div class="answer-points">
+                                 <strong>回答要点:</strong> (需要结合具体题目分析)
+                                 <ul class="list-disc">
+                                     <li><b>核心原则:</b> 同步 -> 清空微任务 -> (渲染) -> 一个宏任务。</li>
+                                     <li><b>识别任务类型:</b> 区分同步、宏任务、微任务。</li>
+                                     <li><b>追踪队列:</b> 模拟调用栈和任务队列变化。</li>
+                                     <li><b>注意细节:</b> <code>new Promise</code> 执行器同步执行, <code>await</code> 后续是微任务, Node.js <code>nextTick</code> 最高优先级。</li>
+                                     <li><b>逐步推导:</b> 记录输出和队列状态。</li>
+                                 </ul>
+                                 <a href="#event-loop-details" class="review-link">⤴️ 回顾事件循环 Quiz</a>
+                             </div>
+                         </div>
+                     </div>
+                 </section>
+
+            </article>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+         mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+    <script>
+        // --- Quiz Answer Checking Logic ---
+        function checkAnswer(quizId, selectedOption, correctOption) {
+            const quizCard = document.getElementById(quizId);
+            if (!quizCard) return;
+            const feedbackEl = quizCard.querySelector('.quiz-feedback');
+            const explanationEl = quizCard.querySelector('.explanation-box');
+            const buttons = quizCard.querySelectorAll('.quiz-options button');
+
+            buttons.forEach(button => {
+                button.disabled = true;
+                button.classList.remove('button-correct', 'button-incorrect', 'button-dimmed');
+                // Reset base styles if needed, assuming Tailwind/global handles this mostly
+                button.classList.add('button-secondary'); // Re-apply base button style if necessary
+            });
+
+            const correctButton = quizCard.querySelector(`button[data-option="${correctOption}"]`);
+            const selectedButton = quizCard.querySelector(`button[data-option="${selectedOption}"]`);
+
+            if (selectedOption === correctOption) {
+                feedbackEl.textContent = '✅ 回答正确！';
+                feedbackEl.className = 'quiz-feedback feedback-correct'; // Use classes from global.css
+                if (selectedButton) {
+                    selectedButton.classList.remove('button-secondary'); // Remove base before adding specific
+                    selectedButton.classList.add('button-correct');
+                }
+                buttons.forEach(button => {
+                    if (button !== selectedButton) button.classList.add('button-dimmed');
+                });
+            } else {
+                feedbackEl.textContent = `❌ 回答错误。正确答案是 ${correctOption}。`;
+                feedbackEl.className = 'quiz-feedback feedback-incorrect'; // Use classes from global.css
+                if (selectedButton) {
+                    selectedButton.classList.remove('button-secondary');
+                    selectedButton.classList.add('button-incorrect');
+                }
+                if (correctButton) {
+                     correctButton.classList.remove('button-secondary');
+                    correctButton.classList.add('button-correct'); // Highlight correct one
+                }
+                buttons.forEach(button => {
+                    if (button !== selectedButton && button !== correctButton) {
+                        button.classList.add('button-dimmed');
+                    }
+                });
+            }
+            feedbackEl.style.display = 'block';
+            if (explanationEl) {
+                explanationEl.style.display = 'block';
+            }
+        }
+
+         // --- Simple Playground Logic ---
+         function checkPlaygroundOrder(playgroundId, correctOrder) {
+             const playgroundCard = document.getElementById(playgroundId);
+             if (!playgroundCard) return;
+             const inputs = playgroundCard.querySelectorAll('.playground-input');
+             const feedbackEl = playgroundCard.querySelector('.playground-feedback');
+             const explanationEl = playgroundCard.querySelector('.explanation-box');
+             const checkBtn = playgroundCard.querySelector('.playground-check-btn');
+
+             let userOrder = Array.from(inputs).map(input => input.value.trim().toUpperCase());
+
+             const isCorrect = JSON.stringify(userOrder) === JSON.stringify(correctOrder);
+
+             if (isCorrect) {
+                 feedbackEl.textContent = '✅ 完全正确！顺序是: ' + correctOrder.join(', ');
+                 feedbackEl.className = 'playground-feedback text-green-700 font-medium'; // Added font-medium
+             } else {
+                 feedbackEl.textContent = '❌ 顺序不完全正确。你的答案: ' + userOrder.join(', ') + '。 正确答案是: ' + correctOrder.join(', ');
+                 feedbackEl.className = 'playground-feedback text-red-700 font-medium'; // Added font-medium
+             }
+             feedbackEl.style.display = 'block';
+             if (explanationEl) {
+                 explanationEl.style.display = 'block';
+             }
+             if (checkBtn) {
+                 checkBtn.disabled = true;
+             }
+             inputs.forEach(input => input.disabled = true);
+         }
+
+
+         // --- Advanced Playground Execution Logic ---
+         function setupAdvancedAsyncPlaygrounds() {
+             const playgroundContainers = document.querySelectorAll('.playground-card[data-code-id]'); // Select only advanced playgrounds
+
+             // Helper function to create a promise (used by playground code)
+             // Ensure this function is accessible in the scope where playground code runs
+             window.createPromise = function(value, delay, shouldReject = false) {
+                 return new Promise((resolve, reject) => {
+                     setTimeout(() => {
+                         if (shouldReject) {
+                             console.log(`Promise rejecting after ${delay}ms with: ${value}`);
+                             reject(`Error: ${value}`); // Reject with a string or Error object
+                         } else {
+                             console.log(`Promise resolving after ${delay}ms with: ${value}`);
+                             resolve(value); // Resolve with the original value for simplicity
+                         }
+                     }, delay);
+                 });
+             };
+
+
+             function escapeHtml(unsafe) { if(typeof unsafe!=="string")return unsafe; return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+             function formatArg(arg) { if(arg instanceof Error){if(arg instanceof AggregateError){const e=arg.errors.map(r=>r instanceof Error?r.message:String(r)).join(", ");return`AggregateError: [${e}]`}return`${arg.name||"Error"}: ${arg.message}`}if(typeof arg=="object"&&arg!==null){try{return JSON.stringify(arg)}catch(e){return String(arg)}}if(typeof arg=="undefined"){return"undefined"}return String(arg)}
+
+             playgroundContainers.forEach(container => {
+                 const runBtn = container.querySelector('.playground-run-btn');
+                 const outputEl = container.querySelector('.playground-output');
+                 const codeId = container.dataset.codeId;
+                 const codeEl = document.getElementById(codeId);
+
+                 if (!runBtn || !outputEl || !codeEl) { console.warn('Playground container missing elements:', container); return; }
+
+                 runBtn.addEventListener('click', async () => {
+                     const codeToRun = codeEl.textContent || codeEl.innerText;
+                     outputEl.innerHTML = '<span class="log-info">执行中...</span>';
+                     runBtn.disabled = true;
+
+                     const originalConsoleLog = console.log;
+                     const originalConsoleError = console.error;
+                     let logs = [];
+
+                     // Override console methods
+                     console.log = (...args) => { logs.push({ type: 'log', content: args.map(arg => formatArg(arg)).join(' ') }); originalConsoleLog.apply(console, args); };
+                     console.error = (...args) => { const f=args.map(arg => formatArg(arg)).join(' '); logs.push({ type: 'error', content: f }); originalConsoleError.apply(console, args); };
+
+                     // Use Async Function constructor
+                     const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
+                     try {
+                         // Pass the playground container and createPromise helper
+                         // IMPORTANT FIX: Pass 'createPromise' which refers to window.createPromise
+                         const func = new AsyncFunction('playgroundContainer', 'createPromise', codeToRun);
+                         await func(container, window.createPromise); // Pass container and helper
+
+                         // Add a small delay to allow async operations within the code to potentially log
+                         await new Promise(resolve => setTimeout(resolve, 200)); // Increased delay slightly
+
+                     } catch (error) {
+                         originalConsoleError('Playground execution error:', error);
+                         logs.push({ type: 'error', content: `执行错误: ${formatArg(error)}` });
+                     } finally {
+                         // Restore console methods
+                         console.log = originalConsoleLog;
+                         console.error = originalConsoleError;
+
+                         // Display logs
+                         if (logs.length === 0) { outputEl.innerHTML = '<span class="log-info">代码已执行，无控制台输出。</span>'; }
+                         else {
+                             outputEl.innerHTML = logs.map(log => {
+                                 let className = '';
+                                 if (log.type === 'error' || log.content?.toLowerCase().includes('error') || log.content?.toLowerCase().includes('failed') || log.content?.toLowerCase().includes('rejected')) { className = 'log-error'; }
+                                 else if (log.type === 'info') { className = 'log-info'; }
+                                 else if (log.content?.toLowerCase().includes('success') || log.content?.toLowerCase().includes('fulfilled') || log.content?.toLowerCase().includes('succeeded')) { className = 'log-success'; }
+                                 return `<div class="${className}">${escapeHtml(log.content)}</div>`;
+                             }).join('');
+                         }
+                         runBtn.disabled = false;
+                     }
+                 });
+             });
+         }
+
+        // --- Sidebar Active Link Logic ---
+        function setupSidebarHighlighting() {
+            const sections = document.querySelectorAll('section[id]');
+            const tocLinks = document.querySelectorAll('#local-toc a');
+            let lastActiveTocLink = document.querySelector('#local-toc a.current'); // Start with current if set
+
+            const observerOptions = { root: null, rootMargin: '-20% 0px -60% 0px', threshold: 0 };
+
+            const observerCallback = (entries) => {
+                let bestVisibleEntry = null;
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (!bestVisibleEntry || entry.boundingClientRect.top < bestVisibleEntry.boundingClientRect.top) {
+                            bestVisibleEntry = entry;
+                        }
+                    }
+                });
+
+                if (bestVisibleEntry) {
+                    const id = bestVisibleEntry.target.getAttribute('id');
+                    // Adjust selector to handle potential differences in href vs id
+                    const activeLink = document.querySelector(`#local-toc a[href="#${id}"], #local-toc a[href$="${id}"]`);
+                    if (activeLink && activeLink !== lastActiveTocLink) {
+                        if (lastActiveTocLink) lastActiveTocLink.classList.remove('current'); // Use 'current' class
+                        activeLink.classList.add('current');
+                        lastActiveTocLink = activeLink;
+                    }
+                }
+            };
+
+            const observer = new IntersectionObserver(observerCallback, observerOptions);
+            sections.forEach(section => { if (section.id) observer.observe(section); }); // Observe only sections with IDs
+
+            // Initial check in case the initial link wasn't set correctly
+             if (!lastActiveTocLink && tocLinks.length > 0) {
+                 const currentHash = window.location.hash;
+                 let initialLink = currentHash ? document.querySelector(`#local-toc a[href="${currentHash}"]`) : null;
+                 if (!initialLink) initialLink = tocLinks[0]; // Default to first if no hash or match
+                 if (initialLink) {
+                     initialLink.classList.add('current');
+                     lastActiveTocLink = initialLink;
+                 }
+             }
+        }
+
+        // --- Event Loop Simulator Logic ---
+        function setupEventLoopSimulator() {
+             const simulatorEl = document.getElementById('event-loop-simulator');
+             if (!simulatorEl) return; // Exit if simulator element not found
+
+             const codeDisplay = document.getElementById('sim-code-display');
+             const callStackDisplay = document.getElementById('sim-call-stack');
+             const webApisDisplay = document.getElementById('sim-web-apis');
+             const microQueueDisplay = document.getElementById('sim-micro-queue');
+             const macroQueueDisplay = document.getElementById('sim-macro-queue');
+             const outputLogDisplay = document.getElementById('sim-output-log');
+             const explanationDisplay = document.getElementById('sim-explanation');
+             const stepBtn = document.getElementById('sim-step-btn');
+             const resetBtn = document.getElementById('sim-reset-btn');
+
+             // --- Simulation Definition ---
+             const simulationCode = [ // Array of code lines
+                 "console.log('Start');", // 0
+                 "setTimeout(() => {",   // 1
+                 "  console.log('Timeout Callback');", // 2
+                 "}, 10);",               // 3 (Simulated delay)
+                 "Promise.resolve().then(() => {", // 4
+                 "  console.log('Promise 1');",    // 5
+                 "});",                   // 6
+                 "console.log('End');"     // 7
+             ];
+
+             const simulationSteps = [
+                 { line: 0, explanation: "开始执行 script (宏任务)。同步代码 console.log('Start') 入栈并执行。", stack: ["console.log('Start')"], microQ: [], macroQ: ['script'], webApis: [], output: "Start", highlightLine: 0 },
+                 { line: 1, explanation: "setTimeout 被调用，计时器 (10ms) 交给 Web API 处理。", stack: [], microQ: [], macroQ: ['script'], webApis: ['Timer (10ms) for Timeout Callback'], output: "Start", highlightLine: 1 },
+                 { line: 4, explanation: "Promise.resolve().then() 被调用，其回调放入微任务队列。", stack: [], microQ: ['Promise 1 Callback'], macroQ: ['script'], webApis: ['Timer (10ms) for Timeout Callback'], output: "Start", highlightLine: 4 },
+                 { line: 7, explanation: "同步代码 console.log('End') 入栈并执行。", stack: ["console.log('End')"], microQ: ['Promise 1 Callback'], macroQ: ['script'], webApis: ['Timer (10ms) for Timeout Callback'], output: "Start\nEnd", highlightLine: 7 },
+                 { line: -1, explanation: "当前宏任务 (script) 执行完毕。检查微任务队列。", stack: [], microQ: ['Promise 1 Callback'], macroQ: [], webApis: ['Timer (10ms) for Timeout Callback'], output: "Start\nEnd", highlightLine: -1 },
+                 { line: 5, explanation: "执行微任务队列中的 'Promise 1 Callback'。", stack: ["Promise 1 Callback"], microQ: [], macroQ: [], webApis: ['Timer (10ms) for Timeout Callback'], output: "Start\nEnd\nPromise 1", highlightLine: 5 },
+                 { line: -1, explanation: "微任务队列已清空。(假设此时 10ms 已到) 计时器完成，Timeout Callback 放入宏任务队列。", stack: [], microQ: [], macroQ: ['Timeout Callback'], webApis: [], output: "Start\nEnd\nPromise 1", highlightLine: -1 },
+                 { line: 2, explanation: "从宏任务队列取出 'Timeout Callback' 执行。", stack: ["Timeout Callback"], microQ: [], macroQ: [], webApis: [], output: "Start\nEnd\nPromise 1\nTimeout Callback", highlightLine: 2 },
+                 { line: -1, explanation: "当前宏任务 ('Timeout Callback') 执行完毕。检查微任务队列 (空)。", stack: [], microQ: [], macroQ: [], webApis: [], output: "Start\nEnd\nPromise 1\nTimeout Callback", highlightLine: -1 },
+                 { line: -1, explanation: "微任务和宏任务队列都为空。模拟结束。", stack: [], microQ: [], macroQ: [], webApis: [], output: "Start\nEnd\nPromise 1\nTimeout Callback", highlightLine: -1, finished: true },
+             ];
+
+             let currentStepIndex = -1;
+
+             function formatQueue(queueArray) { /* ... (same as before) ... */ if(!Array.isArray(queueArray)||queueArray.length===0){return'<span class="text-gray-400 italic text-xs">[空]</span>'}return queueArray.map(item=>`<div class="sim-queue-item">${escapeHtml(item)}</div>`).join('')}
+             function escapeHtml(unsafe) { /* ... (same as before) ... */ if(typeof unsafe!=="string")return unsafe;return unsafe.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
+
+             function renderCode(highlightLine = -1) { codeDisplay.innerHTML = simulationCode.map((line, index) => { const escapedLine = escapeHtml(line); return index === highlightLine ? `<span class="line-highlight">${escapedLine}</span>` : escapedLine; }).join('\n'); }
+
+             function renderState(step) {
+                 callStackDisplay.innerHTML = formatQueue(step.stack);
+                 webApisDisplay.innerHTML = formatQueue(step.webApis);
+                 microQueueDisplay.innerHTML = formatQueue(step.microQ);
+                 macroQueueDisplay.innerHTML = formatQueue(step.macroQ);
+                 outputLogDisplay.textContent = step.output;
+                 explanationDisplay.textContent = step.explanation;
+                 renderCode(step.highlightLine);
+                 stepBtn.disabled = !!step.finished;
+             }
+
+             function resetSimulator() {
+                 currentStepIndex = -1;
+                 callStackDisplay.innerHTML = '<span class="text-gray-400 italic text-xs">[空]</span>';
+                 webApisDisplay.innerHTML = '<span class="text-gray-400 italic text-xs">[空]</span>';
+                 microQueueDisplay.innerHTML = '<span class="text-gray-400 italic text-xs">[空]</span>';
+                 macroQueueDisplay.innerHTML = formatQueue(['script']);
+                 outputLogDisplay.textContent = '';
+                 explanationDisplay.textContent = '点击 "下一步" 开始模拟。';
+                 renderCode();
+                 stepBtn.disabled = false;
+             }
+
+             stepBtn.addEventListener('click', () => { currentStepIndex++; if (currentStepIndex < simulationSteps.length) { renderState(simulationSteps[currentStepIndex]); } });
+             resetBtn.addEventListener('click', resetSimulator);
+             resetSimulator(); // Initial setup
+         }
+
+
+        // --- DOMContentLoaded Handler ---
+        document.addEventListener('DOMContentLoaded', () => {
+             // Initialize Mermaid if elements exist
+             if (typeof mermaid !== 'undefined' && document.querySelector('.mermaid')) {
+                 try { mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); } catch (e) { console.error("Mermaid initialization failed:", e); }
+             } else if (!document.querySelector('.mermaid')) { /* No mermaid elements */ } else { console.warn("Mermaid library not found."); }
+
+            // Setup playgrounds if they exist
+            if (document.querySelector('.playground-card')) {
+                setupAdvancedAsyncPlaygrounds();
+            }
+            // Enable simple playground specifically if it exists
+            if (document.getElementById('playground-1')) {
+                document.querySelectorAll('#playground-1 input, #playground-1 button').forEach(el => el.disabled = false);
+            }
+
+            // Setup simulator if it exists
+            if (document.getElementById('event-loop-simulator')) {
+                setupEventLoopSimulator();
+            }
+
+             // Setup sidebar highlighting
+             setupSidebarHighlighting();
+
+            // Activate Prism highlighting
+            if (typeof Prism !== 'undefined') { Prism.highlightAll(); } else { console.warn("Prism library not found."); }
+
+            // Add basic interaction for checkboxes (could be saved to localStorage)
+            const checkboxes = document.querySelectorAll('.knowledge-list input[type="checkbox"]');
+            checkboxes.forEach(cb => { cb.addEventListener('change', (event) => { console.log(`Checkbox ${event.target.dataset.id} changed to ${event.target.checked}`); }); });
+
+            // Add fade-in animation to sections
+             const mainContentSections = document.querySelectorAll('.content-section');
+             const fadeObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+             const fadeObserverCallback = (entries, observer) => {
+                 entries.forEach((entry, index) => { // Use index for staggered delay
+                     if (entry.isIntersecting) {
+                         entry.target.style.animationDelay = `${index * 0.08}s`; // Stagger delay
+                         entry.target.classList.add('fade-in-section');
+                         observer.unobserve(entry.target);
+                     }
+                 });
+             };
+             const fadeObserver = new IntersectionObserver(fadeObserverCallback, fadeObserverOptions);
+             mainContentSections.forEach(section => fadeObserver.observe(section));
+
+        });
+    </script>
+
+</body>
+</html>

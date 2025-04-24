@@ -1,0 +1,574 @@
+/* ============================================= */
+/* == Global Stylesheet (Tailwind Compatible)  == */
+/* ============================================= */
+
+/* --- CSS Variables --- */
+:root {
+    /* Base Colors & Borders */
+    --primary-color: #3b82f6; /* Blue-500 */
+    --primary-color-dark: #2563eb; /* Blue-600 */
+    --primary-color-light: #eff6ff; /* Blue-50 */
+    --secondary-color: #10b981; /* Emerald-500 */
+    --secondary-color-light: #ecfdf5; /* Emerald-50 */
+    --danger-color: #ef4444; /* Red-500 */
+    --danger-color-light: #fee2e2; /* Red-100 */
+    --warning-color: #f97316; /* Orange-500 */
+    --warning-color-light: #fff7ed; /* Orange-50 */
+    --text-color-light: #6b7280; /* Gray-500 */
+    --text-color-default: #374151; /* Gray-700 */
+    --text-color-dark: #1f2937; /* Gray-800 */
+    --border-color-light: #e5e7eb; /* Gray-200 */
+    --border-color-default: #d1d5db; /* Gray-300 */
+    --border-color-dark: #9ca3af;  /* Gray-400 */
+    --bg-color-light: #f9fafb;    /* Gray-50 */
+    --bg-color-lighter: #f3f4f6;  /* Gray-100 */
+    --bg-color-white: white;
+    --focus-ring-color: rgba(59, 130, 246, 0.5); /* primary-color with alpha */
+    --success-color: var(--secondary-color);
+    --success-color-light: var(--secondary-color-light);
+
+    /* Typography Variables (Still useful for consistency) */
+    --font-family-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --base-font-size: 16px; /* Base for rem units */
+    --base-line-height: 1.65; /* Default line height for body text */
+
+    /* Card Variables */
+    --card-padding: 1.5rem;
+    --card-padding-nested: 1.25rem;
+    --card-nested-bg-level1: var(--bg-color-light);
+    --card-nested-bg-level2: var(--bg-color-lighter);
+    --card-nested-border-level1: var(--border-color-light);
+    --card-nested-border-level2: var(--border-color-default);
+    --card-shadow-default: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --card-shadow-nested-level1: 0 1px 2px 0 rgb(0 0 0 / 0.06), 0 1px 1px -1px rgb(0 0 0 / 0.06);
+    --card-shadow-nested-level2: 0 1px 1px 0 rgb(0 0 0 / 0.05);
+
+    /* Quiz Variables */
+    --quiz-bg: var(--primary-color-light);
+    --quiz-border-color: var(--primary-color);
+    --quiz-padding: var(--card-padding);
+    --quiz-option-hover-bg: rgba(59, 130, 246, 0.1);
+    --quiz-feedback-correct-bg: var(--success-color-light);
+    --quiz-feedback-correct-text: var(--success-color);
+    --quiz-feedback-incorrect-bg: var(--danger-color-light);
+    --quiz-feedback-incorrect-text: var(--danger-color);
+}
+
+/* ============================================= */
+/* == Base Styles (Minimal)                   == */
+/* ============================================= */
+
+/* Apply base font settings and background */
+/* Tailwind Preflight handles font-family, margin */
+html {
+    font-size: var(--base-font-size); /* Define base for rem units */
+    line-height: var(--base-line-height); /* Default line height */
+    -webkit-text-size-adjust: 100%; /* Prevent font scaling in landscape */
+    scroll-behavior: smooth; /* Enable smooth scrolling for anchors */
+}
+
+body {
+    background-color: var(--bg-color-lighter);
+    color: var(--text-color-default);
+    -webkit-font-smoothing: antialiased; /* Improve font rendering on WebKit */
+    -moz-osx-font-smoothing: grayscale; /* Improve font rendering on Firefox */
+    /* Tailwind Preflight handles margin */
+}
+
+/* Basic image responsiveness (Good practice, complements Tailwind) */
+img, svg, video, canvas, audio, iframe, embed, object {
+    display: block; /* Removes bottom space */
+    max-width: 100%; /* Responsive images */
+    height: auto; /* Maintain aspect ratio */
+}
+
+hr {
+    /* Tailwind Preflight sets height:0, color:inherit, border-top-width:1px */
+    /* Keep this if you want a different default border color */
+    border-top: 1px solid var(--border-color-light);
+    margin: 2em 0; /* Tailwind doesn't add margin to hr by default */
+}
+
+
+/* ============================================= */
+/* == Typography (Scoped & Code)              == */
+/* ============================================= */
+
+/* Default list styling ONLY within specific containers */
+/* Use Tailwind list utilities (e.g., list-disc, list-inside) elsewhere */
+.prose ul, .content-main ul {
+    list-style: disc;
+    padding-left: 1.5em; /* Indentation */
+    margin-bottom: 1em;
+}
+.prose ol, .content-main ol {
+    list-style: decimal;
+    padding-left: 1.5em;
+    margin-bottom: 1em;
+}
+.prose li, .content-main li {
+    margin-bottom: 0.5em;
+}
+/* Nested lists */
+.prose ul ul, .prose ol ol, .prose ul ol, .prose ol ul,
+.content-main ul ul, .content-main ol ol, .content-main ul ol, .content-main ol ul {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+/* Code blocks and inline code */
+pre {
+    background-color: var(--bg-color-light);
+    border: 1px solid var(--border-color-light);
+    border-radius: 0.375rem; /* Corresponds to rounded-md */
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: var(--font-family-mono);
+    font-size: 0.875rem; /* Corresponds to text-sm */
+    margin: 1em 0; /* Tailwind Preflight removes margin */
+    color: var(--text-color-dark);
+    white-space: pre; /* Preserve whitespace */
+}
+/* Base code style (inline) */
+code {
+    font-family: var(--font-family-mono);
+    font-size: 0.875em; /* Slightly smaller than surrounding text */
+}
+/* Specific style for inline code outside pre blocks */
+*:not(pre) > code {
+    background-color: var(--primary-color-light);
+    color: var(--primary-color-dark);
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.25rem; /* Corresponds to rounded-sm */
+}
+
+/* ============================================= */
+/* == Links (Minimal Base)                    == */
+/* ============================================= */
+/* Base link color and transition */
+/* Use Tailwind text color utilities (e.g., text-blue-600) for specific links */
+a {
+    color: var(--primary-color-dark);
+    transition: color 0.2s ease, text-decoration-color 0.2s ease;
+    /* Tailwind Preflight removes text-decoration */
+}
+
+a:hover {
+    color: var(--primary-color);
+    text-decoration: underline; /* Add underline on hover */
+    text-decoration-color: var(--primary-color);
+}
+
+/* ============================================= */
+/* == Forms (Minimal Base)                    == */
+/* ============================================= */
+/* Style radio/checkbox color */
+input[type="radio"],
+input[type="checkbox"] {
+    accent-color: var(--primary-color);
+    /* Tailwind v3.x doesn't style accent-color by default */
+    /* Keep width/height/cursor if needed, though Tailwind utilities can handle these */
+    /* width: 1rem; */ /* Use w-4 */
+    /* height: 1rem; */ /* Use h-4 */
+    /* cursor: pointer; */ /* Tailwind adds this via form plugin or base styles */
+}
+
+/* Base label style (can be overridden by utilities) */
+label {
+    display: inline-block;
+    margin-bottom: 0.5rem; /* Use mb-2 */
+    font-weight: 500; /* Use font-medium */
+    color: var(--text-color-default); /* Use text-gray-700 */
+}
+
+/* ============================================= */
+/* == Buttons (Component Classes)             == */
+/* ============================================= */
+/* Keep these classes as convenient ways to apply multiple styles */
+/* Ensure they don't conflict heavily with base button resets */
+.button {
+    /* Base styles for custom button components */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.25rem; /* Use Tailwind padding utilities */
+    border: 1px solid transparent;
+    border-radius: 0.375rem; /* Use rounded-md */
+    font-weight: 500; /* Use font-medium */
+    font-size: 0.875rem; /* Use text-sm */
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    text-align: center;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.button-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* Use shadow-sm */
+}
+.button-primary:hover {
+    background-color: var(--primary-color-dark);
+    border-color: var(--primary-color-dark);
+}
+
+.button-secondary {
+    background-color: var(--bg-color-white);
+    color: var(--primary-color-dark);
+    border-color: var(--border-color-default);
+}
+.button-secondary:hover {
+    background-color: var(--bg-color-light);
+    border-color: var(--border-color-dark);
+    color: var(--primary-color);
+}
+
+.button-danger {
+    background-color: var(--danger-color);
+    color: white;
+    border-color: var(--danger-color);
+}
+.button-danger:hover {
+    background-color: #dc2626; /* Red-600 */
+    border-color: #dc2626;
+}
+
+/* Focus state for custom buttons */
+.button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring-color); /* Use ring utilities */
+}
+
+
+/* ============================================= */
+/* == Cards (Content, Nested, Quiz)           == */
+/* ============================================= */
+/* These are custom component styles - KEEP THEM */
+
+/* --- Base Content Card Style --- */
+.content-card {
+    background-color: white;
+    border-radius: 0.5rem; /* Use rounded-lg */
+    box-shadow: var(--card-shadow-default); /* Use shadow-md or custom */
+    padding: var(--card-padding); /* Use p-6 */
+    margin-bottom: 1.5rem; /* Use mb-6 */
+    border: 1px solid transparent; /* Or border border-gray-200 etc. */
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* --- Nested Card Styles --- */
+.content-card > .content-card { /* Level 1 */
+    background-color: var(--card-nested-bg-level1);
+    border: 1px solid var(--card-nested-border-level1);
+    box-shadow: var(--card-shadow-nested-level1);
+    padding: var(--card-padding-nested); /* Use p-5 */
+    margin-top: 1.25rem; /* Use mt-5 */
+    margin-bottom: 1.25rem; /* Use mb-5 */
+}
+.content-card > .content-card > .content-card { /* Level 2 */
+    background-color: var(--card-nested-bg-level2);
+    border: 1px solid var(--card-nested-border-level2);
+    box-shadow: var(--card-shadow-nested-level2);
+    padding: var(--card-padding-nested); /* Use p-5 */
+    margin-top: 1rem; /* Use mt-4 */
+    margin-bottom: 1rem; /* Use mb-4 */
+}
+.content-card > .content-card > .content-card > .content-card { /* Level 3+ */
+    background-color: var(--card-nested-bg-level2);
+    border: 1px solid var(--card-nested-border-level2);
+    box-shadow: var(--card-shadow-nested-level2);
+    padding: var(--card-padding-nested); /* Use p-5 */
+    margin-top: 1rem; /* Use mt-4 */
+    margin-bottom: 1rem; /* Use mb-4 */
+}
+
+/* --- Typography Adjustments for Nested Cards --- */
+/* These specific overrides are fine */
+.content-card .content-card h2 {
+    /* Apply Tailwind classes directly or keep these overrides */
+    font-size: 1.15rem; /* ~text-lg */
+    margin-bottom: 0.75rem; /* mb-3 */
+    padding-bottom: 0.4rem; /* pb-1.5 approx */
+    border-bottom: 1px solid var(--border-color-light); /* border-b border-gray-200 */
+    color: var(--text-color-dark); /* text-gray-800 */
+    font-weight: 600; /* font-semibold - Added based on typical heading style */
+    line-height: 1.3; /* leading-tight - Added based on typical heading style */
+}
+.content-card .content-card h3 {
+    /* Apply Tailwind classes directly or keep these overrides */
+    font-size: 1rem; /* text-base */
+    font-weight: 600; /* font-semibold */
+    margin-top: 1rem; /* mt-4 */
+    margin-bottom: 0.5rem; /* mb-2 */
+    color: var(--text-color-default); /* text-gray-700 */
+    line-height: 1.3; /* leading-tight - Added based on typical heading style */
+}
+
+/* --- Quiz Card Styles --- */
+.quiz-card {
+    background-color: var(--quiz-bg);
+    border: 1px solid var(--border-color-default);
+    border-left: 4px solid var(--quiz-border-color);
+    border-radius: 0.5rem; /* rounded-lg */
+    padding: var(--quiz-padding); /* p-6 */
+    margin-bottom: 1.5rem; /* mb-6 */
+    box-shadow: var(--card-shadow-default); /* shadow-md */
+}
+.content-card > .quiz-card { /* Nested quiz card */
+    margin-top: 1.25rem; /* mt-5 */
+    margin-bottom: 1.25rem; /* mb-5 */
+    padding: var(--card-padding-nested); /* p-5 */
+}
+/* Apply Tailwind classes directly to elements inside quiz-card or keep these */
+.quiz-question { font-size: 1.1rem; font-weight: 500; color: var(--text-color-dark); margin-bottom: 1.25rem; }
+.quiz-options { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
+.quiz-option { display: block; padding: 0.75rem 1rem; border: 1px solid var(--border-color-default); border-radius: 0.375rem; background-color: white; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; display: flex; align-items: center; }
+.quiz-option:hover { background-color: var(--quiz-option-hover-bg); border-color: var(--primary-color); }
+.quiz-option input[type="radio"],
+.quiz-option input[type="checkbox"] { margin-right: 0.75rem; width: 1rem; height: 1rem; accent-color: var(--primary-color); cursor: pointer; }
+.quiz-option label { flex-grow: 1; cursor: pointer; color: var(--text-color-default); /* font-weight: normal; */ }
+.quiz-option.selected { border-color: var(--primary-color); background-color: rgba(59, 130, 246, 0.15); }
+.quiz-option.selected label { font-weight: 500; } /* font-medium */
+.quiz-submit-button { /* Style with Tailwind classes or .button-* */ }
+.quiz-feedback { margin-top: 1rem; padding: 0.75rem 1rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; display: none; }
+.quiz-feedback.correct { background-color: var(--quiz-feedback-correct-bg); color: var(--quiz-feedback-correct-text); border: 1px solid var(--success-color); }
+.quiz-feedback.incorrect { background-color: var(--quiz-feedback-incorrect-bg); color: var(--quiz-feedback-incorrect-text); border: 1px solid var(--danger-color); }
+.quiz-feedback.warning { background-color: var(--warning-color-light); color: var(--warning-color); border: 1px solid var(--warning-color); }
+
+
+/* --- Margin Adjustments for Last Elements --- */
+/* These are useful overrides */
+.content-card > *:last-child,
+.content-card > .content-card:last-child,
+.content-card > .quiz-card:last-child {
+     margin-bottom: 0 !important; /* Use !important if needed to override Tailwind margins */
+}
+.content-card > .content-card > *:last-child,
+.content-card > .content-card > .content-card:last-child,
+.content-card > .content-card > .quiz-card:last-child {
+    margin-bottom: 0 !important;
+}
+
+
+/* ============================================= */
+/* == Utilities & Accessibility               == */
+/* ============================================= */
+/* KEEP THESE */
+
+/* Basic screen reader only class (Tailwind has sr-only class too) */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Focus visible styles (Tailwind provides focus: and focus-visible: variants) */
+/* Keep these if you want a consistent global default focus ring */
+/* *:focus { outline: none; } */ /* Tailwind Preflight might handle this */
+*:focus-visible {
+    outline: none;
+    /* Use Tailwind ring utilities where possible: focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 */
+    /* This provides a fallback */
+    box-shadow: 0 0 0 3px var(--focus-ring-color);
+    z-index: 10;
+}
+/* Specific focus for custom buttons if needed */
+.button:focus-visible {
+     box-shadow: 0 0 0 3px var(--focus-ring-color);
+}
+/* Specific focus for links if needed */
+a:focus-visible {
+     outline: 2px solid var(--primary-color);
+     outline-offset: 2px;
+     border-radius: 2px;
+     box-shadow: none; /* Override the general *:focus-visible */
+}
+
+.head1{
+    font-size: 2rem; /* text-3xl */
+    font-weight: 600; /* font-semibold */
+    margin-bottom: 1rem; /* mb-4 */
+    color: var(--text-color-dark); /* text-gray-800 */
+    line-height: 1.3; /* leading-tight - Added based on typical heading style */
+}
+
+.head2{
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 600; /* font-semibold */
+    margin-bottom: 0.75rem; /* mb-3 */
+    color: var(--text-color-dark); /* text-gray-800 */
+    line-height: 1.3; /* leading-tight - Added based on typical heading style */
+}
+
+.head3{
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 600; /* font-semibold */
+    margin-bottom: 0.5rem; /* mb-2 */
+    color: var(--text-color-default); /* text-gray-700 */
+    line-height: 1.3; /* leading-tight - Added based on typical heading style */
+}
+
+.head4{
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 600; /* font-semibold */
+    margin-bottom: 0.5rem; /* mb-2 */
+    color: var(--text-color-default); /* text-gray-700 */
+    line-height: 1.3; /* leading-tight - Added based on typical heading style */
+}
+
+.head5{
+    font-size: 1rem; /* text-base */
+    font-weight: 600; /* font-semibold */
+    margin-bottom: 0.5rem; /* mb-2 */
+    color: var(--text-color-default); /* text-gray-700 */
+    line-height: 1.3; /* leading-tight - Added based on typical heading style */
+}
+
+.head6{
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 600; /* font-semibold */
+    margin-bottom: 0.5rem; /* mb-2 */
+    color: var(--text-color-default); /* text-gray-700 */
+    line-height: 1.3; /* leading-tight - Added based on typical heading style */
+}
+
+        /* --- Layout (Sidebar + Main) --- */
+        .page-container {
+            max-width: 80rem;
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+        }
+
+        @media (min-width: 1024px) {
+            .page-container {
+                flex-direction: row;
+                gap: 2rem;
+                padding: 2rem;
+            }
+        }
+
+        .local-side-nav {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .local-side-nav {
+                width: 16rem;
+                flex-shrink: 0;
+                margin-bottom: 0;
+                position: sticky;
+                top: 1.5rem;
+                height: calc(100vh - 3rem);
+                overflow-y: auto;
+                padding-right: 1rem;
+            }
+        }
+
+        .local-side-nav h4 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-color-dark);
+            font-size: 1rem;
+            padding-left: 0.5rem;
+        }
+
+        /* .local-side-nav ul is reset in base */
+        .local-side-nav li a {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.25rem;
+            border-radius: 0.375rem;
+            color: var(--text-color-light);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .local-side-nav li a:hover {
+            background-color: var(--bg-color-light);
+            color: var(--text-color-dark);
+        }
+
+        .local-side-nav li a.active {
+            background-color: var(--primary-color-light);
+            color: var(--primary-color-dark);
+            font-weight: 500;
+            border-left-color: var(--primary-color);
+        }
+
+        .local-side-nav .back-link {
+            margin-top: 1.5rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-color-light);
+            font-weight: 500;
+            color: var(--primary-color-dark);
+            display: block;
+            padding-left: 0.75rem;
+        }
+
+        .local-side-nav .back-link:hover {
+            background-color: transparent;
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+
+        .material-icons.nav-icon {
+            font-size: 1.1rem;
+            color: inherit;
+        }
+
+        /* Icon styling for nav */
+
+        .content-main {
+            flex-grow: 1;
+            min-width: 0;
+            /* Prevent content overflow in flex */
+        }
+
+        /* Use .content-card style from global.css for the article */
+        article {
+            /* Base styles like bg, padding, shadow assumed from global.css */
+            border-radius: 0.5rem;
+            /* Ensure rounding if not default */
+        }
+
+        /* --- Content Section Styling --- */
+        .content-section {
+            padding-bottom: 2rem;
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--border-color-light);
+        }
+
+        .content-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .content-section h2 .material-icons {
+            font-size: 1.75rem;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+            color: var(--primary-color);
+        }
+
+/* ============================================= */
+/* == End Global Stylesheet                   == */
+/* ============================================= */

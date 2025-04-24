@@ -1,0 +1,2156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>初级交互式前端面试知识点大纲</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+    <style>
+        /* --- CSS Variables --- */
+        :root {
+            --primary-color: #3b82f6;
+            /* Blue-500 */
+            --primary-color-dark: #2563eb;
+            /* Blue-600 */
+            --primary-color-light: #eff6ff;
+            /* Blue-50 */
+            --secondary-color: #10b981;
+            /* Emerald-500 */
+            --accent-color-high: #ef4444;
+            /* Red-500 */
+            --accent-color-medium: #f97316;
+            /* Orange-500 */
+            --accent-color-low: #84cc16;
+            /* Lime-500 */
+            --difficulty-basic: #06b6d4;
+            /* Cyan-500 */
+            --difficulty-advanced: #a855f7;
+            /* Purple-500 */
+            --text-color-light: #6b7280;
+            /* Gray-500 */
+            --text-color-default: #374151;
+            /* Gray-700 */
+            --text-color-dark: #1f2937;
+            /* Gray-800 */
+            --border-color-light: #e5e7eb;
+            /* Gray-200 */
+            --border-color-default: #d1d5db;
+            /* Gray-300 */
+            --bg-color-light: #f9fafb;
+            /* Gray-50 */
+            --bg-color-lighter: #f3f4f6;
+            /* Gray-100 */
+        }
+
+        /* --- Base & Layout --- */
+        html {
+            scroll-behavior: smooth;
+            /* Apply scroll padding only on large screens where header is sticky */
+        }
+
+        @media (min-width: 1024px) {
+
+            /* lg breakpoint */
+            html {
+                /* Adjust based on actual sticky header height ~5-6rem */
+                scroll-padding-top: 6rem;
+                /* Approx height of sticky controls */
+            }
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color-lighter);
+            color: var(--text-color-default);
+        }
+
+        .main-container {
+            display: flex;
+            gap: 2rem;
+            /* Space between sidebar and main content */
+        }
+
+        .side-nav {
+            width: 250px;
+            /* Fixed width for sidebar */
+            flex-shrink: 0;
+            position: sticky;
+            top: 1.5rem;
+            /* Sticky position relative to viewport top */
+            height: calc(100vh - 3rem);
+            /* Full height minus padding */
+            overflow-y: auto;
+            /* Enable scrolling within sidebar */
+            padding-right: 1rem;
+            /* Space before main content */
+        }
+
+        .main-content {
+            flex-grow: 1;
+            /* Take remaining space */
+            min-width: 0;
+            /* Prevent content overflow issues */
+        }
+
+        /* --- Side Navigation Styling --- */
+        .side-nav h4 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-color-dark);
+            font-size: 1.05rem;
+            padding-left: 0.5rem;
+        }
+
+        .side-nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .side-nav li a {
+            display: block;
+            padding: 0.6rem 1rem;
+            margin-bottom: 0.25rem;
+            border-radius: 0.375rem;
+            /* rounded-md */
+            color: var(--text-color-light);
+            text-decoration: none;
+            font-size: 0.875rem;
+            /* text-sm */
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
+            border-left: 3px solid transparent;
+            /* Indicator for active state */
+        }
+
+        .side-nav li a:hover {
+            background-color: var(--bg-color-light);
+            color: var(--text-color-dark);
+            transform: translateX(2px);
+            /* Slight shift on hover */
+        }
+
+        .side-nav li a.active {
+            background-color: var(--primary-color-light);
+            color: var(--primary-color-dark);
+            font-weight: 600;
+            border-left-color: var(--primary-color);
+            /* Active indicator */
+        }
+
+        /* --- Card Styling --- */
+        .topic-card {
+            background-color: white;
+            border-radius: 0.6rem;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            margin-bottom: 1.75rem;
+            /* Space between cards */
+            overflow: hidden;
+            /* Keep hidden for border-radius */
+            transition: box-shadow 0.25s ease;
+            border: 1px solid var(--border-color-light);
+        }
+
+        .topic-card:hover {
+            box-shadow: 0 4px 12px -1px rgb(0 0 0 / 0.08), 0 2px 8px -2px rgb(0 0 0 / 0.05);
+            /* Subtle lift effect */
+        }
+
+        /* Card Header Styling */
+        .card-header {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border-color-light);
+            transition: background-color 0.2s ease;
+        }
+
+        .card-header:hover {
+            background-color: var(--bg-color-light);
+        }
+
+        .card-header h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-color-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            /* Space between icon and text */
+            margin-bottom: 0 !important;
+            /* Override potential Tailwind defaults */
+        }
+
+        .card-header .toggle-icon {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Smooth rotation */
+            width: 1.2rem;
+            height: 1.2rem;
+            color: var(--text-color-light);
+        }
+
+        .card-header .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+            /* Icon state when collapsed */
+        }
+
+        /* Card Content Styling (Using Grid for Animation) */
+        .card-content {
+            padding: 0 1.5rem 0 1.5rem;
+            /* No top/bottom padding when collapsed */
+            display: grid;
+            grid-template-rows: 0fr;
+            /* Initially collapsed */
+            transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding-top 0.3s ease-out 0.1s, padding-bottom 0.3s ease-out 0.1s;
+            /* Added padding transition with delay */
+            overflow: hidden;
+            /* Needed for grid animation */
+        }
+
+        .card-content>ul {
+            min-height: 0;
+            /* Crucial for grid animation */
+            overflow: hidden;
+            /* Prevents content visibility during collapse */
+        }
+
+        .card-content:not(.collapsed) {
+            grid-template-rows: 1fr;
+            /* Expand to content height */
+            padding-top: 1.5rem;
+            /* Add padding when expanded */
+            padding-bottom: 1.5rem;
+        }
+
+        /* --- List & Item Styling within Cards --- */
+        .toc-list ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .toc-list h3 {
+            /* Sub-topic headers */
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-color-default);
+            padding-left: 0.75rem;
+            border-left: 3px solid var(--primary-color);
+            /* Indicator */
+        }
+
+        .toc-list li ul {
+            padding-left: 1.5rem;
+        }
+
+        /* Indent items under sub-topic */
+        .toc-list li ul li {
+            /* Individual knowledge point item */
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: flex-start;
+            /* Align checkbox with top of text */
+            gap: 0.75rem;
+            /* Space between checkbox and content */
+            padding: 0.2rem 0;
+        }
+
+        .toc-list li ul li .item-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.3rem;
+            /* Space between link and tags */
+            flex-grow: 1;
+            padding-top: 0.1rem;
+            /* Fine-tune vertical alignment */
+        }
+
+        .toc-list li ul li .item-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            /* Space between tags */
+        }
+
+        /* Link Styling within List */
+        .toc-list a {
+            color: var(--primary-color-dark);
+            text-decoration: none;
+            transition: color 0.2s ease;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .toc-list a:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+
+        /* Checkbox Styling */
+        .toc-list input[type="checkbox"] {
+            width: 1rem;
+            height: 1rem;
+            margin-top: 0.2rem;
+            /* Align with text baseline */
+            cursor: pointer;
+            accent-color: var(--primary-color);
+            /* Color of the checkmark */
+            flex-shrink: 0;
+        }
+
+        /* --- Tags (Frequency/Difficulty) --- */
+        .item-tag {
+            font-size: 0.65rem;
+            /* Very small text */
+            padding: 0.15rem 0.5rem;
+            border-radius: 1rem;
+            /* Fully rounded */
+            font-weight: 500;
+            white-space: nowrap;
+            color: white;
+            border: 1px solid transparent;
+        }
+
+        .tag-freq-high {
+            background-color: var(--accent-color-high);
+            border-color: var(--accent-color-high);
+        }
+
+        .tag-freq-medium {
+            background-color: var(--accent-color-medium);
+            border-color: var(--accent-color-medium);
+        }
+
+        .tag-freq-low {
+            background-color: var(--accent-color-low);
+            border-color: var(--accent-color-low);
+            color: var(--text-color-dark);
+        }
+
+        /* Lime needs dark text */
+        .tag-diff-basic {
+            background-color: var(--difficulty-basic);
+            border-color: var(--difficulty-basic);
+        }
+
+        .tag-diff-advanced {
+            background-color: var(--difficulty-advanced);
+            border-color: var(--difficulty-advanced);
+        }
+
+        /* --- Top Controls Area --- */
+        .controls-sticky-wrapper {
+            z-index: 10;
+            /* Keep above content */
+            background-color: var(--bg-color-lighter);
+            /* Match body background */
+            padding-top: 1rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (min-width: 1024px) {
+
+            /* lg breakpoint */
+            .controls-sticky-wrapper {
+                position: sticky;
+                /* Make sticky on large screens */
+                top: 0;
+                /* Stick to the top */
+            }
+        }
+
+        .controls-area {
+            background-color: white;
+            padding: 1rem 1.25rem;
+            /* Default padding */
+            border-radius: 0.6rem;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            border: 1px solid var(--border-color-light);
+        }
+
+        @media (min-width: 640px) {
+
+            /* sm breakpoint */
+            .controls-area {
+                padding: 1.25rem 1.5rem;
+                /* Increase padding on larger screens */
+            }
+        }
+
+        /* Search Bar */
+        #search-input {
+            width: 100%;
+            padding: 0.75rem 1.1rem;
+            border: 1px solid var(--border-color-default);
+            border-radius: 0.5rem;
+            /* rounded-lg */
+            font-size: 1rem;
+            box-shadow: none;
+            margin-bottom: 1rem;
+            /* Space below search */
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px var(--primary-color-light);
+            /* Focus ring */
+        }
+
+        /* Filter Buttons Container */
+        .filter-controls {
+            margin-bottom: 1rem;
+            /* Space between filter groups */
+        }
+
+        .filter-controls:last-child {
+            margin-bottom: 0;
+            /* No margin on the last group */
+        }
+
+        .filter-controls h5 {
+            font-size: 0.75rem;
+            /* text-xs */
+            font-weight: 600;
+            color: var(--text-color-light);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .filter-button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            /* Space between buttons */
+        }
+
+        .filter-button {
+            padding: 0.35rem 0.8rem;
+            border: 1px solid var(--border-color-default);
+            border-radius: 0.5rem;
+            /* rounded-lg */
+            background-color: white;
+            color: var(--text-color-default);
+            font-size: 0.75rem;
+            /* text-xs */
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-button:hover {
+            background-color: var(--bg-color-light);
+            border-color: #adb5bd;
+            /* Slightly darker border on hover */
+            transform: translateY(-1px);
+            /* Subtle lift */
+        }
+
+        .filter-button.active {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+            /* Slight shadow when active */
+        }
+
+        /* --- Progress Area --- */
+        #progress-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            /* Space between progress bar and buttons */
+            margin-top: 1rem;
+            /* Space above progress */
+        }
+
+        #progress-container {
+            flex-grow: 1;
+        }
+
+        #progress-bar-bg {
+            background-color: var(--border-color-light);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            height: 0.6rem;
+            /* Bar height */
+        }
+
+        #progress-bar {
+            background-color: var(--primary-color);
+            height: 100%;
+            width: 0%;
+            /* Initial width */
+            transition: width 0.4s ease-out;
+            /* Smooth width transition */
+        }
+
+        #progress-text {
+            text-align: right;
+            font-weight: 500;
+            color: var(--text-color-light);
+            font-size: 0.8rem;
+            /* Slightly smaller text */
+            margin-top: 0.4rem;
+        }
+
+        /* Clear/Select All Buttons */
+        #progress-actions button {
+            padding: 0.35rem 0.8rem;
+            border: 1px solid var(--border-color-default);
+            border-radius: 0.5rem;
+            background-color: white;
+            color: var(--text-color-default);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #progress-actions button:hover {
+            background-color: var(--bg-color-light);
+            border-color: #adb5bd;
+            transform: translateY(-1px);
+        }
+
+        /* --- No Results Message --- */
+        #no-results-message {
+            text-align: center;
+            color: var(--text-color-light);
+            padding: 3rem 1rem;
+            /* Ample padding */
+            font-style: normal;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        #no-results-message svg {
+            width: 3rem;
+            height: 3rem;
+            color: var(--border-color-default);
+        }
+
+        /* --- Helper Classes --- */
+        .hidden {
+            display: none !important;
+        }
+
+
+        /* code block */
+        pre {
+            background-color: var(--bg-color-lighter);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            /* Enable horizontal scrolling */
+            margin-bottom: 1rem;
+            /* Space below code block */
+        }
+
+        pre code {
+            font-size: 0.9rem;
+            /* Slightly smaller font for code */
+            line-height: 1.5;
+            /* Better readability */
+            color: var(--text-color-dark);
+        }
+
+        code {
+            background-color: #e5e7eb;
+            /* Light gray background for inline code */
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.3rem;
+            font-size: 0.9rem;
+            /* Slightly smaller font for inline code */
+            color: #374151;
+            /* Dark gray text color */
+        }
+    </style>
+</head>
+
+<body class="p-4 sm:p-6 lg:p-8">
+    <div class="max-w-7xl mx-auto main-container">
+        <aside class="side-nav hidden lg:block">
+            <h4>快速导航</h4>
+            <ul id="side-nav-list">
+                <li><a href="#js-core" data-target-id="js-core">一、JavaScript 核心</a></li>
+                <li><a href="#typescript" data-target-id="typescript">二、TypeScript 基础</a></li>
+                <li><a href="#browser-perf" data-target-id="browser-perf">三、浏览器与性能</a></li>
+                <li><a href="#http-network" data-target-id="http-network">四、HTTP 与网络</a></li>
+                <li><a href="#html-css" data-target-id="html-css">五、HTML / CSS</a></li>
+                <li><a href="#frameworks" data-target-id="frameworks">六、框架 (React为主)</a></li>
+                <li><a href="#engineering" data-target-id="engineering">七、工程化与构建</a></li>
+                <li><a href="#testing-tools" data-target-id="testing-tools">八、测试与工具</a></li>
+                <li><a href="#security-auth" data-target-id="security-auth">九、安全与认证</a></li>
+            </ul>
+        </aside>
+
+        <div class="main-content">
+            <h1 class="text-2xl lg:text-3xl font-bold mb-6 text-center text-gray-800">
+                初级交互式前端面试知识点大纲
+            </h1>
+
+            <div class="controls-sticky-wrapper">
+                <div class="controls-area">
+                    <input type="text" id="search-input" placeholder="搜索知识点...">
+
+                    <div class="filter-controls">
+                        <h5>按分类筛选:</h5>
+                        <div id="category-filter-buttons" class="filter-button-group">
+                            <button class="filter-button active" data-filter-group="category"
+                                data-filter="all">全部</button>
+                            <button class="filter-button" data-filter-group="category"
+                                data-filter="js">JavaScript</button>
+                            <button class="filter-button" data-filter-group="category"
+                                data-filter="ts">TypeScript</button>
+                            <button class="filter-button" data-filter-group="category"
+                                data-filter="browser">浏览器</button>
+                            <button class="filter-button" data-filter-group="category"
+                                data-filter="http">HTTP/网络</button>
+                            <button class="filter-button" data-filter-group="category"
+                                data-filter="htmlcss">HTML/CSS</button>
+                            <button class="filter-button" data-filter-group="category"
+                                data-filter="react">框架(React)</button>
+                            <button class="filter-button" data-filter-group="category" data-filter="eng">工程化</button>
+                            <button class="filter-button" data-filter-group="category" data-filter="test">测试/工具</button>
+                            <button class="filter-button" data-filter-group="category" data-filter="sec">安全</button>
+                        </div>
+                    </div>
+
+                    <div class="filter-controls">
+                        <h5>按标签筛选:</h5>
+                        <div id="tag-filter-buttons" class="filter-button-group">
+                            <button class="filter-button active" data-filter-group="tag" data-filter="all">全部标签</button>
+                            <button class="filter-button" data-filter-group="tag" data-filter="high">高频</button>
+                            <button class="filter-button" data-filter-group="tag" data-filter="medium">中频</button>
+                            <button class="filter-button" data-filter-group="tag" data-filter="low">低频</button>
+                            <button class="filter-button" data-filter-group="tag" data-filter="basic">基础</button>
+                            <button class="filter-button" data-filter-group="tag" data-filter="advanced">进阶</button>
+                        </div>
+                    </div>
+
+                    <div id="progress-controls">
+                        <div id="progress-container">
+                            <div id="progress-bar-bg">
+                                <div id="progress-bar"></div>
+                            </div>
+                            <div id="progress-text">学习进度: 0%</div>
+                        </div>
+                        <div id="progress-actions" class="flex gap-2">
+                            <button id="select-all-btn" title="全选当前可见项">全选可见</button>
+                            <button id="clear-all-btn" title="清空所有选中项">清空所有</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="no-results-message" class="hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+                <span>未找到匹配的知识点。请尝试调整筛选条件或搜索词。</span>
+            </div>
+
+            <nav class="toc-list">
+                <div class="topic-card" id="js-core" data-category="js">
+                    <div class="card-header">
+                        <h2>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
+                            </svg>
+                            一、JavaScript 核心知识
+                        </h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="toggle-icon w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <ul>
+                            <li>
+                                <h3>(一) 语言基础</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="js-types">
+                                        <div class="item-content"><a
+                                                href="content/JavaScript/01-Language-Basics.html#type-system">类型系统：原始类型 vs 引用类型；<code>typeof</code> vs
+                                                <code>instanceof</code></a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="js-conversion">
+                                        <div class="item-content"><a
+                                                href="content/JavaScript/01-Language-Basics.html#type-coercion">类型转换：显式转换 (Number(), String(), Boolean()) 与隐式转换 (==, +)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="js-scope">
+                                        <div class="item-content"><a
+                                                href="content/JavaScript/01-Language-Basics.html#scope">作用域 &amp; 作用域链：全局、函数、块级
+                                                (<code>let</code>/<code>const</code>)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="js-closure-basic">
+                                        <div class="item-content"><a
+                                                href="content/JavaScript/01-Language-Basics.html#closure">闭包：理解概念、能识别简单闭包</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="js-prototype-basic">
+                                        <div class="item-content"><a
+                                                href="content/JavaScript/01-Language-Basics.html#prototype">原型与原型链：<code>__proto__</code> 和
+                                                <code>prototype</code> 的基本概念</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="js-this">
+                                        <div class="item-content"><a
+                                                href="content/JavaScript/01-Language-Basics.html#this-keyword"><code>this</code> 指向：不同场景下的
+                                                <code>this</code> (全局, 函数调用, 方法调用, 构造函数, 箭头函数)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="js-context-binding">
+                                        <div class="item-content"><a
+                                                href="content/JavaScript/01-Language-Basics.html#change-this">改变 <code>this</code> 指向：<code>call</code>,
+                                                <code>apply</code>, <code>bind</code> 的用法与区别</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(二) 异步编程</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="js-async-concepts">
+                                        <div class="item-content"><a href="#async-concepts">同步与异步概念，回调函数</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="js-promise">
+                                        <div class="item-content"><a href="#promise-basics">Promise：基本用法 (<code>.then</code>, <code>.catch</code>,
+                                                <code>.finally</code>), 状态</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                     <li data-tags="medium basic"><input type="checkbox" data-id="js-promise-static"> <div class="item-content"><a href="#promise-methods">Promise 静态方法 (<code>.all</code>, <code>.race</code>, <code>.allSettled</code>, <code>.any</code>)</a>
+                                             <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                     class="item-tag tag-diff-basic">基础</span></div>
+                                         </div>
+                                     </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="js-asyncawait">
+                                        <div class="item-content"><a href="#async-await">async/await：基本用法, 简化 Promise 操作</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="js-eventloop-basic">
+                                        <div class="item-content"><a href="#event-loop-details">事件循环 (Event Loop)：宏任务与微任务的基本概念与执行顺序</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(三) ES6+ 常用特性</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="js-es6-vars">
+                                        <div class="item-content"><a href="content/JavaScript/01-Language-Basics.html#scope-types"><code>let</code> 与 <code>const</code> vs
+                                                <code>var</code></a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="js-es6-arrow-fn">
+                                        <div class="item-content"><a href="content/JavaScript/01-Language-Basics.html#this-keyword">箭头函数及其 <code>this</code> 指向</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="js-es6-template-literals">
+                                        <div class="item-content"><a href="#">模板字符串</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="js-es6-destructuring">
+                                        <div class="item-content"><a href="#">解构赋值 (数组和对象)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="js-es6-spread-rest">
+                                        <div class="item-content"><a href="#">展开语法 (...) 与剩余参数 (...)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="js-array-methods"> <div class="item-content"><a href="#">数组常用方法 (<code>forEach</code>, <code>map</code>, <code>filter</code>, <code>reduce</code> 等)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="js-es6-modules">
+                                        <div class="item-content"><a href="#">模块化
+                                                (<code>import</code>/<code>export</code>)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(四) 内存管理与垃圾回收</h3>
+                                <ul>
+                                    <li data-tags="medium intermediate"><input type="checkbox" data-id="js-memory-management">
+                                        <div class="item-content"><a href="#">内存生命周期 (分配、使用、释放)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-intermediate">进阶</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium intermediate"><input type="checkbox" data-id="js-gc-basic">
+                                        <div class="item-content"><a href="#">垃圾回收机制基本原理 (可达性)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-intermediate">进阶</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium intermediate"><input type="checkbox" data-id="js-gc-mark-sweep">
+                                        <div class="item-content"><a href="#">常见 GC 算法简介 (标记清除、引用计数)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-intermediate">进阶</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high intermediate"><input type="checkbox" data-id="js-memory-leak">
+                                        <div class="item-content"><a href="content/JavaScript/01-Language-Basics.html#closure-memory">常见的内存泄漏场景 (闭包、定时器、DOM引用)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-intermediate">进阶</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(五) 其他高频考点</h3>
+                                <ul>
+                                    <li data-tags="high intermediate"><input type="checkbox" data-id="js-copy">
+                                        <div class="item-content"><a href="#">深拷贝与浅拷贝 (概念、区别、实现)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-intermediate">进阶</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="js-error-handling">
+                                        <div class="item-content"><a href="#">错误处理 (<code>try...catch...finally</code>)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="js-json">
+                                        <div class="item-content"><a href="#">JSON (<code>JSON.stringify</code>, <code>JSON.parse</code>)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium intermediate"><input type="checkbox" data-id="js-debounce-throttle">
+                                        <div class="item-content"><a href="#">防抖 (Debounce) 与 节流 (Throttle)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-intermediate">进阶</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="topic-card" id="typescript" data-category="ts">
+                    <div class="card-header">
+                        <h2>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 128 128"
+                                fill="none">
+                                <path fill="#3178C6" d="M113.2 101.67H89.13V26.33h24.07v75.34Z" />
+                                <path fill="#fff" d="M89.13 26.33h24.07v75.34H89.13z" />
+                                <path fill="#3178C6" d="M.5.5v127h127V.5H.5Zm112.7 101.17H89.13V26.33h24.07v75.34Z" />
+                                <path fill="#fff" d="M89.13 26.33h24.07v75.34H89.13z" />
+                                <path fill="#3178C6" d="M89.13 26.33 74.8 41.18h38.4v-14.9H89.13Z" />
+                                <path fill="#fff" d="m74.8 41.18 14.33-14.85h-24.1l-14.3 14.85h24.07Z" />
+                                <path fill="#3178C6" d="M50.73 41.18 74.8 41.1v14.9H50.73v-14.82Z" />
+                                <path fill="#fff" d="M74.8 41.18v14.9H50.73V41.18H74.8Z" />
+                                <path fill="#3178C6" d="M50.73 56.08 36.4 70.93h38.4V56.08H50.73Z" />
+                                <path fill="#fff" d="m36.4 70.93 14.33-14.85h-24.1L12.3 70.93h24.1Z" />
+                                <path fill="#3178C6" d="M12.3 70.93 36.4 70.85v14.9H12.3V70.93Z" />
+                                <path fill="#fff" d="M36.4 70.93v14.9H12.3V70.93H36.4Z" />
+                                <path fill="#3178C6" d="M12.3 85.83 26.63 100.68h38.4V85.83H12.3Z" />
+                                <path fill="#fff" d="m26.63 100.68 14.33-14.85H16.86l-14.3 14.85h24.07Z" />
+                                <path fill="#3178C6" d="M40.96 100.68 65.03 100.6v14.9H40.96v-14.82Z" />
+                                <path fill="#fff" d="M65.03 100.68v14.9H40.96v-14.82h24.07Z" />
+                                <path fill="#3178C6" d="M65.03 115.58 79.36 130.43h38.4v-14.9H65.03Z" />
+                                <path fill="#fff" d="m79.36 130.43 14.33-14.85H69.62l-14.3 14.85h24.05Z" />
+                                <path fill="#3178C6" d="M93.69 115.58 117.76 115.5v14.9H93.69v-14.82Z" />
+                                <path fill="#fff" d="M117.76 115.58v14.9H93.69v-14.82h24.07Z" />
+                                <path fill="#3178C6" d="M117.76 130.48 132.1 145.33h38.4V130.48h-52.74Z" />
+                            </svg>
+                            二、TypeScript 基础
+                        </h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="toggle-icon w-6 h-6 collapsed">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                    <div class="card-content collapsed">
+                        <p class="text-xs text-gray-500 mb-4 mt-3">为大型项目提供类型安全</p>
+                        <ul>
+                            <li>
+                                <h3>(一) 核心概念</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="ts-what-why">
+                                        <div class="item-content"><a href="#">什么是 TypeScript？为什么使用它？(类型安全, 可维护性)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="ts-basic-types">
+                                        <div class="item-content"><a href="#">基本类型：<code>string</code>,
+                                                <code>number</code>, <code>boolean</code>, <code>null</code>,
+                                                <code>undefined</code>, <code>any</code>, <code>unknown</code>,
+                                                <code>void</code></a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="ts-array-tuple">
+                                        <div class="item-content"><a href="#">数组 (<code>type[]</code> 或
+                                                <code>Array&lt;type&gt;</code>) 与元组 (<code>[type1, type2]</code>)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="ts-interface-type">
+                                        <div class="item-content"><a href="#">接口 (Interface) 与类型别名 (Type Alias)
+                                                的定义与区别</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="ts-functions">
+                                        <div class="item-content"><a href="#">函数类型：参数类型与返回值类型</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="ts-enum">
+                                        <div class="item-content"><a href="#">枚举 (Enum) 的基本用法</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(二) 进阶概念 (了解)</h3>
+                                <ul>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="ts-generics-basic">
+                                        <div class="item-content"><a href="#">泛型 (Generics) 的基本概念与简单应用</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="ts-union-intersection">
+                                        <div class="item-content"><a href="#">联合类型 (<code>|</code>) 与交叉类型
+                                                (<code>&amp;</code>)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="ts-utility-types-basic">
+                                        <div class="item-content"><a href="#">常用工具类型 (<code>Partial</code>,
+                                                <code>Required</code>, <code>Pick</code>, <code>Omit</code>) 的作用</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="topic-card" id="browser-perf" data-category="browser">
+                    <div class="card-header">
+                        <h2>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
+                            </svg>
+                            三、浏览器原理与性能优化
+                        </h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="toggle-icon w-6 h-6 collapsed">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                    <div class="card-content collapsed">
+                        <p class="text-xs text-gray-500 mb-4 mt-3">理解页面加载与优化手段</p>
+                        <ul>
+                            <li>
+                                <h3>(一) 浏览器工作原理</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="browser-render-flow">
+                                        <div class="item-content"><a href="#">简述浏览器渲染过程 (DOM -&gt; CSSOM -&gt; Render
+                                                Tree -&gt; Layout -&gt; Paint)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox"
+                                            data-id="browser-reflow-repaint-basic">
+                                        <div class="item-content"><a href="#">重排 (Reflow) 与重绘 (Repaint) 的概念与区别</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="browser-storage">
+                                        <div class="item-content"><a href="#">浏览器存储：<code>localStorage</code>,
+                                                <code>sessionStorage</code>, <code>Cookie</code> 的区别与应用场景</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="browser-cors-basic">
+                                        <div class="item-content"><a href="#">跨域 (CORS) 的基本概念与常见解决方案 (JSONP了解,
+                                                主要CORS)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(二) 前端性能优化基础</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="browser-perf-resource">
+                                        <div class="item-content"><a href="#">资源优化：减少 HTTP 请求、资源压缩 (JS/CSS/图片)、使用
+                                                CDN</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="browser-perf-loading">
+                                        <div class="item-content"><a href="#">加载优化：懒加载
+                                                (图片/组件)、<code>defer</code>/<code>async</code> 脚本加载</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="browser-perf-render">
+                                        <div class="item-content"><a href="#">渲染优化：减少 DOM 操作、避免频繁重排/重绘</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox"
+                                            data-id="browser-perf-debounce-throttle">
+                                        <div class="item-content"><a href="#">防抖 (Debounce) 与节流 (Throttle) 的概念与应用场景</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="browser-perf-image-opt">
+                                        <div class="item-content"><a href="#">图片优化基础：选择合适的格式 (JPG, PNG, GIF,
+                                                WebP了解)、图片懒加载</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="browser-perf-font-opt">
+                                        <div class="item-content"><a href="#">字体优化基础：了解 FOIT/FOUT、使用系统字体或网络字体</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(三) 浏览器缓存</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="browser-cache-types">
+                                        <div class="item-content"><a href="#">强缓存 (Expires, Cache-Control) vs 协商缓存
+                                                (Last-Modified, ETag) 的基本概念</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="browser-cache-process">
+                                        <div class="item-content"><a href="#">浏览器请求资源时缓存的查找过程</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="topic-card" id="http-network" data-category="http">
+                    <div class="card-header">
+                        <h2>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A11.978 11.978 0 0 1 12 16.5c-3.162 0-6.036-1.39-7.843-3.646m15.686 0A8.959 8.959 0 0 1 21 12" />
+                            </svg>
+                            四、HTTP 协议与网络基础
+                        </h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="toggle-icon w-6 h-6 collapsed">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                    <div class="card-content collapsed">
+                        <p class="text-xs text-gray-500 mb-4 mt-3">理解前后端通信的基础</p>
+                        <ul>
+                            <li>
+                                <h3>(一) HTTP 基础</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="http-methods-basic">
+                                        <div class="item-content"><a href="#">常见 HTTP 请求方法：GET 与 POST 的区别</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="http-status-codes-basic">
+                                        <div class="item-content"><a href="#">常见 HTTP 状态码：200, 301, 302, 304, 400, 401,
+                                                403, 404, 500, 502, 504</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="http-headers-basic">
+                                        <div class="item-content"><a href="#">HTTP 请求头/响应头：理解 <code>Content-Type</code>,
+                                                <code>Cache-Control</code>, <code>Set-Cookie</code> 等常见头部</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="http-versions-basic">
+                                        <div class="item-content"><a href="#">了解 HTTP/1.0, HTTP/1.1, HTTP/2 的主要区别 (长连接,
+                                                多路复用)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(二) 网络基础</h3>
+                                <ul>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="http-tcp-basic">
+                                        <div class="item-content"><a href="#">TCP/IP 模型：了解分层概念 (应用层, 传输层, 网络层, 链路层)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="http-dns-basic">
+                                        <div class="item-content"><a href="#">DNS 解析：知道域名如何解析为 IP 地址</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="http-https-basic">
+                                        <div class="item-content"><a href="#">HTTPS：了解其作用 (加密传输)、与 HTTP 的区别</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low advanced"><input type="checkbox"
+                                            data-id="http-tcp-handshake-basic">
+                                        <div class="item-content"><a href="#">了解 TCP 三次握手过程</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-advanced">进阶</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="topic-card" id="html-css" data-category="htmlcss">
+                    <div class="card-header">
+                        <h2>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42" />
+                            </svg>
+                            五、HTML / CSS 相关
+                        </h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="toggle-icon w-6 h-6 collapsed">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                    <div class="card-content collapsed">
+                        <p class="text-xs text-gray-500 mb-4 mt-3">页面结构与样式基础</p>
+                        <ul>
+                            <li>
+                                <h3>(一) HTML</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="html-semantic">
+                                        <div class="item-content"><a href="#">HTML 语义化：理解常用语义化标签
+                                                (<code>&lt;header&gt;</code>, <code>&lt;footer&gt;</code>,
+                                                <code>&lt;nav&gt;</code>, <code>&lt;article&gt;</code>,
+                                                <code>&lt;section&gt;</code>, <code>&lt;aside&gt;</code>)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="html-doctype">
+                                        <div class="item-content"><a href="#"><code>&lt;!DOCTYPE html&gt;</code> 的作用</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="html-meta-viewport">
+                                        <div class="item-content"><a
+                                                href="#"><code>&lt;meta name=&quot;viewport&quot;&gt;</code> 的作用</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="html-a11y-basic">
+                                        <div class="item-content"><a href="#">了解 Web 可访问性 (a11y) 的基本概念</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(二) CSS 基础与布局</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="css-selectors-basic">
+                                        <div class="item-content"><a href="#">CSS 选择器：常用选择器 (ID, class, 标签, 属性, 伪类, 伪元素)
+                                                及优先级概念</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="css-box-model">
+                                        <div class="item-content"><a href="#">盒模型 (Box Model)：<code>content</code>,
+                                                <code>padding</code>, <code>border</code>,
+                                                <code>margin</code>；<code>box-sizing: border-box</code></a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="css-position-basic">
+                                        <div class="item-content"><a href="#"><code>position</code>
+                                                属性：<code>static</code>, <code>relative</code>, <code>absolute</code>,
+                                                <code>fixed</code> 的区别与应用</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="css-display-basic">
+                                        <div class="item-content"><a href="#"><code>display</code>
+                                                属性：<code>block</code>, <code>inline</code>, <code>inline-block</code>,
+                                                <code>none</code> 的区别</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="css-flexbox-basic">
+                                        <div class="item-content"><a href="#">Flexbox 布局：主轴/交叉轴概念, 常用属性
+                                                (<code>display: flex</code>, <code>flex-direction</code>,
+                                                <code>justify-content</code>, <code>align-items</code>,
+                                                <code>flex-grow</code>, <code>flex-shrink</code>,
+                                                <code>flex-basis</code>)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="css-grid-basic">
+                                        <div class="item-content"><a href="#">Grid 布局：了解基本概念, 与 Flexbox 的区别</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="css-center-layout">
+                                        <div class="item-content"><a href="#">水平垂直居中：多种实现方式 (Flexbox,
+                                                Position+Transform, Grid等)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="css-bfc-basic">
+                                        <div class="item-content"><a href="#">BFC (块级格式化上下文)：了解概念与解决外边距塌陷等问题</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(三) CSS 进阶与实践</h3>
+                                <ul>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="css-responsive-basic">
+                                        <div class="item-content"><a href="#">响应式设计：媒体查询 (<code>@media</code>) 的基本用法</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="css-units-basic">
+                                        <div class="item-content"><a href="#">常用单位：<code>px</code>, <code>%</code>,
+                                                <code>em</code>, <code>rem</code>, <code>vw</code>, <code>vh</code>
+                                                的区别</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="css-preprocessors-basic">
+                                        <div class="item-content"><a href="#">CSS 预处理器：了解 Sass/Less 的基本概念 (嵌套, 变量,
+                                                Mixin)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="css-bem-basic">
+                                        <div class="item-content"><a href="#">CSS 命名规范：了解 BEM</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="css-in-js-basic">
+                                        <div class="item-content"><a href="#">了解 CSS-in-JS (如 Styled Components) 的概念</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="topic-card" id="frameworks" data-category="react">
+                    <div class="card-header">
+                        <h2>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v.448c0 .379-.214.725-.488.974a1.99 1.99 0 0 1-.306 1.293c-.138.274-.235.58-.235.903v.411c0 .414.16.805.42 1.114.26.31.42.701.42 1.114v.411c0 .414.16.805.42 1.114.26.31.42.701.42 1.114v.411c0 .414.16.805.42 1.114.26.31.42.701.42 1.114v.411c0 .414.16.805.42 1.114.26.31.42.701.42 1.114V21m-1.639-8.232c.05-.106.106-.21.168-.313.062-.103.129-.204.198-.304.07-.1.145-.196.224-.288.079-.092.163-.18.252-.264.089-.085.182-.165.279-.24.097-.075.198-.146.303-.21.105-.064.213-.123.324-.177.111-.054.226-.102.343-.145.117-.043.237-.08.36-.112.122-.032.247-.057.375-.076.127-.019.257-.03.39-.032.133-.002.267-.002.4 0 .133.002.263.013.39.032.128.019.253.044.375.076.123.032.243.07.36.112.117.043.232.091.343.145.111.054.219.113.324.177.105.064.206.135.303.21.097.075.19.155.279.24.089.084.173.172.252.264.079.092.154.187.224.288.069.1.136.201.198.304.062.103.118.207.168.313.05.106.095.216.135.329.04.112.075.227.105.344.03.117.054.237.072.359.018.122.03.245.036.37.007.124.007.248.007.371 0 .123 0 .247-.007.371-.006.125-.018.248-.036.37-.018.122-.042.242-.072.359-.03.117-.065.232-.105.344-.04.113-.085.223-.135.329Zm-9.75 0c.05-.106.106-.21.168-.313.062-.103.129-.204.198-.304.07-.1.145-.196.224-.288.079-.092.163-.18.252-.264.089-.085.182-.165.279-.24.097-.075.198-.146.303-.21.105-.064.213-.123.324-.177.111-.054.226-.102.343-.145.117-.043.237-.08.36-.112.122-.032.247-.057.375-.076.127-.019.257-.03.39-.032.133-.002.267-.002.4 0 .133.002.263.013.39.032.128.019.253.044.375.076.123.032.243.07.36.112.117.043.232.091.343.145.111.054.219.113.324.177.105.064.206.135.303.21.097.075.19.155.279.24.089.084.173.172.252.264.079.092.154.187.224.288.069.1.136.201.198.304.062.103.118.207.168.313.05.106.095.216.135.329.04.112.075.227.105.344.03.117.054.237.072.359.018.122.03.245.036.37.007.124.007.248.007.371 0 .123 0 .247-.007.371-.006.125-.018.248-.036.37-.018.122-.042.242-.072.359-.03.117-.065.232-.105.344-.04.113-.085.223-.135.329Z" />
+                            </svg>
+                            六、框架原理与实践 (React 为主)
+                        </h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="toggle-icon w-6 h-6 collapsed">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                    <div class="card-content collapsed">
+                        <p class="text-xs text-gray-500 mb-4 mt-3">掌握至少一种主流框架</p>
+                        <ul>
+                            <li>
+                                <h3>(一) React 基础</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="react-jsx">
+                                        <div class="item-content"><a href="#">JSX 语法：基本用法、嵌入表达式、条件渲染、列表渲染</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="react-comp-basic">
+                                        <div class="item-content"><a href="#">组件：函数组件与类组件 (了解即可, 重点函数组件)、Props 传递</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="react-state-basic">
+                                        <div class="item-content"><a href="#">State：<code>useState</code> Hook 的基本用法</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="react-lifecycle-basic">
+                                        <div class="item-content"><a href="#">生命周期 (函数组件)：<code>useEffect</code> Hook
+                                                的基本用法 (模拟 <code>componentDidMount</code>,
+                                                <code>componentDidUpdate</code>, <code>componentWillUnmount</code>)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="react-events">
+                                        <div class="item-content"><a href="#">事件处理：绑定事件处理器、事件对象</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="react-refs-basic">
+                                        <div class="item-content"><a href="#">Refs：<code>useRef</code> Hook 的基本用法 (访问
+                                                DOM 元素)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(二) React 进阶概念 (了解)</h3>
+                                <ul>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="react-context-basic">
+                                        <div class="item-content"><a href="#">Context API：了解基本概念
+                                                (<code>createContext</code>, <code>useContext</code>) 与使用场景 (跨层级通信)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="react-hooks-other">
+                                        <div class="item-content"><a href="#">其他常用 Hooks：了解 <code>useMemo</code>,
+                                                <code>useCallback</code> 的作用 (性能优化)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="react-vdom-basic">
+                                        <div class="item-content"><a href="#">虚拟 DOM (Virtual DOM)：了解基本概念及其优势</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="react-state-mgmt-libs">
+                                        <div class="item-content"><a href="#">状态管理库：了解 Redux/Zustand 等库的存在和目的</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(三) Vue.js (了解)</h3>
+                                <ul>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="vue-basic-concepts">
+                                        <div class="item-content"><a href="#">了解 Vue 的核心思想：声明式渲染、组件化、响应式数据</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="vue-vs-react">
+                                        <div class="item-content"><a href="#">了解 Vue 与 React 的一些主要区别 (模板 vs JSX,
+                                                响应式实现等)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="topic-card" id="engineering" data-category="eng">
+                    <div class="card-header">
+                        <h2>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.528-1.036.92-2.166 1.056-3.379a2.625 2.625 0 0 0-1.056-2.625m-1.056 2.625L11.42 15.171m-2.496-3.03c-.528-1.036-.92-2.166-1.056-3.379a2.625 2.625 0 0 0-1.056-2.625M7.868 8.706 2.25 14.326a2.652 2.652 0 0 0 0 3.751l5.877 5.877a2.652 2.652 0 0 0 3.751 0l5.617-5.617m-1.056-2.625v1.056a2.625 2.625 0 0 1-1.056 2.625m-1.056-2.625H8.924a2.625 2.625 0 0 1-1.056-2.625v-1.056" />
+                            </svg>
+                            七、工程化与构建工具
+                        </h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="toggle-icon w-6 h-6 collapsed">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                    <div class="card-content collapsed">
+                        <p class="text-xs text-gray-500 mb-4 mt-3">现代前端开发流程</p>
+                        <ul>
+                            <li>
+                                <h3>(一) 包管理与模块化</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="eng-npm-yarn-basic">
+                                        <div class="item-content"><a href="#">包管理器：npm/yarn 的基本使用 (<code>install</code>,
+                                                <code>run</code>), <code>package.json</code> 与
+                                                <code>package-lock.json</code>/<code>yarn.lock</code> 的作用</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="eng-modules-basic">
+                                        <div class="item-content"><a href="#">模块化：理解 ES Modules
+                                                (<code>import</code>/<code>export</code>) 与 CommonJS
+                                                (<code>require</code>/<code>module.exports</code>) 的基本语法</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="eng-pnpm-basic">
+                                        <div class="item-content"><a href="#">了解 pnpm 及其优势 (节省磁盘空间, 速度快)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(二) 构建工具</h3>
+                                <ul>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="eng-webpack-basic">
+                                        <div class="item-content"><a href="#">Webpack：了解其作用 (模块打包), 核心概念 (Entry, Output,
+                                                Loader, Plugin)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="eng-vite-basic">
+                                        <div class="item-content"><a href="#">Vite：了解其作用与优势 (基于 ESM 的快速冷启动)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="eng-babel-basic">
+                                        <div class="item-content"><a href="#">Babel：了解其作用 (JavaScript 编译器, ES6+ 转
+                                                ES5)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(三) 代码质量</h3>
+                                <ul>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="eng-lint-format-basic">
+                                        <div class="item-content"><a href="#">ESLint 与 Prettier：了解其作用 (代码规范检查与格式化)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(四) Node.js 基础 (了解)</h3>
+                                <ul>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="eng-node-role">
+                                        <div class="item-content"><a href="#">了解 Node.js 在前端工程化中的角色 (运行构建工具、脚本等)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="eng-node-eventloop">
+                                        <div class="item-content"><a href="#">了解 Node.js 也有事件循环 (与浏览器事件循环的异同点)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="topic-card" id="testing-tools" data-category="test">
+                    <div class="card-header">
+                        <h2>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                            </svg>
+                            八、测试与常用工具
+                        </h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="toggle-icon w-6 h-6 collapsed">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                    <div class="card-content collapsed">
+                        <p class="text-xs text-gray-500 mb-4 mt-3">保证代码质量与开发效率</p>
+                        <ul>
+                            <li>
+                                <h3>(一) 前端测试基础</h3>
+                                <ul>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="test-why">
+                                        <div class="item-content"><a href="#">为什么需要前端测试？(保证质量, 便于重构)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="test-types-basic">
+                                        <div class="item-content"><a href="#">了解测试类型：单元测试、集成测试、端到端测试 (E2E)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="test-unit-basic">
+                                        <div class="item-content"><a href="#">单元测试：了解 Jest/Vitest 等工具的基本概念与作用</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(二) 版本控制</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="tools-git-basic">
+                                        <div class="item-content"><a href="#">Git：常用命令 (<code>clone</code>,
+                                                <code>add</code>, <code>commit</code>, <code>push</code>,
+                                                <code>pull</code>, <code>branch</code>, <code>checkout</code>,
+                                                <code>merge</code>)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="tools-git-conflict">
+                                        <div class="item-content"><a href="#">理解 Git 冲突产生的原因与基本解决方式</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="tools-git-flow">
+                                        <div class="item-content"><a href="#">了解常见 Git 工作流 (如 Gitflow 的概念)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(三) 调试工具</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="tools-devtools-basic">
+                                        <div class="item-content"><a href="#">浏览器开发者工具 (Chrome DevTools)：Elements (查看/修改
+                                                DOM/CSS), Console (打印日志/执行 JS), Network (查看请求), Application (查看存储)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="medium basic"><input type="checkbox" data-id="tools-devtools-debug">
+                                        <div class="item-content"><a href="#">使用 Sources 面板进行断点调试</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="topic-card" id="security-auth" data-category="sec">
+                    <div class="card-header">
+                        <h2>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                            </svg>
+                            九、前端安全与认证
+                        </h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="toggle-icon w-6 h-6 collapsed">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                    <div class="card-content collapsed">
+                        <p class="text-xs text-gray-500 mb-4 mt-3">了解常见的安全风险与防护</p>
+                        <ul>
+                            <li>
+                                <h3>(一) 常见 Web 攻击 (了解概念与前端防护)</h3>
+                                <ul>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="sec-xss-basic">
+                                        <div class="item-content"><a href="#">XSS (跨站脚本攻击)：了解基本原理与常见防御手段 (输入过滤/输出编码)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="high basic"><input type="checkbox" data-id="sec-csrf-basic">
+                                        <div class="item-content"><a href="#">CSRF (跨站请求伪造)：了解基本原理与常见防御手段 (Token,
+                                                SameSite Cookie)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-high">高频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="sec-clickjacking-basic">
+                                        <div class="item-content"><a href="#">点击劫持 (Clickjacking)：了解概念与
+                                                <code>X-Frame-Options</code></a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <h3>(二) 认证与授权 (了解概念)</h3>
+                                <ul>
+                                    <li data-tags="medium basic"><input type="checkbox"
+                                            data-id="sec-auth-methods-basic">
+                                        <div class="item-content"><a href="#">认证机制：了解 Cookie-Session 与 Token (JWT)
+                                                的基本概念与区别</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-medium">中频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="sec-jwt-basic">
+                                        <div class="item-content"><a href="#">JWT (JSON Web Token)：了解其结构 (Header,
+                                                Payload, Signature)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                    <li data-tags="low basic"><input type="checkbox" data-id="sec-oauth2-basic">
+                                        <div class="item-content"><a href="#">OAuth 2.0：了解其目的 (授权第三方应用访问资源)</a>
+                                            <div class="item-tags"><span class="item-tag tag-freq-low">低频</span><span
+                                                    class="item-tag tag-diff-basic">基础</span></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const cardHeaders = document.querySelectorAll('.card-header');
+            const checkboxes = document.querySelectorAll('.toc-list input[type="checkbox"]');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const searchInput = document.getElementById('search-input');
+            // Select all list items containing a checkbox, link, and tags, across all cards
+            const listItems = document.querySelectorAll('.toc-list li ul li');
+            const topicCards = document.querySelectorAll('.topic-card');
+            // Select all sub-headers (h3) within the toc-list
+            const subHeaders = document.querySelectorAll('.toc-list h3');
+            const noResultsMessage = document.getElementById('no-results-message');
+            const categoryFilterButtons = document.querySelectorAll('#category-filter-buttons .filter-button');
+            const tagFilterButtons = document.querySelectorAll('#tag-filter-buttons .filter-button');
+            const clearAllBtn = document.getElementById('clear-all-btn');
+            const selectAllBtn = document.getElementById('select-all-btn');
+            const sideNavList = document.getElementById('side-nav-list');
+            // Get all sidebar navigation links, ensuring sideNavList exists
+            const sideNavLinks = sideNavList ? sideNavList.querySelectorAll('a') : [];
+
+            // --- State ---
+            let totalItems = 0; // Will be calculated after init
+            let checkedItems = 0;
+            let currentCategoryFilter = 'all';
+            let currentTagFilter = 'all';
+            let currentSearchTerm = '';
+            let intersectionObserver; // For scroll spying
+
+            // --- LocalStorage Key ---
+            // Updated key for the junior version to avoid conflicts
+            const STORAGE_KEY = 'tocProgress_v5_junior';
+
+            // --- Debounce Helper Function ---
+            // Limits the rate at which a function can fire.
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const context = this;
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func.apply(context, args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+
+            // --- Initialization ---
+            // Sets up the page functionality on load.
+            function init() {
+                // Recalculate totalItems after potential dynamic additions
+                totalItems = document.querySelectorAll('.toc-list input[type="checkbox"]').length;
+                loadProgress(); // Load saved progress from localStorage
+                addEventListeners(); // Attach event listeners to elements
+                setupIntersectionObserver(); // Set up scroll spying for sidebar navigation
+                applyFiltersAndSearch(); // Apply initial filters and search state
+
+                // Collapse all topic cards except the first one initially for better overview
+                topicCards.forEach((card, index) => {
+                    if (index > 0) { // Keep the first card open
+                        const content = card.querySelector('.card-content');
+                        const icon = card.querySelector('.toggle-icon');
+                        if (content && icon) {
+                            content.classList.add('collapsed');
+                            icon.classList.add('collapsed');
+                        }
+                    }
+                });
+                // Initial update of progress display after potentially adding items
+                updateProgressDisplay();
+            }
+
+            // --- Event Listeners Setup ---
+            // Attaches all necessary event listeners.
+            function addEventListeners() {
+                // Toggle card content visibility on header click
+                cardHeaders.forEach(header => {
+                    header.addEventListener('click', handleCardToggle);
+                });
+                // Update progress on checkbox change
+                checkboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', handleCheckboxChange);
+                });
+                // Handle search input with debounce
+                searchInput.addEventListener('input', debounce(handleSearchInput, 250));
+                // Handle category filter button clicks
+                categoryFilterButtons.forEach(button => {
+                    button.addEventListener('click', handleFilterClick);
+                });
+                // Handle tag filter button clicks
+                tagFilterButtons.forEach(button => {
+                    button.addEventListener('click', handleFilterClick);
+                });
+                // Handle clear all button click
+                clearAllBtn.addEventListener('click', handleClearAll);
+                // Handle select all visible button click
+                selectAllBtn.addEventListener('click', handleSelectAllVisible);
+                // Handle sidebar navigation clicks (smooth scroll + card expansion)
+                sideNavLinks.forEach(link => {
+                    link.addEventListener('click', handleSideNavClick);
+                });
+
+                // Re-setup IntersectionObserver on window resize (debounced)
+                // This ensures the scroll spying adjusts to layout changes.
+                let resizeTimeout;
+                window.addEventListener('resize', () => {
+                    clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(setupIntersectionObserver, 250);
+                });
+            }
+
+            // --- Event Handlers ---
+
+            // Toggles the visibility of a topic card's content.
+            function handleCardToggle(event) {
+                // Prevent toggle if clicking on interactive elements inside header (if any added later)
+                if (event.target.closest('input, a, button')) return;
+
+                const header = event.currentTarget;
+                const content = header.nextElementSibling; // Assumes content is the immediate next sibling
+                const icon = header.querySelector('.toggle-icon');
+
+                // Check if the elements exist and the content element has the correct class
+                if (content && icon && content.classList.contains('card-content')) {
+                    content.classList.toggle('collapsed');
+                    icon.classList.toggle('collapsed');
+                }
+            }
+
+            // Handles changes to any checkbox state.
+            function handleCheckboxChange() {
+                updateCheckedCount(); // Recalculate checked items
+                saveProgress(); // Save the new state to localStorage
+                updateProgressDisplay(); // Update the progress bar and text
+            }
+
+            // Handles input in the search bar.
+            function handleSearchInput(event) {
+                currentSearchTerm = event.target.value.toLowerCase().trim(); // Update search term state
+                applyFiltersAndSearch(); // Re-apply filters and search
+            }
+
+            // Handles clicks on filter buttons (category or tag).
+            function handleFilterClick(event) {
+                const button = event.currentTarget;
+                const filterGroup = button.dataset.filterGroup; // 'category' or 'tag'
+                const filterValue = button.dataset.filter; // e.g., 'js', 'high', 'all'
+
+                // Update the corresponding filter state
+                if (filterGroup === 'category') {
+                    currentCategoryFilter = filterValue;
+                    // Update active class for category buttons
+                    categoryFilterButtons.forEach(btn => btn.classList.remove('active'));
+                } else if (filterGroup === 'tag') {
+                    currentTagFilter = filterValue;
+                    // Update active class for tag buttons
+                    tagFilterButtons.forEach(btn => btn.classList.remove('active'));
+                }
+                button.classList.add('active'); // Set the clicked button as active
+                applyFiltersAndSearch(); // Re-apply filters and search
+            }
+
+            // Clears all checkboxes.
+            function handleClearAll() {
+                checkboxes.forEach(cb => cb.checked = false); // Uncheck all
+                handleCheckboxChange(); // Update progress and save
+            }
+
+            // Selects all currently visible checkboxes.
+            function handleSelectAllVisible() {
+                // Iterate through all checkboxes
+                document.querySelectorAll('.toc-list input[type="checkbox"]').forEach(cb => {
+                    const listItem = cb.closest('li[data-tags]'); // Find the parent list item with tags
+                    // Check if the list item exists and is not hidden by filters/search
+                    if (listItem && !listItem.classList.contains('hidden')) {
+                        cb.checked = true; // Check the box
+                    }
+                });
+                handleCheckboxChange(); // Update progress and save
+            }
+
+
+            // Handles clicks on sidebar navigation links.
+            function handleSideNavClick(e) {
+                // Smooth scroll is handled by CSS `scroll-behavior: smooth;`
+
+                const targetId = e.currentTarget.getAttribute('href').substring(1); // Get target card ID
+                const targetElement = document.getElementById(targetId); // Find the target card
+
+                if (targetElement) {
+                    const content = targetElement.querySelector('.card-content');
+                    const icon = targetElement.querySelector('.toggle-icon');
+
+                    // Expand the target card if it's currently collapsed
+                    if (content && content.classList.contains('collapsed')) {
+                        content.classList.remove('collapsed');
+                        if (icon) icon.classList.remove('collapsed');
+                    }
+                    // Optional: Focus the card header for accessibility after scroll.
+                    // Needs a slight delay to ensure scroll has finished.
+                    // setTimeout(() => {
+                    //     const header = targetElement.querySelector('.card-header');
+                    //     if (header) header.focus();
+                    // }, 50);
+                }
+                // Do not prevent default browser behavior (scrolling to the anchor)
+            }
+
+
+            // --- Core Logic: Filtering and Searching ---
+            // Applies current filters (category, tag) and search term to show/hide items and cards.
+            function applyFiltersAndSearch() {
+                let anyVisibleItemOverall = false; // Flag to track if any item is visible across all cards
+
+                topicCards.forEach(card => {
+                    const cardCategory = card.dataset.category; // Get category from card's data attribute
+                    // Check if card matches the current category filter
+                    const categoryMatch = currentCategoryFilter === 'all' || cardCategory === currentCategoryFilter;
+                    let cardHasVisibleItem = false; // Flag for items visible within this specific card
+
+                    // 1. Filter Card by Category: Hide card if it doesn't match category filter
+                    if (!categoryMatch) {
+                        card.classList.add('hidden');
+                        return; // Skip processing children if card is hidden
+                    } else {
+                        card.classList.remove('hidden'); // Ensure card is visible if category matches
+                    }
+
+                    const itemsInCard = card.querySelectorAll('.toc-list li ul li'); // Get all list items in the card
+                    const headersInCard = card.querySelectorAll('.toc-list h3'); // Get all sub-headers in the card
+
+                    // Reset visibility for items and headers within the card before re-filtering
+                    itemsInCard.forEach(item => item.classList.remove('hidden'));
+                    headersInCard.forEach(h3 => h3.classList.remove('hidden'));
+
+                    // 2. Filter Items by Search and Tag
+                    itemsInCard.forEach(item => {
+                        const link = item.querySelector('a');
+                        const text = link ? link.textContent.toLowerCase() : ''; // Get item text for search
+                        const itemTags = (item.dataset.tags || '').split(' '); // Get tags from item's data attribute
+
+                        // Check if item matches search term and tag filter
+                        const searchMatch = currentSearchTerm === '' || text.includes(currentSearchTerm);
+                        const tagMatch = currentTagFilter === 'all' || itemTags.includes(currentTagFilter);
+
+                        // Hide item if it doesn't match either search or tag filter
+                        if (!searchMatch || !tagMatch) {
+                            item.classList.add('hidden');
+                        } else {
+                            cardHasVisibleItem = true; // Mark that this card has at least one visible item
+                            anyVisibleItemOverall = true; // Mark that at least one item is visible overall
+                        }
+                    });
+
+                    // 3. Hide Sub-Headers (h3) if all their child list items are hidden
+                    headersInCard.forEach(h3 => {
+                        const siblingList = h3.nextElementSibling; // Get the <ul> following the h3
+                        if (siblingList && siblingList.tagName === 'UL') {
+                            // Check if any <li> within the sibling <ul> is NOT hidden
+                            const hasVisibleChild = Array.from(siblingList.querySelectorAll('li')).some(
+                                li => !li.classList.contains('hidden')
+                            );
+                            // If no children are visible, hide the header
+                            if (!hasVisibleChild) {
+                                h3.classList.add('hidden');
+                            }
+                        } else {
+                            h3.classList.add('hidden'); // Hide header if it doesn't have a following UL (structure error or end of list)
+                        }
+                    });
+
+                    // 4. Hide the Entire Card if no items are visible AND no sub-headers are visible within it
+                    const hasVisibleHeader = Array.from(headersInCard).some(h3 => !h3.classList.contains('hidden'));
+                    if (!cardHasVisibleItem && !hasVisibleHeader) {
+                        card.classList.add('hidden');
+                    }
+                });
+
+                // Show or hide the "no results" message based on overall visibility
+                noResultsMessage.classList.toggle('hidden', anyVisibleItemOverall);
+            }
+
+            // --- Progress Calculation & Display ---
+
+            // Updates the count of checked checkboxes.
+            function updateCheckedCount() {
+                // Filter all checkboxes on the page and count how many are checked
+                checkedItems = Array.from(document.querySelectorAll('.toc-list input[type="checkbox"]')).filter(cb => cb.checked).length;
+            }
+
+            // Updates the progress bar width and text display.
+            function updateProgressDisplay() {
+                // Calculate percentage, handle division by zero if no items exist
+                const percentage = totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0;
+                // Set the width of the progress bar element
+                progressBar.style.width = `${percentage}%`;
+                // Update the text content showing percentage and count
+                progressText.textContent = `学习进度: ${percentage}% (${checkedItems}/${totalItems})`;
+            }
+
+            // --- LocalStorage Operations ---
+
+            // Loads checkbox states from localStorage.
+            function loadProgress() {
+                let savedProgress = {};
+                try {
+                    const storedData = localStorage.getItem(STORAGE_KEY); // Get data from localStorage
+                    // Parse stored JSON, default to empty object if null or invalid
+                    savedProgress = JSON.parse(storedData || '{}');
+                    // Basic validation: ensure it's an object
+                    if (typeof savedProgress !== 'object' || savedProgress === null) {
+                        console.warn("Invalid progress data found in localStorage, resetting.");
+                        savedProgress = {};
+                    }
+                } catch (error) {
+                    console.error("Error parsing progress from localStorage:", error);
+                    savedProgress = {}; // Reset on error
+                }
+
+                // Apply saved states to checkboxes
+                document.querySelectorAll('.toc-list input[type="checkbox"]').forEach(checkbox => {
+                    const id = checkbox.dataset.id; // Get the unique ID for the item
+                    if (id) { // Ensure the checkbox has a data-id
+                        checkbox.checked = !!savedProgress[id]; // Set checked state based on saved data
+                    }
+                });
+
+                updateCheckedCount(); // Update the count based on loaded states
+                // Note: updateProgressDisplay() is called in init() after this now
+            }
+
+            // Saves the current state of checked checkboxes to localStorage.
+            function saveProgress() {
+                const progressToSave = {};
+                // Iterate through all checkboxes
+                document.querySelectorAll('.toc-list input[type="checkbox"]').forEach(checkbox => {
+                    const id = checkbox.dataset.id;
+                    // If a checkbox with an ID is checked, add its ID to the object
+                    if (id && checkbox.checked) {
+                        progressToSave[id] = true;
+                    }
+                });
+                // Store the JSON string in localStorage
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(progressToSave));
+            }
+
+            // --- Scroll Spying Logic ---
+            // Highlights the corresponding sidebar link when a topic card scrolls into view.
+            function setupIntersectionObserver() {
+                // Only run on large screens where the sidebar is visible
+                if (!sideNavList || window.innerWidth < 1024) {
+                    if (intersectionObserver) intersectionObserver.disconnect(); // Disconnect observer if window is too small
+                    return;
+                }
+
+                // Disconnect previous observer if resizing
+                if (intersectionObserver) {
+                    intersectionObserver.disconnect();
+                }
+
+                // Observer options: Adjust rootMargin based on sticky header height
+                // -100px top margin pushes the trigger point down below the sticky header
+                // -30% bottom margin means the section needs to be at least 30% visible from the bottom
+                const options = {
+                    root: null, // Use viewport as root
+                    rootMargin: '-100px 0px -30% 0px',
+                    threshold: 0 // Trigger as soon as any part enters/leaves the intersection area
+                };
+
+                // Create the observer
+                intersectionObserver = new IntersectionObserver((entries) => {
+                    let bestVisibleEntry = null; // Track the topmost visible entry
+
+                    // Find the topmost visible entry among all intersecting entries
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            // If it's the first visible entry or higher on the screen than the current best, update bestVisibleEntry
+                            if (!bestVisibleEntry || entry.boundingClientRect.top < bestVisibleEntry.boundingClientRect.top) {
+                                bestVisibleEntry = entry;
+                            }
+                        }
+                    });
+
+                    // Update sidebar link active states
+                    sideNavLinks.forEach(link => {
+                        link.classList.remove('active'); // Remove active class from all links first
+                        // If there's a best visible entry and its ID matches the link's href, add active class
+                        if (bestVisibleEntry && link.getAttribute('href') === `#${bestVisibleEntry.target.id}`) {
+                            link.classList.add('active');
+                        }
+                    });
+                }, options);
+
+                // Observe the topic cards themselves (the elements with IDs matching sidebar links)
+                topicCards.forEach(card => {
+                    if (card.id) { // Only observe cards that have an ID
+                        intersectionObserver.observe(card);
+                    }
+                });
+            }
+
+            // --- Start the Application ---
+            init(); // Run initialization logic when the DOM is ready
+        });
+    </script>
+</body>
+
+</html>

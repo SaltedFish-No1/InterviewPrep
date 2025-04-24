@@ -1,0 +1,2162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript 语言基础</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../../global.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+
+    <style>
+        /* --- Base & Layout Adjustments --- */
+        html {
+            scroll-padding-top: 2rem;
+            /* Adjust if header is sticky */
+        }
+
+        body {
+            /* Base font, bg, color assumed from global.css */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --- Typography (Assuming base H1-H6, p, strong, a, pre, code from global.css) --- */
+        /* Adjustments specific to this page's article content */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            scroll-margin-top: 2rem;
+            /* Offset for sticky nav */
+        }
+
+        h2 {
+            /* Base size/weight from global, add border */
+            border-bottom: 1px solid var(--border-color-light);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        h3 {
+            /* Base size/weight from global, adjust color/margins */
+            /* Remove top margin as it's handled by card now */
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: var(--primary-color-dark);
+            font-size: 1.25rem;
+            /* Ensure size consistency */
+        }
+
+        /* Specific list styling within article */
+        article ul {
+            list-style: disc;
+            padding-left: 1.5em;
+            margin-bottom: 1em;
+        }
+
+        article ol {
+            list-style: decimal;
+            padding-left: 1.5em;
+            margin-bottom: 1em;
+        }
+
+        article li {
+            margin-bottom: 0.5em;
+        }
+
+        article ul ul,
+        article ol ol,
+        article ul ol,
+        article ol ul {
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+        }
+
+        /* Override default code style if needed within article */
+        article *:not(pre)>code {
+            background-color: var(--primary-color-light);
+            color: var(--primary-color-dark);
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: var(--font-family-mono);
+            /* Ensure mono font */
+            font-size: 0.875em;
+        }
+
+        /* Ensure pre uses the mono font and has appropriate styling */
+        article pre {
+            font-family: var(--font-family-mono);
+            /* Other styles like background, padding assumed from global.css */
+            border-radius: 0.375rem;
+            /* Ensure rounding */
+            margin: 1rem 0;
+            /* Ensure margin */
+            /* Prism adds its own background, ensure padding works well */
+            padding: 1em;
+            overflow: auto;
+        }
+
+        /* Reset inline code styles within pre for Prism */
+        article pre code[class*="language-"] {
+            background: none;
+            /* Remove potential background */
+            color: inherit;
+            padding: 0;
+            border-radius: 0;
+            font-size: inherit;
+            /* Inherit size from pre */
+            font-family: inherit;
+            /* Inherit font from pre */
+            line-height: inherit;
+            /* Inherit line height */
+            text-shadow: none;
+            /* Remove potential text shadow from theme */
+            white-space: pre;
+            /* Ensure whitespace is preserved */
+            display: block;
+            /* Ensure code takes full width for highlighting */
+        }
+
+        /* Add margin between nested cards */
+        .content-section>.content-card+.content-card {
+            margin-top: 1.5rem;
+        }
+
+
+        /* --- Quiz Card Styling (Assuming .quiz-card base is in global.css) --- */
+        /* Styles here override or add specifics if needed */
+        .quiz-card {
+            /* Example: Override margin if needed */
+            margin: 2rem 0;
+        }
+
+        /* Ensure quiz cards inside content cards have appropriate margin */
+        .content-card>.quiz-card {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Remove bottom margin from last element inside a card */
+        .content-card>*:last-child {
+            margin-bottom: 0 !important;
+            /* Use !important if needed to override Tailwind margins */
+        }
+
+        .content-card>.quiz-card:last-child {
+            margin-bottom: 0 !important;
+        }
+
+
+        /* Assuming .quiz-question base styles are in global.css */
+        .quiz-question .material-icons {
+            color: var(--primary-color-dark);
+            font-size: 1.25rem;
+        }
+
+        .quiz-answer {
+            /* Base styles likely in global, this handles visibility transition */
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, padding-top 0.5s ease-in-out, padding-bottom 0.5s ease-in-out, margin-top 0.5s ease-in-out;
+            /* Ensure all properties transition */
+            overflow: hidden;
+            /* Ensure initial padding/margin is 0 for transition */
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            border: 1px solid var(--border-color-default);
+            /* Keep border for collapsed state if desired */
+            background-color: var(--bg-color-lighter);
+            /* Ensure background for content */
+            border-radius: 0.375rem;
+            /* Ensure rounding */
+            color: var(--text-color-default);
+            /* Ensure text color */
+        }
+
+        .quiz-answer.visible {
+            max-height: 1000px;
+            /* Adjust if needed */
+            opacity: 1;
+            padding-top: 1rem;
+            /* Restore padding */
+            padding-bottom: 1rem;
+            margin-top: 1rem;
+            /* Restore margin */
+            overflow: auto;
+        }
+
+        /* Assuming .quiz-toggle base styles are in global.css */
+        .quiz-toggle {
+            position: relative;
+            /* Needed for ripple */
+            overflow: hidden;
+            /* Needed for ripple */
+            display: inline-flex;
+            /* Ensure flex properties */
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* Span for button text */
+        .quiz-toggle .button-text {
+            pointer-events: none;
+            /* Prevent text interfering with clicks */
+        }
+
+        .quiz-toggle .material-icons {
+            font-size: 1.1rem;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .quiz-toggle .icon-arrow.rotated {
+            transform: rotate(180deg);
+        }
+
+        /* --- Ripple Effect (Keep if not in global.css) --- */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: var(--ripple-color);
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* --- Tooltips (Keep if not in global.css) --- */
+        .tooltip-term {
+            border-bottom: 1px dotted var(--primary-color);
+            cursor: help;
+            position: relative;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .tooltip-term::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 0.4rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            z-index: 10;
+        }
+
+        .tooltip-term::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(0px);
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            z-index: 10;
+        }
+
+        .tooltip-term:hover::before,
+        .tooltip-term:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* --- Collapsible Sections (Details/Summary - Keep if not in global.css or needs overrides) --- */
+        details {
+            border: 1px solid var(--border-color-default);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            background-color: var(--bg-color-light);
+        }
+
+        summary {
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--primary-color-dark);
+            background-color: var(--bg-color-lighter);
+            border-radius: 6px 6px 0 0;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.2s;
+        }
+
+        summary:hover {
+            background-color: #e5e7eb;
+            /* gray-200 */
+        }
+
+        summary::-webkit-details-marker,
+        summary::marker {
+            display: none;
+        }
+
+        /* Hide default marker */
+        summary::after {
+            content: '\e5cf';
+            /* Material Icons expand_more */
+            font-family: 'Material Icons';
+            font-size: 1.25rem;
+            transition: transform 0.3s ease-in-out;
+            color: var(--text-color-light);
+        }
+
+        details[open]>summary::after {
+            transform: rotate(180deg);
+        }
+
+        details>div {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color-default);
+        }
+
+        /* Content inside details */
+
+        /* --- Fade-in Animation (Keep if not in global.css) --- */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-section {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+
+</head>
+
+<body class="bg-gray-100">
+    <div class="page-container">
+
+        <aside class="local-side-nav">
+            <h4 class="head4">JS 核心基础</h4>
+            <ul id="local-toc">
+                <li><a href="#intro" class="active"><span class="material-icons nav-icon">description</span>引言</a></li>
+                <li><a href="#type-system"><span class="material-icons nav-icon">data_object</span>类型系统</a></li>
+                <li><a href="#scope"><span class="material-icons nav-icon">visibility</span>作用域 & 作用域链</a></li>
+                <li><a href="#closure"><span class="material-icons nav-icon">vpn_lock</span>闭包</a></li>
+                <li><a href="#prototype"><span class="material-icons nav-icon">account_tree</span>原型链 & 继承</a></li>
+                <li><a href="#execution-context"><span class="material-icons nav-icon">layers</span>执行上下文 & 调用栈</a></li>
+                <li><a href="#this-keyword"><span class="material-icons nav-icon">adjust</span>this 关键字</a></li>
+                <li><a href="#event-loop"><span class="material-icons nav-icon">sync</span>事件循环</a></li>
+                <li><a href="#conclusion"><span class="material-icons nav-icon">flag</span>结语</a></li>
+            </ul>
+            <a href="../../index.html" class="back-link">
+                &larr; 返回大纲目录
+            </a>
+        </aside>
+
+        <main class="content-main">
+            <article>
+                <section id="intro" class="content-section fade-in-section" style="animation-delay: 0s;">
+                    <h1 class="head1 flex items-center gap-2"><span
+                            class="material-icons text-3xl text-blue-600">school</span>JavaScript 核心基础与面试指南</h1>
+                    <p>你好！欢迎来到这份 JavaScript 核心基础知识指南。作为一名前端开发者，扎实的 JS 基础是至关重要的。这份文档旨在帮助你系统地梳理 JS
+                        的语言与运行时核心概念，并结合常见的面试考点进行深入讲解。</p>
+                    <p>我们将从类型系统讲起，逐步深入作用域、闭包、原型链等关键概念，并补充执行上下文、<code>this</code> 指向和事件循环等运行时机制。<strong>注意:</strong>
+                        JavaScript 可以运行在多种环境（主要是浏览器和 Node.js 服务器），某些 API 或全局对象（如 <code>window</code>、DOM
+                        操作）是特定于浏览器环境的，文中会尽量说明。</p>
+                    <p>每个知识点都会尽量遵循“背景 - 技术 - 解决”的思路，并通过代码示例和交互式 Quiz 卡片加深理解。希望这份指南能助你构建坚实的 JS 知识体系，在面试中脱颖而出！</p>
+                    <p class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md text-sm">💡
+                        <strong>提示:</strong> 点击左侧导航可以快速跳转到相应主题。带有 ✨ 图标的部分是高频面试考点。
+                    </p>
+                </section>
+
+                <section id="type-system" class="content-section fade-in-section" style="animation-delay: 0.05s;">
+                    <h2 class="flex items-center head2 "><span class="material-icons">data_object</span>类型系统 (Type System)</h2>
+                    <p>JavaScript 是一种动态类型语言，意味着变量的类型在运行时确定，而不是在编译时。理解其类型系统是掌握 JS 的第一步。</p>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="primitive-vs-reference">原始类型 (Primitive Types) vs 引用类型 (Reference Types)</h3>
+                        <p><strong>背景：</strong> 在 JS 中存储数据时，根据数据类型的不同，存储方式也不同。这直接影响了变量如何被复制、传递以及比较。</p>
+                        <p><strong>技术：</strong></p>
+                        <ul>
+                            <li><strong>原始类型 (Primitives):</strong> 包括 <code>String</code>, <code>Number</code>,
+                                <code>Boolean</code>, <code>Null</code>, <code>Undefined</code>, <code>Symbol</code>,
+                                <code>BigInt</code> (ES2020)。它们的值直接存储在<strong class="text-red-600">栈 (Stack)</strong>
+                                内存中。当复制原始类型变量时，会创建一个全新的值。
+                            </li>
+                            <li><strong>引用类型 (References):</strong> 通常指 <code>Object</code> (包括 <code>Array</code>,
+                                <code>Function</code>, <code>Date</code>, <code>RegExp</code> 等)。它们的值（对象本身）存储在<strong
+                                    class="text-red-600">堆 (Heap)</strong>
+                                内存中，而变量存储的是指向该对象的内存地址（引用），这个地址存储在栈中。当复制引用类型变量时，复制的是内存地址，两个变量指向同一个堆内存中的对象。
+                            </li>
+                        </ul>
+                        <pre><code class="language-javascript">// Primitive Type Example
+let a = 10;
+let b = a; // b gets a copy of the value 10
+b = 20;
+console.log(a); // Output: 10 (a remains unchanged)
+console.log(b); // Output: 20
+
+// Reference Type Example
+let obj1 = { name: 'Alice' };
+let obj2 = obj1; // obj2 gets a copy of the memory address of obj1
+obj2.name = 'Bob';
+console.log(obj1.name); // Output: Bob (obj1 is affected because they point to the same object)
+console.log(obj2.name); // Output: Bob</code></pre>
+                        <p>✨ <strong>面试考点：</strong>
+                            解释原始类型和引用类型在内存中的存储方式和复制行为的区别。经常结合函数参数传递来考察（原始类型按值传递，引用类型按共享传递/按引用传递的表象）。
+                        </p>
+                        <pre><code class="language-javascript">function modify(primitive, reference) {
+  primitive = 20;
+  reference.value = 20;
+}
+
+let num = 10;
+let obj = { value: 10 };
+
+modify(num, obj);
+
+console.log(num); // Output: 10 (primitive passed by value)
+console.log(obj.value); // Output: 20 (reference passed by sharing)</code></pre>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="equality">=== vs == (严格相等 vs 抽象相等)</h3>
+                        <p><strong>背景：</strong> JS 提供了两种比较运算符，它们在判断相等性时的行为不同，容易引起混淆。</p>
+                        <p><strong>技术：</strong></p>
+                        <ul>
+                            <li><strong><code>===</code> (严格相等 Strict Equality):</strong> 比较两个值是否<strong
+                                    class="text-red-600">类型相同且值相等</strong>。它不会进行类型转换。这是推荐使用的比较方式。</li>
+                            <li><strong><code>==</code> (抽象相等 Abstract Equality / Loose Equality):</strong>
+                                在比较前，会尝试将两个操作数<strong class="text-red-600">转换成相同类型</strong>，然后再进行值的比较。这个转换过程（称为<span
+                                    class="tooltip-term" data-tooltip="引擎在运算或比较时自动进行的类型转换">类型强制转换 Type
+                                    Coercion</span>）有复杂的规则，容易产生意外结果。</li>
+                        </ul>
+                        <p><strong>如何解决混淆：</strong> 优先使用 <code>===</code> 来避免隐式类型转换带来的不可预测性。</p>
+                        <pre><code class="language-javascript">console.log(5 === 5);   // Output: true
+console.log(5 === '5'); // Output: false (different types)
+
+console.log(5 == 5);    // Output: true
+console.log(5 == '5');  // Output: true (string '5' is converted to number 5 before comparison)
+console.log(0 == false); // Output: true (boolean false is converted to number 0)
+console.log(null == undefined); // Output: true (special rule)
+
+// Tricky cases with ==
+console.log([] == false); // Output: true ( [] -> '' -> 0; false -> 0 )
+console.log(![] == false); // Output: true ( ![] -> !Boolean([]) -> !true -> false; false == false )
+console.log([] == ![]);   // Output: true ( [] -> 0; ![] -> false -> 0 )</code></pre>
+                        <p>✨ <strong>面试考点：</strong> 清晰解释 <code>==</code> 和 <code>===</code> 的区别，特别是 <code>==</code>
+                            的类型转换规则（虽然不需要记住所有规则，但要理解其核心机制和潜在问题）。能够分析常见的 <code>==</code> 比较结果，如
+                            <code>null == undefined</code>，<code>'0' == false</code> 等。
+                        </p>
+
+                        <div class="quiz-card" id="quiz-equality">
+                            <div class="quiz-question"><span class="material-icons">quiz</span>✨ Quiz:
+                                <code>[] == ![]</code> 的结果是什么？为什么？
+                            </div>
+                            <button class="quiz-toggle">
+                                <span class="material-icons icon-arrow">expand_more</span><span class="button-text">
+                                    查看答案</span>
+                            </button>
+                            <div class="quiz-answer">
+                                <p><strong>答案:</strong> <code>true</code></p>
+                                <p><strong>解析:</strong></p>
+                                <ol>
+                                    <li><code>![]</code>: 数组 <code>[]</code> 是一个真值 (truthy value)。对其进行逻辑非 <code>!</code>
+                                        操作，<code>!true</code> 结果是 <code>false</code>。</li>
+                                    <li>表达式变为 <code>[] == false</code>。</li>
+                                    <li>根据 <code>==</code> 的抽象相等比较规则，当一边是对象（数组也是对象），另一边是布尔值时：
+                                        <ul>
+                                            <li>布尔值 <code>false</code> 会被转换为数字 <code>0</code>。</li>
+                                            <li>对象 <code>[]</code> 会尝试调用 <code>ToPrimitive</code>
+                                                转换。<code>[].toString()</code> 结果是空字符串 <code>""</code>。</li>
+                                            <li>空字符串 <code>""</code> 再被转换为数字 <code>0</code>。</li>
+                                        </ul>
+                                    </li>
+                                    <li>最终比较的是 <code>0 == 0</code>，结果为 <code>true</code>。</li>
+                                </ol>
+                                <p class="mt-2 font-medium">关键在于理解 <code>!</code> 运算符的优先级和 <code>==</code> 的类型转换规则。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="type-coercion">隐式/显式类型转换 (Type Coercion)</h3>
+                        <p><strong>背景：</strong> 在 JS 运算或比较中，不同类型的值经常需要被转换成同一种类型才能继续操作。</p>
+                        <p><strong>技术：</strong></p>
+                        <ul>
+                            <li><strong>显式转换 (Explicit Coercion):</strong> 开发者<strong
+                                    class="text-red-600">主动</strong>使用函数或方法进行类型转换，意图明确。常用方法：
+                                <ul>
+                                    <li><code>Number()</code>: 转换为数字 (e.g., <code>Number('123')</code>,
+                                        <code>Number(true)</code> -> 1, <code>Number(null)</code> -> 0)。
+                                    </li>
+                                    <li><code>String()</code>: 转换为字符串 (e.g., <code>String(123)</code>,
+                                        <code>String(true)</code> -> 'true', <code>String(null)</code> -> 'null')。
+                                    </li>
+                                    <li><code>Boolean()</code>: 转换为布尔值 (除了 <code>0</code>, <code>NaN</code>,
+                                        <code>''</code>, <code>null</code>, <code>undefined</code>, <code>false</code>
+                                        转换为
+                                        <code>false</code>，其他都为 <code>true</code>)。
+                                    </li>
+                                    <li><code>parseInt()</code>, <code>parseFloat()</code>: 解析字符串为整数或浮点数。</li>
+                                    <li><code>.toString()</code>: 对象方法，转换为字符串（但 <code>null</code> 和
+                                        <code>undefined</code>
+                                        没有此方法）。</li>
+                                    <li><code>+</code> (一元加号): 快速转换为数字 (e.g., <code>+'42'</code>, <code>+true</code> ->
+                                        1)。
+                                    </li>
+                                    <li><code>!!</code> (双重非): 快速转换为布尔值 (e.g., <code>!!'hello'</code>, <code>!!0</code>
+                                        ->
+                                        false)。</li>
+                                </ul>
+                            </li>
+                            <li><strong>隐式转换 (Implicit Coercion):</strong> JS 引擎在特定操作（如 <code>==</code> 比较、算术运算
+                                <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>、逻辑运算 <code>||</code>,
+                                <code>&&</code>）中<strong class="text-red-600">自动</strong>进行的类型转换。
+                            </li>
+                        </ul>
+                        <p><strong>如何应对：</strong> 了解常见的隐式转换场景，尽量使用显式转换或 <code>===</code> 来让代码意图更清晰，减少潜在错误。</p>
+                        <pre><code class="language-javascript">// Explicit Coercion
+let numStr = '100';
+let num = Number(numStr); // num is 100 (number)
+let bool = Boolean(0);    // bool is false
+let str = String(true);   // str is 'true'
+let numFast = +'50';      // numFast is 50
+let boolFast = !!'';      // boolFast is false
+
+// Implicit Coercion
+console.log(10 + '5');       // Output: '105' (Number 10 converted to String '10')
+console.log(10 - '5');       // Output: 5 (String '5' converted to Number 5)
+console.log('5' * '2');      // Output: 10 (Both strings converted to numbers)
+console.log(true + 1);       // Output: 2 (Boolean true converted to Number 1)
+console.log(10 + null);      // Output: 10 (null converted to Number 0)
+console.log(10 + undefined); // Output: NaN (undefined converted to NaN)
+
+if ('hello') { // Implicit conversion to Boolean (true)
+  console.log('This runs');
+}</code></pre>
+                        <p>✨ <strong>面试考点：</strong></p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>解释显式和隐式转换的区别。</li>
+                            <li>能够分析含有 <code>+</code> 运算符（字符串连接 vs 数学加法）的代码片段。</li>
+                            <li>解释 <code>if()</code> 条件语句中的隐式布尔转换。</li>
+                            <li>分析 <code>==</code> 比较中的隐式转换。</li>
+                            <li><code>parseInt()</code> vs <code>Number()</code> 的区别 (e.g.,
+                                <code>parseInt('10px')</code> vs
+                                <code>Number('10px')</code>)。
+                            </li>
+                        </ul>
+                        <div class="quiz-card" id="quiz-coercion">
+                            <div class="quiz-question"><span class="material-icons">quiz</span>✨ Quiz:
+                                <code>1 + '2' + 3</code> 的结果是什么？为什么？
+                            </div>
+                            <button class="quiz-toggle">
+                                <span class="material-icons icon-arrow">expand_more</span><span class="button-text">
+                                    查看答案</span>
+                            </button>
+                            <div class="quiz-answer">
+                                <p><strong>答案:</strong> <code>'123'</code></p>
+                                <p><strong>解析:</strong></p>
+                                <ol>
+                                    <li>运算从左到右进行。首先计算 <code>1 + '2'</code>。</li>
+                                    <li><code>+</code> 运算符遇到字符串 <code>'2'</code> 时，会将数字 <code>1</code> 隐式转换为字符串
+                                        <code>'1'</code>。
+                                    </li>
+                                    <li><code>'1' + '2'</code> 进行字符串连接，结果为 <code>'12'</code>。</li>
+                                    <li>接下来计算 <code>'12' + 3</code>。</li>
+                                    <li><code>+</code> 运算符再次遇到字符串 <code>'12'</code>，会将数字 <code>3</code> 隐式转换为字符串
+                                        <code>'3'</code>。
+                                    </li>
+                                    <li><code>'12' + '3'</code> 进行字符串连接，最终结果为 <code>'123'</code>。</li>
+                                </ol>
+                                <p class="mt-2 font-medium">关键在于理解 <code>+</code> 运算符在遇到字符串时的行为（优先进行字符串连接）。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="typeof-operator">typeof 操作符</h3>
+                        <p><strong>背景：</strong> 在需要快速判断一个值的基本类型时，<code>typeof</code> 是最常用的操作符。</p>
+                        <p><strong>技术：</strong></p>
+                        <ul>
+                            <li><code>typeof</code> 是一个一元操作符，返回一个表示操作数类型的<strong class="text-red-600">字符串</strong>。</li>
+                            <li>返回值可能是：<code>"undefined"</code>, <code>"boolean"</code>, <code>"string"</code>, <code>"number"</code>, <code>"bigint"</code>, <code>"symbol"</code>, <code>"function"</code>, <code>"object"</code>。</li>
+                            <li>对于原始类型（除 <code>null</code> 外）和函数，它的结果是准确且有用的。</li>
+                            <li><strong class="text-red-600">注意陷阱：</strong>
+                                <ul>
+                                    <li><code>typeof null</code> 返回 <code>"object"</code>，这是一个历史遗留的 Bug。</li>
+                                    <li><code>typeof []</code> (数组) 返回 <code>"object"</code>。</li>
+                                    <li><code>typeof NaN</code> 返回 <code>"number"</code>。</li>
+                                </ul>
+                            </li>
+                            <li>它不能区分具体的对象类型（如数组、日期、正则等），都返回 <code>"object"</code>。</li>
+                        </ul>
+                        <pre><code class="language-javascript">typeof 42;             // "number"
+typeof 'hello';        // "string"
+typeof true;           // "boolean"
+typeof undefined;      // "undefined"
+typeof Symbol();       // "symbol"
+typeof 123n;           // "bigint"
+typeof function(){};   // "function"
+
+typeof {};             // "object"
+typeof [];             // "object"  &lt;-- 注意
+typeof null;           // "object"  &lt;-- 注意 (Bug)
+typeof new Date();     // "object"
+typeof /regex/;        // "object" (在一些旧环境中可能是 "function")
+typeof NaN;            // "number"
+typeof document.all;   // "undefined" (历史原因，浏览器特有)
+</code></pre>
+                        <p>✨ <strong>面试考点：</strong></p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><code>typeof</code> 的所有可能返回值。</li>
+                            <li>解释为什么 <code>typeof null</code> 是 <code>"object"</code>。</li>
+                            <li><code>typeof</code> 无法准确判断数组，需要使用 <code>Array.isArray()</code>。</li>
+                            <li><code>typeof</code> 在检查未声明变量时不会报错，返回 <code>"undefined"</code>。</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3" id="instanceof-operator">instanceof 操作符</h3>
+                        <p><strong>背景：</strong> 当需要判断一个对象是否是某个特定类（构造函数）的实例，或者检查对象的继承关系时，<code>instanceof</code> 非常有用。</p>
+                        <p><strong>技术：</strong></p>
+                        <ul>
+                            <li><code>instanceof</code> 运算符用于检测<strong class="text-red-600">构造函数的 <code>prototype</code> 属性</strong>是否存在于目标<strong class="text-red-600">对象的原型链</strong>上。</li>
+                            <li>语法：<code>object instanceof Constructor</code>。</li>
+                            <li>返回值：<code>true</code> 或 <code>false</code>。</li>
+                            <li>主要用于判断<strong class="text-red-600">对象</strong>的类型，特别是自定义类或内置对象的实例。</li>
+                            <li><strong class="text-red-600">注意陷阱：</strong>
+                                <ul>
+                                    <li>对原始类型通常返回 <code>false</code>，因为它们没有原型链（除非被手动包装，如 <code>new String('a')</code>）。</li>
+                                    <li>在<strong class="text-red-600">多个 JavaScript 执行环境</strong>（如 `iframe`、`Web Worker`）下可能不准确，因为每个环境有自己的全局对象和原型链。</li>
+                                    <li>原型链可能被人为修改，影响 <code>instanceof</code> 的结果。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <pre><code class="language-javascript">function Person(name) { this.name = name; }
+const john = new Person("John");
+const arr = [];
+const date = new Date();
+
+console.log(john instanceof Person);  // true
+console.log(arr instanceof Array);   // true
+console.log(date instanceof Date);   // true
+
+console.log(john instanceof Object); // true (所有对象都继承自 Object)
+console.log(arr instanceof Object);  // true
+console.log(date instanceof Object); // true
+
+console.log("hello" instanceof String); // false (原始类型)
+console.log(new String("hello") instanceof String); // true (包装对象)
+console.log(null instanceof Object);    // false
+console.log(undefined instanceof Object); // false
+
+// 跨 iframe 示例 (概念性)
+// 假设 iframe 中定义了 class Dog {}
+// const iframeDog = iframeWindow.Dog;
+// const dogFromIframe = new iframeDog();
+// console.log(dogFromIframe instanceof Dog); // false (Dog 来自不同 Realm)
+</code></pre>
+                        <p>✨ <strong>面试考点：</strong></p>
+                         <ul class="list-disc list-inside space-y-1">
+                             <li>解释 <code>instanceof</code> 的工作原理（检查原型链）。</li>
+                             <li>与 <code>typeof</code> 的区别和适用场景。</li>
+                             <li><code>instanceof</code> 对原始类型的行为。</li>
+                             <li><code>instanceof</code> 在多 Realm（如 iframe）环境下的局限性。</li>
+                             <li>如何实现一个简单的 <code>myInstanceof</code> 函数。</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                         <h3 class="head3" id="reliable-type-checking">更可靠的类型检查方法</h3>
+                         <p><strong>背景：</strong> 由于 <code>typeof</code> 和 <code>instanceof</code> 存在局限性，特别是在区分 <code>null</code>、数组以及处理跨 Realm 场景时，需要更精确的方法。</p>
+                         <p><strong>技术：</strong></p>
+                         <ul>
+                            <li><strong><code>Array.isArray(value)</code>:</strong> <strong class="text-red-600">推荐</strong>的检查值是否为数组的方法。它不受原型链影响，也不受跨 Realm 问题影响。</li>
+                            <li><strong><code>Object.prototype.toString.call(value)</code>:</strong> 最通用的类型检查方法。它返回一个表示对象内部 <code>[[Class]]</code> 属性的字符串，格式为 <code>"[object Type]"</code>。
+                                <ul>
+                                     <li>可以精确区分各种内置对象类型（如 `Array`, `Date`, `RegExp`, `Null`, `Undefined` 等）。</li>
+                                     <li>不受 <code>instanceof</code> 的跨 Realm 限制。</li>
+                                </ul>
+                             </li>
+                         </ul>
+                        <pre><code class="language-javascript">// Array.isArray()
+console.log(Array.isArray([]));        // true
+console.log(Array.isArray({}));       // false
+console.log(Array.isArray(null));     // false
+console.log(Array.isArray('Array')); // false
+
+// Object.prototype.toString.call()
+function getType(value) {
+  return Object.prototype.toString.call(value).slice(8, -1); // Extracts 'Type' part
+}
+
+console.log(getType([]));        // "Array"
+console.log(getType({}));       // "Object"
+console.log(getType(new Date())); // "Date"
+console.log(getType(/regex/));  // "RegExp"
+console.log(getType(null));     // "Null"
+console.log(getType(undefined)); // "Undefined"
+console.log(getType(123));      // "Number"
+console.log(getType("hello"));  // "String"
+console.log(getType(function(){})); // "Function"
+console.log(getType(Symbol())); // "Symbol"
+console.log(getType(NaN));      // "Number"
+</code></pre>
+                         <p>✨ <strong>面试考点：</strong></p>
+                         <ul class="list-disc list-inside space-y-1">
+                             <li>为什么需要 <code>Array.isArray()</code>？它解决了 <code>typeof</code> 和 <code>instanceof</code> 的哪些问题？</li>
+                             <li><code>Object.prototype.toString.call()</code> 的原理和优势，以及如何用它来创建一个通用的类型检查函数。</li>
+                             <li>比较 <code>typeof</code>, <code>instanceof</code>, <code>Array.isArray()</code>, 和 <code>Object.prototype.toString.call()</code> 的优缺点和适用场景。</li>
+                         </ul>
+                    </div>
+
+                </section>
+
+                <section id="scope" class="content-section fade-in-section" style="animation-delay: 0.1s;">
+                    <h2 class="flex items-center head2 "><span class="material-icons">visibility</span>作用域 & 作用域链 (Scope &
+                        Scope Chain)</h2>
+                    <p><strong>背景：</strong> 在程序中，变量和函数的可访问性（在哪里可以被找到和使用）是有限制的。如果没有作用域规则，所有变量都将是全局的，容易导致命名冲突和难以维护的代码。</p>
+                    <p><strong>技术：作用域 (Scope)</strong> 定义了变量和函数的可访问范围。JS 主要有以下几种作用域：</p>
+                    <ul>
+                        <li><strong>全局作用域 (Global Scope):</strong> 在代码的最外层定义的变量拥有全局作用域，在代码的任何地方都可以访问。在浏览器环境中，全局对象通常是
+                            <code>window</code>；在 Node.js 中是 <code>global</code>。
+                        </li>
+                        <li><strong>函数作用域 (Function Scope):</strong> 在函数内部定义的变量，只能在该函数内部访问。使用 <code>var</code>
+                            声明的变量遵循函数作用域。</li>
+                        <li><strong>块级作用域 (Block Scope):</strong> 在代码块（由 <code>{}</code> 包裹，如 <code>if</code>,
+                            <code>for</code>, <code>while</code> 语句或单独的 <code>{}</code>）内部定义的变量，只能在该代码块内部访问。使用
+                            <code>let</code> 和 <code>const</code> 声明的变量遵循块级作用域 (ES6 引入)。
+                        </li>
+                    </ul>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="scope-types">函数作用域 vs 块级作用域</h3>
+                        <pre><code class="language-javascript">// Global Scope
+var globalVar = 'I am global';
+let globalLet = 'I am also global';
+
+function myFunction() {
+  // Function Scope
+  var functionVar = 'I am inside the function';
+  console.log(globalVar); // Accessible
+
+  if (true) {
+    // Block Scope
+    var blockVar = 'Am I block scoped? (No, var is function scoped)';
+    let blockLet = 'I am block scoped';
+    const blockConst = 'I am also block scoped';
+    console.log(blockLet); // Accessible
+  }
+
+  console.log(functionVar); // Accessible
+  console.log(blockVar);    // Accessible (var ignores block scope)
+  // console.log(blockLet); // Error: blockLet is not defined (outside its block)
+}
+
+myFunction();
+// console.log(functionVar); // Error: functionVar is not defined (outside its function)
+// console.log(blockVar);    // Error (if myFunction wasn't called) or Accessible (if called, due to var hoisting)
+// console.log(blockLet);    // Error: blockLet is not defined</code></pre>
+                        <p>✨ <strong>面试考点：</strong> 清晰解释 <code>var</code>, <code>let</code>, <code>const</code>
+                            的区别，尤其是在作用域方面的差异（函数作用域 vs 块级作用域）。</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><code>var</code>: 函数作用域，存在变量提升，可以重复声明。</li>
+                            <li><code>let</code>: 块级作用域，存在<span class="tooltip-term"
+                                    data-tooltip="变量声明到实际初始化之间的区域，访问会报错">暂时性死区 (TDZ)</span>，不允许在同一作用域内重复声明。</li>
+                            <li><code>const</code>:
+                                块级作用域，存在暂时性死区，不允许重复声明，声明时必须初始化，且赋值后不能再修改（对于原始类型是值不可改，对于引用类型是引用地址不可改，但对象内部属性可改）。</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="scope-chain">作用域链 (Scope Chain)</h3>
+                        <p><strong>背景：</strong> 当代码在一个作用域中访问变量时，如果当前作用域找不到该变量，它需要一种机制去查找外部作用域。</p>
+                        <p><strong>技术：作用域链</strong> 是一种查找变量的机制。当访问一个变量时，JS 引擎会：</p>
+                        <ol>
+                            <li>首先在<strong class="text-red-600">当前作用域</strong>查找。</li>
+                            <li>如果找不到，就去<strong class="text-red-600">父级作用域</strong>（定义该函数的作用域，而不是调用它的作用域——这称为<span
+                                    class="tooltip-term" data-tooltip="作用域在函数定义时确定，而非调用时">词法作用域/静态作用域</span>）查找。</li>
+                            <li>如果还找不到，继续向上级作用域查找，直到<strong class="text-red-600">全局作用域</strong>。</li>
+                            <li>如果在全局作用域也找不到，通常会抛出 <code>ReferenceError</code>。</li>
+                        </ol>
+                        <p>这个由内向外的作用域查找路径就形成了一个链条，称为作用域链。</p>
+                        <pre><code class="language-javascript">let x = 10; // Global scope
+
+function outer() {
+  let y = 20; // outer's scope
+
+  function inner() {
+    let z = 30; // inner's scope
+    console.log(z); // Found in inner's scope: 30
+    console.log(y); // Found in outer's scope (parent): 20
+    console.log(x); // Found in global scope (grandparent): 10
+    // console.log(w); // Error: w is not defined (not found anywhere in the chain)
+  }
+
+  inner();
+}
+
+outer();</code></pre>
+                        <p>✨ <strong>面试考点：</strong> 解释什么是作用域链，以及 JS 如何通过作用域链查找变量。理解词法作用域（静态作用域）的概念。</p>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="hoisting">变量提升 (Hoisting)</h3>
+                        <p><strong>背景：</strong> 在 JS 代码执行前，引擎会进行预编译，这个过程中的某些行为看起来像是把变量或函数的声明“提升”到了其作用域的顶部。</p>
+                        <p><strong>技术：变量提升</strong> 指的是 JavaScript 引擎在代码执行前，会将 <code>var</code>
+                            声明的变量和函数声明（<code>function functionName() {}</code>）“移动”到它们所在作用域的顶部。但需要注意：</p>
+                        <ul>
+                            <li>只有<strong class="text-red-600">声明</strong>被提升，<strong
+                                    class="text-red-600">赋值</strong>（初始化）不会被提升。对于 <code>var</code>，提升后变量会被初始化为
+                                <code>undefined</code>。
+                            </li>
+                            <li>函数声明会<strong class="text-red-600">整体提升</strong>（包括函数体），因此可以在声明前调用。</li>
+                            <li>使用 <code>let</code> 和 <code>const</code> 声明的变量<strong
+                                    class="text-red-600">也会提升</strong>，但它们存在<strong class="text-red-600">暂时性死区 (Temporal
+                                    Dead Zone, TDZ)</strong>。在声明语句执行之前访问这些变量会抛出 <code>ReferenceError</code>，而不是像
+                                <code>var</code> 那样得到 <code>undefined</code>。
+                            </li>
+                            <li>函数表达式（<code>var/let/const myFunc = function() {}</code>）遵循变量提升规则（只有变量名
+                                <code>myFunc</code>
+                                被提升），而不是函数声明的整体提升规则。</li>
+                        </ul>
+                        <pre><code class="language-javascript">console.log(myVar); // Output: undefined (var declaration hoisted, initialized with undefined)
+var myVar = 5;
+console.log(myVar); // Output: 5
+
+sayHello(); // Output: "Hello!" (Function declaration is fully hoisted)
+function sayHello() {
+  console.log("Hello!");
+}
+
+// console.log(myLet); // ReferenceError: Cannot access 'myLet' before initialization (TDZ)
+let myLet = 10;
+console.log(myLet); // Output: 10
+
+// console.log(myFuncExpr); // undefined (if var) or ReferenceError (if let/const)
+// myFuncExpr(); // TypeError: myFuncExpr is not a function (if var) or ReferenceError
+var myFuncExpr = function() {
+  console.log("Function Expression");
+};
+myFuncExpr(); // Output: "Function Expression"</code></pre>
+                        <p>✨ <strong>面试考点：</strong></p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>解释什么是变量提升。</li>
+                            <li>区分 <code>var</code>、<code>let</code>、<code>const</code> 在提升行为上的差异（特别是 TDZ）。</li>
+                            <li>区分函数声明和函数表达式的提升行为。</li>
+                            <li>分析包含提升的代码片段的输出结果。</li>
+                        </ul>
+                        <div class="quiz-card" id="quiz-hoisting">
+                            <div class="quiz-question"><span class="material-icons">quiz</span>✨ Quiz: 以下代码输出什么？
+                                <pre><code class="language-javascript">var x = 1;
+function func() {
+  console.log(x); // 输出 ?
+  var x = 2;
+}
+func();</code></pre>
+                            </div>
+                            <button class="quiz-toggle">
+                                <span class="material-icons icon-arrow">expand_more</span><span class="button-text">
+                                    查看答案</span>
+                            </button>
+                            <div class="quiz-answer">
+                                <p><strong>答案:</strong> <code>undefined</code></p>
+                                <p><strong>解析:</strong></p>
+                                <ol>
+                                    <li>在 <code>func</code> 函数内部，<code>var x = 2;</code> 这条语句中的 <code>var x</code>
+                                        声明会被提升到函数作用域的顶部。</li>
+                                    <li>函数 <code>func</code> 的代码在执行前，实际被引擎理解为：
+                                        <pre><code class="language-javascript">function func() {
+  var x; // Declaration hoisted, initialized to undefined
+  console.log(x); // Accesses the local hoisted variable x
+  x = 2; // Assignment happens here
+}</code></pre>
+                                    </li>
+                                    <li>因此，当 <code>console.log(x)</code> 执行时，它访问的是函数内部的、已经被提升但尚未赋值的局部变量
+                                        <code>x</code>，其值为
+                                        <code>undefined</code>。它不会去访问全局作用域的 <code>x</code>。
+                                    </li>
+                                </ol>
+                                <p class="mt-2 font-medium">关键在于理解函数作用域内的变量提升会覆盖（遮蔽）同名的外部变量。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="iife">IIFE (立即执行函数表达式)</h3>
+                        <p><strong>背景：</strong> 在 ES6
+                            块级作用域（<code>let</code>/<code>const</code>）普及之前，开发者需要一种方法来创建独立的作用域，以避免污染全局命名空间，并封装私有状态。</p>
+                        <p><strong>技术：IIFE (Immediately Invoked Function Expression)</strong> 是一种定义后立即执行的 JavaScript
+                            函数。其主要特点和用途是：</p>
+                        <ul>
+                            <li><strong>创建独立作用域：</strong> IIFE 内部形成一个函数作用域，内部定义的变量不会泄露到外部（尤其是全局）作用域。</li>
+                            <li><strong>避免全局污染：</strong> 防止内部变量覆盖全局变量，或被外部代码意外修改。</li>
+                            <li><strong>模块化封装：</strong> 在早期模块化方案不成熟时，常用于封装库或模块，只暴露必要的接口。</li>
+                        </ul>
+                        <p><strong>语法：</strong> 通常是将一个匿名函数用括号 <code>()</code> 包裹起来，使其成为一个函数表达式，然后在其后再加上一对括号
+                            <code>()</code>
+                            来立即调用它。</p>
+                        <pre><code class="language-javascript">// Common IIFE Syntax
+(function() {
+  var message = "This is private"; // Only accessible inside the IIFE
+  console.log(message);
+  // ... other code ...
+})();
+
+// console.log(message); // Error: message is not defined
+
+// IIFE with parameters and return value
+var result = (function(x, y) {
+  var sum = x + y;
+  return sum; // Can return values
+})(10, 5);
+
+console.log(result); // Output: 15
+
+// Another valid syntax (using grouping operator differently)
+(function() {
+  console.log("Another IIFE");
+}());</code></pre>
+                        <p><strong>如何解决问题：</strong> 通过创建临时的函数作用域，IIFE 有效地隔离了代码，防止了命名冲突，并允许创建私有变量。</p>
+                        <p>✨ <strong>面试考点：</strong></p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>解释什么是 IIFE 及其主要用途（创建独立作用域、避免全局污染）。</li>
+                            <li>能够写出 IIFE 的标准语法。</li>
+                            <li>理解为什么需要用括号将函数声明包裹起来（将其转换为函数表达式）。</li>
+                            <li>在现代 JS 中（有了 <code>let</code>/<code>const</code> 和模块系统），IIFE 的使用场景相对减少，但理解其原理仍然重要。</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section id="closure" class="content-section fade-in-section" style="animation-delay: 0.15s;">
+                    <h2 class="flex items-center head2 "><span class="material-icons">vpn_lock</span>闭包 (Closure)</h2>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="closure-principle">原理与定义</h3>
+                        <p><strong>背景：</strong> JavaScript 的函数可以访问它们被定义时所在的词法作用域中的变量，即使函数在那个作用域之外被调用。这种特性是如何实现的？</p>
+                        <p><strong>技术：闭包 (Closure)</strong> 是指<strong
+                                class="text-red-600">函数</strong>以及该函数被声明时所在的<strong class="text-red-600"><span
+                                    class="tooltip-term" data-tooltip="包含标识符（变量、函数）及其映射关系的环境">词法环境
+                                    (Lexical Environment)</span></strong> 的组合。这个环境包含了闭包创建时作用域内的所有局部变量。</p>
+                        <p>换句话说，当一个内部函数（inner function）引用了其外部函数（outer
+                            function）作用域中的变量时，即使外部函数已经执行完毕，这些被引用的变量也不会被垃圾回收机制销毁，因为内部函数仍然持有对它们的引用。这个内部函数连同它所引用的外部作用域变量，就构成了一个闭包。
+                        </p>
+                        <p><strong>核心机制：</strong></p>
+                        <ol>
+                            <li>函数在定义时，会“记住”它所在的词法作用域。</li>
+                            <li>当这个函数在其他地方被调用时，它仍然可以访问并操作它“记住”的那个作用域中的变量。</li>
+                        </ol>
+                        <pre><code class="language-javascript">function outerFunction() {
+  let outerVariable = 'I am outside!'; // Variable in the outer function's scope
+
+  function innerFunction() { // Inner function defined inside outerFunction
+    console.log(outerVariable); // Accesses outerVariable from its lexical scope
+  }
+
+  return innerFunction; // Return the inner function itself
+}
+
+// Call outerFunction, it executes and returns innerFunction
+// The lexical environment of outerFunction (containing outerVariable) is "closed over" by innerFunction
+const myClosure = outerFunction();
+
+// Later, when outerFunction's execution context is gone...
+myClosure(); // Output: I am outside!
+             // innerFunction still has access to outerVariable via the closure.</code></pre>
+                        <p>✨ <strong>面试考点：</strong></p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>清晰地定义什么是闭包（函数 + 词法环境）。</li>
+                            <li>解释闭包形成的原因（函数定义时的词法作用域绑定）。</li>
+                            <li>能够识别代码中的闭包现象。</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="closure-usecases">常见应用场景</h3>
+                        <p>闭包是 JS 中一个非常强大的特性，有着广泛的应用：</p>
+                        <ul>
+                            <li><strong>数据封装与私有变量 (Data Encapsulation / Private Variables):</strong>
+                                通过闭包创建只能通过特定函数访问的“私有”变量。</li>
+                            <li><strong>模块模式 (Module Pattern):</strong> 在没有原生模块系统之前，利用 IIFE 和闭包实现模块化，隐藏内部实现，只暴露公共接口。
+                            </li>
+                            <li><strong>回调函数与状态保持 (Callbacks & State Preservation):</strong> 在异步操作（如
+                                <code>setTimeout</code>, 事件监听器）中，闭包可以捕获并保持回调函数执行时所需的状态。
+                            </li>
+                            <li><strong>函数工厂与柯里化 (Function Factories & Currying):</strong>
+                                创建可以生成特定功能函数的函数，或者将接受多个参数的函数转换为一系列接受单个参数的函数。</li>
+                        </ul>
+
+                        <pre><code class="language-javascript">// 1. Data Encapsulation / Counter Example
+function createCounter() {
+  let count = 0; // Private variable, only accessible within the closure
+
+  return {
+    increment: function() {
+      count++;
+      console.log(count);
+    },
+    getCount: function() {
+      return count;
+    }
+  };
+}
+
+const counter1 = createCounter();
+counter1.increment(); // Output: 1
+counter1.increment(); // Output: 2
+console.log(counter1.getCount()); // Output: 2
+// console.log(counter1.count); // Error or undefined: count is not directly accessible
+
+// 2. Module Pattern (Simplified)
+const myModule = (function() {
+  let privateVar = "Secret";
+
+  function privateFunction() {
+    console.log("Doing something private");
+  }
+
+  return {
+    publicMethod: function() {
+      privateFunction();
+      console.log("Public method called, accessing: " + privateVar);
+    }
+  };
+})();
+
+myModule.publicMethod(); // Output: Doing something private \n Public method called, accessing: Secret
+// console.log(myModule.privateVar); // Error or undefined
+
+// 3. Callbacks & State (setTimeout example in next section)
+
+// 4. Function Factory
+function createGreeter(greeting) {
+  return function(name) {
+    console.log(greeting + ', ' + name + '!');
+  };
+}
+
+const greetHello = createGreeter('Hello');
+const greetHi = createGreeter('Hi');
+
+greetHello('Alice'); // Output: Hello, Alice!
+greetHi('Bob');    // Output: Hi, Bob!</code></pre>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="closure-interview">✨ 高频面试题</h3>
+                        <p>闭包是面试中的高频考点，尤其喜欢结合循环和异步来考察。</p>
+                        <p><strong>经典问题：循环中的 <code>setTimeout</code></strong></p>
+                        <p><strong>背景：</strong> 期望在循环中为每次迭代设置一个延时操作，并在延时结束后打印出当前的迭代序号。</p>
+                        <pre><code class="language-javascript">// Problematic Code
+for (var i = 0; i < 3; i++) {
+  setTimeout(function() {
+    console.log(i); // What will this output?
+  }, 100 * i);
+}</code></pre>
+                        <p><strong>问题：</strong> 上述代码不会按预期输出 0, 1, 2，而是会输出三次 3。</p>
+                        <p><strong>原因：</strong></p>
+                        <ol>
+                            <li><code>setTimeout</code> 是异步的，它会将回调函数放入任务队列，等待主线程空闲（循环结束后）才执行。</li>
+                            <li><code>for</code> 循环本身是同步的，它会很快执行完毕。</li>
+                            <li>当 <code>setTimeout</code> 的回调函数最终执行时，循环已经结束，此时变量 <code>i</code> 的值已经变成了 3（循环结束的条件是
+                                <code>i < 3</code> 不满足，即 <code>i</code> 变为 3）。
+                            </li>
+                            <li>由于 <code>var</code> 声明的 <code>i</code> 是函数作用域（在这里是全局作用域或包含它的函数作用域），所有的
+                                <code>setTimeout</code> 回调函数都共享<strong class="text-red-600">同一个</strong>变量
+                                <code>i</code>
+                                的引用。当它们执行时，都读取到 <code>i</code> 的最终值 3。
+                            </li>
+                        </ol>
+                        <p><strong>解决方案：</strong></p>
+                        <ol>
+                            <li><strong>使用 <code>let</code> (ES6 推荐):</strong> <code>let</code> 具有块级作用域。在
+                                <code>for</code>
+                                循环中使用 <code>let</code> 声明 <code>i</code>，每次迭代都会创建一个新的块级作用域，<code>setTimeout</code>
+                                的回调函数会捕获<strong class="text-red-600">每次迭代时</strong>的 <code>i</code> 的值。
+                                <pre><code class="language-javascript">// Solution 1: Using let (ES6)
+for (let i = 0; i < 3; i++) { // 'let' creates a new binding for 'i' in each iteration
+  setTimeout(function() {
+    console.log(i); // Outputs: 0, 1, 2 (at different times)
+  }, 100 * i);
+}</code></pre>
+                            </li>
+                            <li><strong>使用 IIFE 创建闭包 (ES5 常用):</strong> 在每次循环迭代时，使用 IIFE 创建一个新的函数作用域，并将当前的
+                                <code>i</code>
+                                值作为参数传递给 IIFE。IIFE 内部的 <code>setTimeout</code> 回调函数就会捕获这个传入的、固定的值。
+                                <pre><code class="language-javascript">// Solution 2: Using IIFE (ES5)
+for (var i = 0; i < 3; i++) {
+  (function(j) { // IIFE creates a new scope for each iteration
+    setTimeout(function() {
+      console.log(j); // Outputs: 0, 1, 2 (at different times)
+    }, 100 * j);
+  })(i); // Pass the current value of 'i' into the IIFE
+}</code></pre>
+                            </li>
+                            <li><strong>使用 <code>setTimeout</code> 的第三个参数 (较少见但有效):</strong> <code>setTimeout</code>
+                                允许传递额外的参数，这些参数会作为回调函数的参数传入。
+                                <pre><code class="language-javascript">// Solution 3: Using setTimeout's third argument
+for (var i = 0; i < 3; i++) {
+  setTimeout(function(j) {
+    console.log(j); // Outputs: 0, 1, 2 (at different times)
+  }, 100 * i, i); // Pass 'i' as an extra argument to setTimeout
+}</code></pre>
+                            </li>
+                        </ol>
+
+                        <div class="quiz-card" id="quiz-closure-loop">
+                            <div class="quiz-question"><span class="material-icons">quiz</span>✨ Quiz: 为什么在
+                                <code>for</code>
+                                循环中使用 <code>var</code> 和 <code>setTimeout</code> 会导致所有回调函数都输出循环结束后的同一个值？如何解决？</div>
+                            <button class="quiz-toggle">
+                                <span class="material-icons icon-arrow">expand_more</span><span class="button-text">
+                                    查看答案</span>
+                            </button>
+                            <div class="quiz-answer">
+                                <p><strong>原因:</strong></p>
+                                <ol>
+                                    <li><code>var</code> 声明的变量是函数作用域或全局作用域，在整个循环中只有一个 <code>i</code> 变量实例。</li>
+                                    <li><code>setTimeout</code> 的回调是异步执行的，当它们执行时，同步的 <code>for</code> 循环早已完成。</li>
+                                    <li>所有回调函数都共享对外层作用域中同一个 <code>i</code> 变量的引用，此时 <code>i</code> 的值已经是循环结束后的最终值。</li>
+                                </ol>
+                                <p><strong>解决方案:</strong></p>
+                                <ul>
+                                    <li><strong>使用 <code>let</code>:</strong> <code>let</code> 创建块级作用域，每次循环迭代都会为
+                                        <code>i</code> 创建一个新的绑定，回调函数捕获的是每次迭代时的值。 (推荐)
+                                    </li>
+                                    <li><strong>使用 IIFE:</strong> 在每次循环中创建一个立即执行函数，形成新的作用域，并将当前 <code>i</code>
+                                        的值传入，回调函数捕获传入的值。</li>
+                                    <li><strong>使用 <code>setTimeout</code> 的额外参数:</strong> 将当前 <code>i</code> 的值作为
+                                        <code>setTimeout</code> 的第三个（或之后）参数传入，它会作为回调函数的参数。
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="closure-memory">内存泄漏 (Memory Leaks)</h3>
+                        <p><strong>背景：</strong> 虽然闭包很强大，但如果不当使用，可能导致内存泄漏。</p>
+                        <p><strong>问题：</strong> 由于闭包会使其词法环境中的变量持续存在，如果一个闭包被长期持有（例如，作为一个全局变量、DOM
+                            事件监听器的回调，或者存储在一个长期存在的数据结构中），并且这个闭包引用了不再需要的外部变量（尤其是大的数据结构或 DOM 元素 - <strong
+                                class="text-blue-600">注意: DOM 操作是浏览器环境特有的</strong>），那么这些外部变量占用的内存就无法被垃圾回收机制释放，从而导致内存泄漏。
+                        </p>
+                        <pre><code class="language-javascript">// Potential Memory Leak Example (Browser Environment)
+function attachHandler() {
+  let largeData = new Array(1000000).join('*'); // Simulate large data
+  let element = document.getElementById('myButton'); // Assume this exists in HTML
+
+  // The event listener function is a closure.
+  // It keeps 'largeData' alive because it's in its lexical scope,
+  // even if the listener itself doesn't directly use largeData.
+  if (element) { // Check if element exists before adding listener
+      element.addEventListener('click', function handler() {
+        // This handler might only need 'element', but 'largeData' is also kept alive.
+        console.log('Button clicked!');
+        // alert(element.id); // Example usage of element
+      });
+  }
+
+  // If 'element' is later removed from the DOM, but the event listener
+  // is not explicitly removed, the closure (handler) still exists,
+  // holding onto both 'element' and 'largeData', preventing GC.
+
+  // Potential Mitigation: If largeData is truly only needed for setup,
+  // consider setting it to null after the listener is attached,
+  // IF the listener callback itself doesn't need it.
+  // largeData = null; // Be careful, only if handler doesn't use largeData
+}
+
+// How to potentially fix/mitigate:
+// 1. Remove event listeners when the element is removed or no longer needed.
+//    Need a reference to the handler function:
+//    function handler() { ... }
+//    element.addEventListener('click', handler);
+//    // Later...
+//    element.removeEventListener('click', handler);
+// 2. Avoid unnecessary capture: If the closure doesn't need largeData, structure code differently.
+// 3. Set potentially captured large variables to null when done (if possible).
+</code></pre>
+                        <p><strong>如何解决/避免：</strong></p>
+                        <ul>
+                            <li><strong class="text-red-600">及时释放引用：</strong> 当闭包不再需要时，确保解除对它的引用（例如，将持有闭包的变量设置为
+                                <code>null</code>，移除不再需要的事件监听器 - 特别是在处理 DOM 元素时）。
+                            </li>
+                            <li><strong class="text-red-600">减少不必要的捕获：</strong> 尽量避免闭包捕获不再使用的大对象或 DOM
+                                引用。如果只需要外部变量的某个属性，可以考虑在闭包创建时只捕获该属性值。</li>
+                            <li><strong class="text-red-600">注意循环引用：</strong> 两个对象通过闭包或其他方式相互引用，可能导致它们都无法被垃圾回收。</li>
+                        </ul>
+                        <p>✨ <strong>面试考点：</strong> 解释闭包可能导致内存泄漏的原因，并说明如何检测和避免这种情况（例如，使用浏览器开发者工具的 Memory
+                            面板，及时移除事件监听器，解除不再需要的引用）。</p>
+                    </div>
+                </section>
+
+                <section id="prototype" class="content-section fade-in-section" style="animation-delay: 0.2s;">
+                    <h2 class="flex items-center head2 "><span class="material-icons">account_tree</span>原型链 & 继承 (Prototype
+                        Chain & Inheritance)</h2>
+                    <p><strong>背景：</strong> JavaScript 是一种基于原型的面向对象语言。与其他基于类的语言（如 Java, C++）不同，JS 对象之间的继承关系是通过原型链实现的。
+                    </p>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="proto-vs-prototype"><code>__proto__</code> vs <code>prototype</code></h3>
+                        <p><strong>背景：</strong> 这两个属性名称相似，但用途截然不同，是理解原型链的关键，也是初学者的常见混淆点。</p>
+                        <p><strong>技术：</strong></p>
+                        <ul>
+                            <li><strong><code>prototype</code> (原型属性):</strong>
+                                <ul>
+                                    <li>它是一个<strong class="text-red-600">函数 (特指构造函数)</strong> 所<strong
+                                            class="text-red-600">独有</strong>的属性。</li>
+                                    <li>它的值是一个<strong class="text-red-600">对象</strong> (我们称之为原型对象)。</li>
+                                    <li>当使用 <code>new</code> 关键字调用一个构造函数创建<strong
+                                            class="text-red-600">实例</strong>时，这个实例内部的
+                                        <code>[[Prototype]]</code> (非标准下可通过 <code>__proto__</code> 访问) 属性会被设置为指向该构造函数的
+                                        <code>prototype</code> 对象。
+                                    </li>
+                                    <li>主要作用是让所有由该构造函数创建的实例能够<strong class="text-red-600">共享</strong>定义在
+                                        <code>prototype</code> 对象上的属性和方法。这是实现继承的主要机制。
+                                    </li>
+                                </ul>
+                            </li>
+                            <li><strong><code>__proto__</code> (原型链指针 / 隐式原型):</strong>
+                                <ul>
+                                    <li>它是一个<strong class="text-red-600">对象实例</strong>所<strong
+                                            class="text-red-600">拥有</strong>的（非标准但广泛实现的）属性，或者说，是访问对象内部
+                                        <code>[[Prototype]]</code> 特性的方式。
+                                    </li>
+                                    <li>它<strong class="text-red-600">指向</strong>该对象的<strong class="text-red-600">原型
+                                            (prototype)</strong>。对于通过构造函数创建的实例，它指向构造函数的 <code>prototype</code>
+                                        属性所引用的那个对象。
+                                    </li>
+                                    <li>它构成了<strong class="text-red-600">原型链</strong>，当访问一个对象的属性或方法时，如果在对象自身找不到，JS
+                                        引擎就会沿着
+                                        <code>__proto__</code> 指向的原型对象去查找，再找不到就继续沿着原型对象的 <code>__proto__</code>
+                                        查找，直到找到或者到达原型链的顶端 (<code>Object.prototype</code> 的 <code>__proto__</code> 是
+                                        <code>null</code>)。
+                                    </li>
+                                    <li>虽然可以直接读写 <code>__proto__</code>，但<strong
+                                            class="text-red-600">不推荐</strong>直接操作它，因为它非标准且性能较差。推荐使用
+                                        <code>Object.getPrototypeOf()</code> (读取) 和 <code>Object.setPrototypeOf()</code>
+                                        (设置) 或 <code>Object.create()</code> (创建时指定原型)。
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <p><strong>简单总结：</strong></p>
+                        <ul>
+                            <li><code>prototype</code> 是<strong class="text-blue-600">构造函数</strong>用来“挂载”共享属性和方法的地方。
+                            </li>
+                            <li><code>__proto__</code> 是<strong
+                                    class="text-green-600">实例对象</strong>用来“查找”其原型的地方，指向创建它的构造函数的
+                                <code>prototype</code>。
+                            </li>
+                        </ul>
+                        <pre><code class="language-javascript">function Person(name) { // Constructor function
+                            this.name = name;
+                        }
+
+                        // Add a method to the Person constructor's prototype object
+                        Person.prototype.sayHello = function() {
+                            console.log('Hello, my name is ' + this.name);
+                        };
+
+                        // Create instances using the constructor
+                        let person1 = new Person('Alice');
+                        let person2 = new Person('Bob');
+
+                        // Accessing properties/methods
+                        person1.sayHello(); // Output: Hello, my name is Alice
+                        person2.sayHello(); // Output: Hello, my name is Bob
+
+                        // Checking the relationship
+                        console.log(Object.getPrototypeOf(person1) === Person.prototype); // Output: true (Recommended way)
+                        console.log(person1.__proto__ === Person.prototype); // Output: true (Non-standard but common)
+
+                        console.log(Person.prototype.constructor === Person); // Output: true
+
+                        console.log(person1.hasOwnProperty('name')); // Output: true
+                        console.log(person1.hasOwnProperty('sayHello')); // Output: false
+
+                        console.log(Person.prototype);</code></pre>
+                        <p>✨ <strong>面试考点：</strong> 清晰地区分 <code>prototype</code> 和 <code>__proto__</code>
+                            的含义、归属（谁拥有它）和作用。能够画出简单的原型链图示（例如，实例、构造函数、<code>Object.prototype</code> 之间的关系）。</p>
+
+                        <div class="quiz-card" id="quiz-proto-prototype">
+                            <div class="quiz-question"><span class="material-icons">quiz</span>✨ Quiz:
+                                <code>person1.__proto__</code> 指向什么？<code>Person.prototype</code> 是什么？
+                            </div>
+                            <button class="quiz-toggle">
+                                <span class="material-icons icon-arrow">expand_more</span><span class="button-text">
+                                    查看答案</span>
+                            </button>
+                            <div class="quiz-answer">
+                                <p><strong>答案:</strong></p>
+                                <ul>
+                                    <li><code>person1.__proto__</code> (实例的隐式原型) 指向创建它的构造函数 <code>Person</code> 的
+                                        <code>prototype</code> 属性所引用的那个<strong class="text-red-600">对象</strong>。即
+                                        <code>person1.__proto__ === Person.prototype</code>。
+                                    </li>
+                                    <li><code>Person.prototype</code> (构造函数的原型属性) 是一个<strong
+                                            class="text-red-600">对象</strong>，它包含了所有由 <code>Person</code>
+                                        构造函数创建的实例需要<strong class="text-red-600">共享</strong>的属性和方法（比如
+                                        <code>sayHello</code> 方法和
+                                        <code>constructor</code> 属性）。
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="prototype-chain">原型链查找 (Property Lookup)</h3>
+                        <p><strong>背景：</strong> 当我们试图访问一个对象的属性或方法时，JS 引擎是如何找到它的？</p>
+                        <p><strong>技术：原型链查找</strong> 是 JS 引擎查找对象属性的过程：</p>
+                        <ol>
+                            <li>首先，在<strong class="text-red-600">对象自身</strong>查找该属性。如果找到，则返回该属性的值。</li>
+                            <li>如果对象自身没有该属性，则通过对象的 <code>__proto__</code> 指针（内部 <code>[[Prototype]]</code> 链接）<strong
+                                    class="text-red-600">访问其原型对象</strong>。</li>
+                            <li>在原型对象上查找该属性。如果找到，则返回该属性的值。</li>
+                            <li>如果原型对象上也没有，则继续通过原型对象的 <code>__proto__</code> 指针<strong
+                                    class="text-red-600">访问原型的原型</strong>。</li>
+                            <li>重复此过程，沿着原型链<strong class="text-red-600">逐级向上查找</strong>。</li>
+                            <li>直到找到该属性，或者到达原型链的<strong class="text-red-600">顶端</strong> (<code>Object.prototype</code>
+                                的
+                                <code>__proto__</code> 是 <code>null</code>)。
+                            </li>
+                            <li>如果在整个原型链上都找不到该属性，则属性访问的结果通常是 <code>undefined</code>。</li>
+                        </ol>
+                        <p>这个由 <code>__proto__</code> 链接起来的对象序列就是<strong class="text-red-600">原型链</strong>。</p>
+                        <pre><code class="language-javascript">// Continuing the Person example:
+console.log(person1.name);      // Found on person1 itself: 'Alice'
+console.log(person1.sayHello);  // Not on person1, found on Person.prototype: function
+console.log(person1.toString);  // Not on person1, not on Person.prototype, found on Object.prototype: function
+console.log(person1.nonExistent); // Not found anywhere: undefined
+
+// Prototype chain visualization:
+// person1 ---> Person.prototype ---> Object.prototype ---> null
+//        (__proto__)           (__proto__)           (__proto__)</code></pre>
+                        <p>✨ <strong>面试考点：</strong> 描述属性查找的过程，解释原型链是如何工作的。能够根据给定的对象和构造函数关系，判断某个属性是在对象自身找到还是在原型链上找到。</p>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="inheritance">继承方式</h3>
+                        <p><strong>背景：</strong> 如何让一个对象（或一类对象）能够使用另一个对象（或另一类对象）的属性和方法？</p>
+                        <p><strong>技术：</strong> 在 ES6 <code>class</code> 语法出现之前，JS 主要通过原型链来实现继承。以下是常见的继承模式（点击展开查看详情）：
+                        </p>
+
+                        <details>
+                            <summary>1. 原型链继承 (Prototype Chain Inheritance)</summary>
+                            <div>
+                                <ul>
+                                    <li>核心：让子类的原型对象 (<code>Child.prototype</code>) 等于父类的一个实例
+                                        (<code>new Parent()</code>)。
+                                    </li>
+                                    <li>优点：简单，父类原型上的方法能被子类实例共享。</li>
+                                    <li>缺点：
+                                        <ul>
+                                            <li>父类构造函数中的引用类型属性会被所有子类实例共享。</li>
+                                            <li>无法向父类构造函数传递参数。</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                                <pre><code class="language-javascript">function Parent(name) { this.name = name; this.colors = ['red']; }
+Parent.prototype.sayName = function() { console.log(this.name); }
+
+function Child(age) { this.age = age; }
+Child.prototype = new Parent('Parent Instance'); // Core step
+
+let child1 = new Child(10);
+child1.colors.push('blue');
+console.log(child1.name); // 'Parent Instance'
+console.log(child1.colors); // ['red', 'blue']
+
+let child2 = new Child(12);
+console.log(child2.colors); // ['red', 'blue'] - Shared!</code></pre>
+                            </div>
+                        </details>
+
+                        <details>
+                            <summary>2. 构造函数继承 / 经典继承 (Constructor Stealing)</summary>
+                            <div>
+                                <ul>
+                                    <li>核心：在子类构造函数内部，使用 <code>Parent.call(this, ...args)</code> 调用父类构造函数。</li>
+                                    <li>优点：解决了引用类型共享和无法传参的问题。</li>
+                                    <li>缺点：无法继承父类原型上的方法。</li>
+                                </ul>
+                                <pre><code class="language-javascript">function Parent(name) { this.name = name; this.colors = ['red']; }
+Parent.prototype.sayName = function() { console.log('Parent proto method'); }
+
+function Child(name, age) {
+  Parent.call(this, name); // Core step
+  this.age = age;
+}
+
+let child1 = new Child('Alice', 10);
+child1.colors.push('green');
+console.log(child1.name); // 'Alice'
+console.log(child1.colors); // ['red', 'green']
+
+let child2 = new Child('Bob', 12);
+console.log(child2.colors); // ['red'] - Not shared
+
+// child1.sayName(); // TypeError</code></pre>
+                            </div>
+                        </details>
+
+                        <details>
+                            <summary>3. 组合继承 (Combination Inheritance)</summary>
+                            <div>
+                                <ul>
+                                    <li>核心：结合原型链继承和构造函数继承。</li>
+                                    <li>优点：常用，解决了前两种方式的主要缺点。</li>
+                                    <li>缺点：父类构造函数被调用两次。</li>
+                                </ul>
+                                <pre><code class="language-javascript">function Parent(name) { this.name = name; this.colors = ['red']; }
+Parent.prototype.sayName = function() { console.log(this.name); }
+
+function Child(name, age) {
+  Parent.call(this, name); // Call 1
+  this.age = age;
+}
+Child.prototype = new Parent(); // Call 2
+Child.prototype.constructor = Child; // Fix constructor
+
+let child1 = new Child('Charlie', 15);
+child1.sayName(); // 'Charlie'</code></pre>
+                            </div>
+                        </details>
+
+                        <details>
+                            <summary>4. 原型式继承 (Prototypal Inheritance - Object.create)</summary>
+                            <div>
+                                <ul>
+                                    <li>核心：使用 <code>Object.create(oldObj)</code> 创建新对象。</li>
+                                    <li>优点：简单直接，不需构造函数。</li>
+                                    <li>缺点：共享引用类型属性的问题仍在（若属性在原型上）。</li>
+                                </ul>
+                                <pre><code class="language-javascript">let person = { name: 'Default', hobbies: ['reading'] };
+let student = Object.create(person); // Core step
+student.name = 'Eve';
+student.hobbies.push('coding'); // Modifies shared prototype property!
+
+let anotherStudent = Object.create(person);
+console.log(anotherStudent.hobbies); // ['reading', 'coding']</code></pre>
+                            </div>
+                        </details>
+
+                        <details>
+                            <summary>5. 寄生式继承 (Parasitic Inheritance)</summary>
+                            <div>
+                                <ul>
+                                    <li>核心：基于原型式继承，在函数内部增强对象并返回。</li>
+                                    <li>缺点：方法无法复用。</li>
+                                </ul>
+                                <pre><code class="language-javascript">function createAnother(original) {
+  let clone = Object.create(original); // Inherit
+  clone.sayHi = function() { console.log('Hi!'); }; // Enhance
+  return clone;
+}
+let baseObj = { name: 'Base' };
+let enhancedObj = createAnother(baseObj);
+enhancedObj.sayHi();</code></pre>
+                            </div>
+                        </details>
+
+                        <details>
+                            <summary>6. 寄生组合式继承 (Parasitic Combination Inheritance)</summary>
+                            <div>
+                                <ul>
+                                    <li>核心：构造函数继承实例属性 + 原型式继承父类原型副本。</li>
+                                    <li>优点：<strong class="text-red-600">最理想</strong>的 ES6 前继承模式，只调用一次父构造函数，避免不必要属性。</li>
+                                    <li>缺点：实现稍复杂。</li>
+                                </ul>
+                                <pre><code class="language-javascript">function inheritPrototype(child, parent) {
+  let prototype = Object.create(parent.prototype); // Create copy of parent prototype
+  prototype.constructor = child; // Fix constructor
+  child.prototype = prototype; // Set child prototype
+}
+
+function Parent(name) { this.name = name; this.colors = ['red']; }
+Parent.prototype.sayName = function() { console.log(this.name); }
+
+function Child(name, age) {
+  Parent.call(this, name); // Inherit instance properties
+  this.age = age;
+}
+
+inheritPrototype(Child, Parent); // Inherit prototype methods efficiently
+
+let child1 = new Child('Frank', 20);
+child1.sayName(); // 'Frank'</code></pre>
+                            </div>
+                        </details>
+                        <p class="mt-4">✨ <strong>面试考点：</strong></p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>了解至少 2-3 种 ES6 之前的继承方式（原型链、构造函数、组合、寄生组合）。</li>
+                            <li>能够说出组合继承和寄生组合式继承的优缺点以及它们解决了什么问题。</li>
+                            <li>理解 <code>Object.create()</code> 的作用。</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3" id="class-syntax">Class 语法糖 (Syntactic Sugar)</h3>
+                        <p><strong>背景：</strong> ES6 引入了 <code>class</code> 关键字，提供了一种更简洁、更接近传统面向对象语言的语法来创建对象和实现继承。</p>
+                        <p><strong>技术：</strong> <code>class</code> 语法本质上是 JavaScript 现有<strong
+                                class="text-red-600">原型继承模式的语法糖</strong>。它并没有引入新的继承模型，底层机制仍然是原型链。</p>
+                        <p><strong>关键特性：</strong></p>
+                        <ul>
+                            <li><strong><code>class</code> 声明：</strong> 定义一个类。类声明不会被提升（存在 TDZ）。</li>
+                            <li><strong><code>constructor</code> 方法：</strong> 类中的特殊方法，用于创建和初始化对象。一个类只能有一个
+                                <code>constructor</code>。如果没有显式定义，会有一个默认的空 <code>constructor</code>。
+                            </li>
+                            <li><strong>实例方法：</strong> 直接定义在类体中的函数，会被添加到类的 <code>prototype</code> 对象上。</li>
+                            <li><strong>静态方法 (Static Methods):</strong> 使用 <code>static</code>
+                                关键字定义的方法。这些方法直接附加在类本身（构造函数）上，而不是类的原型上，因此只能通过类名调用
+                                (<code>MyClass.staticMethod()</code>)，不能通过实例调用。</li>
+                            <li><strong><code>extends</code> 关键字：</strong> 用于实现类的继承。它会自动处理原型链的连接
+                                (<code>Child.prototype.__proto__ = Parent.prototype</code>) 和父类构造函数的继承。</li>
+                            <li><strong><code>super</code> 关键字：</strong>
+                                <ul>
+                                    <li>在子类的 <code>constructor</code> 中，<code>super()</code> 必须在使用 <code>this</code>
+                                        之前调用。它用于调用父类的 <code>constructor</code>，并继承父类的实例属性。</li>
+                                    <li>在子类的实例方法中，<code>super.methodName()</code> 用于调用父类原型上的同名方法。</li>
+                                    <li>在子类的静态方法中，<code>super.staticMethodName()</code> 用于调用父类的同名静态方法。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <pre><code class="language-javascript">// ES6 Class Syntax
+class Vehicle {
+  constructor(make, model) { this.make = make; this.model = model; }
+  getDetails() { return `${this.make} ${this.model}`; }
+  static compareVehicles(v1, v2) { return v1.make === v2.make && v1.model === v2.model; }
+}
+
+class Car extends Vehicle {
+  constructor(make, model, doors) {
+    super(make, model); // Call parent constructor
+    this.doors = doors;
+  }
+  getDetails() { return `${super.getDetails()}, ${this.doors} doors`; } // Call parent method
+  honk() { console.log('Beep beep!'); }
+  static getNumberOfWheels() { return 4; }
+}
+
+let myCar = new Car('Toyota', 'Camry', 4);
+console.log(myCar.getDetails());
+console.log(Car.getNumberOfWheels());
+console.log(Vehicle.compareVehicles(myCar, new Car('Toyota', 'Camry', 4)));</code></pre>
+                        <p><strong>如何解决旧继承模式的复杂性：</strong> <code>class</code>
+                            语法极大地简化了对象创建和继承的写法，使其更易读、易写、易维护，更符合来自类继承背景的开发者的习惯。</p>
+                        <p>✨ <strong>面试考点：</strong></p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>解释 <code>class</code> 是原型继承的语法糖。</li>
+                            <li>说明 <code>constructor</code>, <code>extends</code>, <code>super</code> 的作用和用法。</li>
+                            <li>区分实例方法和静态方法。</li>
+                            <li>能够使用 <code>class</code> 语法实现简单的继承关系。</li>
+                            <li>对比 <code>class</code> 继承与 ES5 寄生组合式继承的异同。</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section id="execution-context" class="content-section fade-in-section" style="animation-delay: 0.25s;">
+                    <h2 class="flex items-center head2 "><span class="material-icons">layers</span>执行上下文 & 调用栈 (Execution
+                        Context & Call Stack)</h2>
+                    <div class="content-card">
+                        <p><strong>背景：</strong> JavaScript 引擎是如何知道当前正在执行哪段代码，以及这段代码可以访问哪些变量、函数和 <code>this</code> 值的？
+                        </p>
+                        <p><strong>技术：执行上下文 (Execution Context, EC)</strong> 是 JS
+                            引擎执行代码的环境的抽象概念。每当代码执行时，都会创建一个执行上下文。主要有两种类型：</p>
+                        <ul>
+                            <li><strong>全局执行上下文 (Global Execution Context, GEC):</strong>
+                                代码开始执行时创建的第一个上下文，代表全局作用域。一个程序只有一个
+                                GEC。它会设置全局对象 (浏览器中是 <code>window</code>，Node.js 中是 <code>global</code>)，创建
+                                <code>this</code>
+                                指向全局对象（非严格模式），并进行变量提升。</li>
+                            <li><strong>函数执行上下文 (Function Execution Context, FEC):</strong>
+                                每当调用一个函数时，就会为该函数创建一个新的执行上下文。每个函数调用都有自己的 FEC。</li>
+                        </ul>
+                        <p>每个执行上下文都有两个主要阶段：</p>
+                        <ol>
+                            <li><strong>创建阶段 (Creation Phase):</strong>
+                                <ul>
+                                    <li>创建<strong class="text-red-600">词法环境 (Lexical
+                                            Environment)</strong>：记录标识符（变量、函数名）和它们在作用域中的映射关系。这是实现词法作用域的基础。</li>
+                                    <li>创建<strong class="text-red-600">变量环境 (Variable Environment)</strong>：专门用于存储
+                                        <code>var</code> 声明的变量和函数声明。这是实现变量提升的基础。
+                                    </li>
+                                    <li>确定<strong class="text-red-600"><code>this</code> 绑定</strong>：确定当前上下文中
+                                        <code>this</code> 关键字的值。
+                                    </li>
+                                </ul>
+                            </li>
+                            <li><strong>执行阶段 (Execution Phase):</strong>
+                                <ul>
+                                    <li>引擎逐行执行代码。</li>
+                                    <li>进行变量赋值、函数调用等操作。</li>
+                                    <li>如果遇到函数调用，会创建一个新的函数执行上下文并压入调用栈。</li>
+                                </ul>
+                            </li>
+                        </ol>
+                        <p><strong>调用栈 (Call Stack):</strong></p>
+                        <ul>
+                            <li>JS 引擎使用调用栈来<strong class="text-red-600">管理执行上下文</strong>。它是一种<strong
+                                    class="text-red-600">后进先出 (LIFO)</strong> 的数据结构。</li>
+                            <li>当脚本开始执行时，全局执行上下文 (GEC) 被压入栈底。</li>
+                            <li>每当调用一个函数时，它的函数执行上下文 (FEC) 就被创建并<strong class="text-red-600">压入栈顶</strong>，成为当前活动的上下文。
+                            </li>
+                            <li>当函数执行完毕（<code>return</code> 或结束），它的 FEC 就从栈顶<strong
+                                    class="text-red-600">弹出</strong>，控制权交还给栈中下一个上下文。</li>
+                            <li>当所有代码执行完毕，GEC 也从栈中弹出。</li>
+                        </ul>
+                        <pre><code class="language-javascript">function first() { console.log('Entering first...'); second(); console.log('Exiting first...'); }
+function second() { console.log('Entering second...'); third(); console.log('Exiting second...'); }
+function third() { console.log('Entering third...'); console.log('Exiting third...'); }
+
+console.log('Global context starts'); // 1. GEC pushed
+first(); // 2. first() FEC pushed -> 3. second() FEC pushed -> 4. third() FEC pushed -> 5. third() pops -> 6. second() pops -> 7. first() pops
+console.log('Global context ends'); // 8. GEC pops
+
+// Output: Global context starts, Entering first..., Entering second..., Entering third..., Exiting third..., Exiting second..., Exiting first..., Global context ends</code></pre>
+                        <p>✨ <strong>面试考点：</strong></p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>解释什么是执行上下文及其类型（全局、函数）。</li>
+                            <li>描述执行上下文的创建阶段和执行阶段发生了什么（变量提升、<code>this</code> 绑定、作用域链创建等）。</li>
+                            <li>解释什么是调用栈及其 LIFO 特性。</li>
+                            <li>能够根据代码模拟调用栈的变化过程。</li>
+                            <li>理解调用栈溢出 (<code>Stack Overflow</code>) 的原因（通常是无限递归）。</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section id="this-keyword" class="content-section fade-in-section" style="animation-delay: 0.3s;">
+                    <h2 class="flex items-center head2 "><span class="material-icons">adjust</span><code>this</code> 关键字</h2>
+                    <div class="content-card">
+                        <p><strong>背景：</strong> <code>this</code> 是 JS 中一个非常重要但也容易混淆的关键字。它的值在函数被调用时确定，而不是在函数定义时确定。理解
+                            <code>this</code> 的指向规则对于编写面向对象和事件驱动的代码至关重要。
+                        </p>
+                        <p><strong>技术：</strong><code>this</code> 的值取决于函数的<strong class="text-red-600">调用方式 (Call
+                                Site)</strong>。主要有以下几种绑定规则：</p>
+                        <ol>
+                            <li><strong>默认绑定 (Default Binding):</strong>
+                                <ul>
+                                    <li>当函数作为<strong class="text-red-600">独立函数</strong>调用（没有明确的调用对象）时。</li>
+                                    <li>在<strong class="text-red-600">非严格模式</strong>下，<code>this</code> 指向全局对象 (浏览器中是
+                                        <code>window</code>，Node.js 中是 <code>global</code>)。
+                                    </li>
+                                    <li>在<strong class="text-red-600">严格模式 (<code>'use strict'</code>)</strong>
+                                        下，<code>this</code> 的值是 <code>undefined</code>。</li>
+                                </ul>
+                                <pre><code class="language-javascript">function sayThis() { console.log(this); }
+sayThis(); // Non-strict: Window/Global object; Strict: undefined
+
+'use strict';
+function sayThisStrict() { console.log(this); }
+sayThisStrict(); // Strict: undefined</code></pre>
+                            </li>
+                            <li><strong>隐式绑定 (Implicit Binding):</strong>
+                                <ul>
+                                    <li>当函数作为<strong class="text-red-600">对象的方法</strong>被调用时
+                                        (<code>obj.method()</code>)。
+                                    </li>
+                                    <li><code>this</code> 指向<strong class="text-red-600">调用该方法的那个对象</strong>
+                                        (<code>obj</code>)。</li>
+                                    <li>注意：如果存在链式调用 (<code>obj1.obj2.method()</code>)，<code>this</code> 指向<strong
+                                            class="text-red-600">最后一层</strong>调用者 (<code>obj2</code>)。</li>
+                                    <li>隐式丢失：如果将对象方法赋值给一个变量，然后独立调用该变量，会变回默认绑定。</li>
+                                </ul>
+                                <pre><code class="language-javascript">const person = { name: 'Alice', greet: function() { console.log(`Hello, ${this.name}`); } };
+person.greet(); // Output: Hello, Alice (this = person)
+
+const greetFunc = person.greet;
+// greetFunc(); // Default binding applies (window or undefined) -> Error or unexpected output
+
+// Common issue in callbacks (e.g., browser event handlers or setTimeout)
+// setTimeout(person.greet, 100); // 'this' inside greet will likely be window/global or undefined</code></pre>
+                            </li>
+                            <li><strong>显式绑定 (Explicit Binding):</strong>
+                                <ul>
+                                    <li>使用函数的 <code>.call()</code>, <code>.apply()</code>, 或 <code>.bind()</code>
+                                        方法<strong class="text-red-600">强制指定</strong>函数调用时的 <code>this</code> 值。</li>
+                                    <li><code>func.call(thisArg, arg1, arg2, ...)</code>: 调用函数，<code>this</code> 设为
+                                        <code>thisArg</code>，参数逐个传递。
+                                    </li>
+                                    <li><code>func.apply(thisArg, [arg1, arg2, ...])</code>: 调用函数，<code>this</code> 设为
+                                        <code>thisArg</code>，参数以数组形式传递。
+                                    </li>
+                                    <li><code>func.bind(thisArg, arg1, ...)</code>: <strong
+                                            class="text-red-600">创建一个新函数</strong>，其 <code>this</code> <strong
+                                            class="text-red-600">永久绑定</strong>到
+                                        <code>thisArg</code>，可以预设部分参数（柯里化）。新函数被调用时，<code>this</code> 不会再改变。
+                                    </li>
+                                </ul>
+                                <pre><code class="language-javascript">function introduce(lang1, lang2) { console.log(`I am ${this.name} and I know ${lang1} and ${lang2}.`); }
+const user = { name: 'Bob' };
+const languages = ['JavaScript', 'Python'];
+
+introduce.call(user, 'Java', 'C++'); // this = user
+introduce.apply(user, languages);   // this = user
+
+// Fixing callback 'this' issue with bind
+const boundGreet = person.greet.bind(person);
+setTimeout(boundGreet, 200); // Output: Hello, Alice (this is correctly bound)</code></pre>
+                            </li>
+                            <li><strong><code>new</code> 绑定 (new Binding):</strong>
+                                <ul>
+                                    <li>当函数使用 <code>new</code> 关键字作为<strong class="text-red-600">构造函数</strong>调用时
+                                        (<code>new MyConstructor()</code>)。</li>
+                                    <li><code>this</code> 指向<strong class="text-red-600">新创建的那个对象实例</strong>。</li>
+                                    <li><code>new</code> 操作符内部大致做了：1. 创建空对象；2. 链接原型；3. 绑定 <code>this</code>；4. 执行构造函数；5.
+                                        返回新对象（若无显式对象返回）。</li>
+                                </ul>
+                                <pre><code class="language-javascript">function Dog(name) { this.name = name; }
+Dog.prototype.bark = function() { console.log(`${this.name} says Woof!`); };
+const dog1 = new Dog('Buddy'); // 'this' inside Dog constructor refers to dog1
+dog1.bark(); // Output: Buddy says Woof!</code></pre>
+                            </li>
+                            <li><strong>箭头函数绑定 (Arrow Function Binding):</strong>
+                                <ul>
+                                    <li>箭头函数 (<code>=></code>) <strong class="text-red-600">没有自己的 <code>this</code>
+                                            绑定</strong>。</li>
+                                    <li>它会<strong class="text-red-600">捕获</strong>其<strong
+                                            class="text-red-600">定义时</strong>所在的<strong class="text-red-600">词法作用域
+                                            (lexical
+                                            scope)</strong> 的 <code>this</code> 值。</li>
+                                    <li>一旦确定，箭头函数内部的 <code>this</code> 值<strong class="text-red-600">不能</strong>被
+                                        <code>.call()</code>, <code>.apply()</code>, <code>.bind()</code> 或
+                                        <code>new</code>
+                                        关键字<strong class="text-red-600">改变</strong>。
+                                    </li>
+                                    <li>常用于解决回调函数中 <code>this</code> 丢失的问题。</li>
+                                </ul>
+                                <pre><code class="language-javascript">const counter = {
+  count: 0,
+  start: function() {
+    // 'this' here refers to 'counter'
+    setInterval(() => {
+      // Arrow function inherits 'this' from the surrounding 'start' method
+      this.count++;
+      console.log(this.count); // Correctly accesses counter.count
+    }, 1000);
+  }
+};
+// counter.start(); // Uncomment to run</code></pre>
+                            </li>
+                        </ol>
+                        <p><strong>优先级：</strong> <code>new</code> 绑定 > 显式绑定 (<code>bind</code> >
+                            <code>call</code>/<code>apply</code>) > 隐式绑定 > 默认绑定。箭头函数的 <code>this</code>
+                            优先级最高（因为它不参与上述绑定过程，而是词法绑定）。
+                        </p>
+                        <p>✨ <strong>面试考点：</strong></p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>解释 <code>this</code> 的值是如何确定的（取决于调用方式）。</li>
+                            <li>描述并举例说明至少 3-4 种 <code>this</code> 绑定规则（默认、隐式、显式、new、箭头函数）。</li>
+                            <li>解释箭头函数 <code>this</code> 的特殊性（词法 <code>this</code>）。</li>
+                            <li>分析代码片段中 <code>this</code> 的指向。</li>
+                            <li>如何解决回调函数中 <code>this</code> 丢失的问题（<code>.bind()</code>, 箭头函数, 存储 <code>this</code> 到变量如
+                                <code>self</code> 或 <code>that</code>）。
+                            </li>
+                            <li>解释 <code>.call()</code>, <code>.apply()</code>, <code>.bind()</code> 的区别和用途。</li>
+                        </ul>
+                        <div class="quiz-card" id="quiz-this">
+                            <div class="quiz-question"><span class="material-icons">quiz</span>✨ Quiz: 以下代码输出什么？为什么？
+                                <pre><code class="language-javascript">const myObj = {
+  name: 'My Object',
+  logName: function() {
+    console.log(this.name);
+  },
+  delayedLog: function() {
+    setTimeout(this.logName, 0); // Problem here?
+  },
+  arrowDelayedLog: function() {
+    setTimeout(() => {
+        this.logName(); // How about here?
+    }, 0);
+  }
+};
+
+myObj.delayedLog(); // Output ?
+myObj.arrowDelayedLog(); // Output ?</code></pre>
+                            </div>
+                            <button class="quiz-toggle">
+                                <span class="material-icons icon-arrow">expand_more</span><span class="button-text">
+                                    查看答案</span>
+                            </button>
+                            <div class="quiz-answer">
+                                <p><strong>答案:</strong></p>
+                                <ol>
+                                    <li><code>myObj.delayedLog()</code>: 输出 <code>undefined</code> (非严格模式下，如果
+                                        <code>window.name</code> 不存在) 或 抛出 <code>TypeError</code> (严格模式下)。
+                                        <ul>
+                                            <li><strong>原因:</strong> <code>setTimeout</code> 的回调函数
+                                                <code>this.logName</code>
+                                                在执行时，是作为独立函数调用的（丢失了隐式绑定）。此时 <code>this</code> 指向全局对象 <code>window</code>
+                                                (非严格) 或 <code>undefined</code> (严格)。</li>
+                                        </ul>
+                                    </li>
+                                    <li><code>myObj.arrowDelayedLog()</code>: 输出 <code>'My Object'</code>。
+                                        <ul>
+                                            <li><strong>原因:</strong> <code>setTimeout</code> 的回调是一个<strong
+                                                    class="text-red-600">箭头函数</strong>。它捕获了其定义时所在的
+                                                <code>arrowDelayedLog</code> 方法的 <code>this</code> (即
+                                                <code>myObj</code>)。因此，箭头函数内部的 <code>this</code> 也指向
+                                                <code>myObj</code>，<code>this.logName()</code> 能正确调用。
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ol>
+                                <p class="mt-2 font-medium">关键在于理解普通函数作为回调时 <code>this</code> 的丢失，以及箭头函数如何通过词法作用域捕获
+                                    <code>this</code>。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="event-loop" class="content-section fade-in-section" style="animation-delay: 0.35s;">
+                    <h2 class="flex items-center head2 "><span class="material-icons">sync</span>事件循环 (Event Loop)</h2>
+                    <div class="content-card">
+                        <p><strong>背景：</strong> JavaScript 是单线程的，意味着它一次只能执行一个任务。但运行时环境（如浏览器或
+                            Node.js）需要处理很多异步操作（如网络请求、定时器、用户交互）。如果 JS 引擎一直等待这些异步操作完成，主线程就会被阻塞。事件循环是 JS 实现异步、非阻塞 I/O
+                            的核心机制。
+                        </p>
+                        <p><strong>技术：事件循环</strong> 是一个持续运行的进程，负责监视调用栈和任务队列，并在调用栈为空时，将任务队列中的回调函数推入调用栈执行。</p>
+                        <p><strong>核心组件：</strong></p>
+                        <ul>
+                            <li><strong>调用栈 (Call Stack):</strong> 追踪函数调用的地方。同步任务在这里执行。</li>
+                            <li><strong>堆 (Heap):</strong> 内存分配发生的地方（存储对象等）。</li>
+                            <li><strong>环境 API (Web APIs / Node APIs):</strong> 浏览器或 Node.js 提供的异步功能接口（如
+                                <code>setTimeout</code>, <code>fetch</code>, DOM 事件, <code>fs</code> 等）。这些 API 通常在 JS
+                                主线程之外执行。
+                            </li>
+                            <li><strong>任务队列 (Task Queue / <span class="tooltip-term"
+                                        data-tooltip="如 setTimeout, setInterval, I/O, UI rendering 回调">宏任务队列 Macrotask
+                                        Queue</span>):</strong>
+                                <ul>
+                                    <li>一个<strong class="text-red-600">先进先出 (FIFO)</strong> 的队列，用于存放<strong
+                                            class="text-red-600">已完成</strong>的异步操作的回调函数（宏任务）。</li>
+                                </ul>
+                            </li>
+                            <li><strong><span class="tooltip-term"
+                                        data-tooltip="如 Promise 回调, MutationObserver, process.nextTick">微任务队列 (Microtask
+                                        Queue)</span>:</strong>
+                                <ul>
+                                    <li>一个<strong class="text-red-600">优先级更高</strong>的 FIFO 队列，用于存放微任务的回调。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <p><strong>事件循环流程：</strong></p>
+                        <ol>
+                            <li>执行<strong class="text-red-600">同步代码</strong>（主脚本）。</li>
+                            <li>遇到异步 API 调用，交给对应的环境 API 处理。</li>
+                            <li>环境 API 完成操作后，将<strong class="text-red-600">回调函数</strong>放入相应的任务队列（宏任务或微任务）。</li>
+                            <li>当调用栈<strong class="text-red-600">为空</strong>时：
+                                <ol type="a">
+                                    <li><strong class="text-red-600">先</strong>检查<strong
+                                            class="text-green-600">微任务队列</strong>。若不为空，则<strong
+                                            class="text-red-600">清空</strong>所有微任务（依次执行）。执行期间产生的新微任务也会在本轮清空。</li>
+                                    <li>微任务队列清空后，检查<strong class="text-blue-600">宏任务队列</strong>。若不为空，取出<strong
+                                            class="text-red-600">一个</strong>宏任务执行。</li>
+                                </ol>
+                            </li>
+                            <li>宏任务执行完毕，<strong class="text-red-600">重复</strong>第 4 步。</li>
+                        </ol>
+                        <p class="text-center my-4 text-sm text-gray-500">[事件循环图示 - 建议在此处添加一个简单的图示或链接]</p>
+                        <pre><code class="language-javascript">console.log('1. Script start'); // Sync
+
+setTimeout(function() { // Macrotask
+  console.log('4. setTimeout callback');
+}, 0);
+
+Promise.resolve().then(function() { // Microtask
+  console.log('3. Promise.then callback');
+});
+
+console.log('2. Script end'); // Sync
+
+// Output Order: 1, 2, 3, 4</code></pre>
+                        <p>✨ <strong>面试考点：</strong></p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>解释为什么 JS 需要事件循环（单线程与异步）。</li>
+                            <li>描述事件循环的核心组件。</li>
+                            <li>解释事件循环的基本流程。</li>
+                            <li><strong class="text-red-600">区分宏任务和微任务</strong>，并知道常见例子。</li>
+                            <li><strong class="text-red-600">解释微任务优先于宏任务执行的规则</strong>。</li>
+                            <li>能够分析包含 <code>setTimeout</code>, <code>Promise</code>, 同步代码的复杂代码片段的执行顺序。</li>
+                            <li>了解 <code>async/await</code> 是基于 Promise 的语法糖，其 <code>await</code> 后面的代码会作为微任务执行。</li>
+                        </ul>
+                        <div class="quiz-card" id="quiz-event-loop">
+                            <div class="quiz-question"><span class="material-icons">quiz</span>✨ Quiz: 以下代码的输出顺序是什么？
+                                <pre><code class="language-javascript">async function async1() {
+  console.log('async1 start'); // 2
+  await async2();
+  console.log('async1 end'); // 6 (Microtask)
+}
+async function async2() {
+  console.log('async2'); // 3
+}
+
+console.log('script start'); // 1
+
+setTimeout(function() {
+  console.log('setTimeout'); // 8 (Macrotask)
+}, 0);
+
+async1();
+
+new Promise(function(resolve) {
+  console.log('promise1'); // 4
+  resolve();
+}).then(function() {
+  console.log('promise2'); // 7 (Microtask)
+});
+
+console.log('script end'); // 5</code></pre>
+                            </div>
+                            <button class="quiz-toggle">
+                                <span class="material-icons icon-arrow">expand_more</span><span class="button-text">
+                                    查看答案</span>
+                            </button>
+                            <div class="quiz-answer">
+                                <p><strong>答案 (输出顺序):</strong></p>
+                                <pre><code>script start
+async1 start
+async2
+promise1
+script end
+async1 end
+promise2
+setTimeout</code></pre>
+                                <p><strong>解析:</strong></p>
+                                <ol>
+                                    <li><strong>同步代码:</strong> 输出 1, 2, 3, 4, 5。<code>await async2()</code> 将
+                                        <code>async1 end</code> 推入微任务队列。<code>resolve()</code> 将 <code>promise2</code>
+                                        推入微任务队列。
+                                    </li>
+                                    <li><strong>同步结束，执行微任务:</strong> 先执行 <code>async1 end</code> (6)，再执行
+                                        <code>promise2</code> (7)。
+                                    </li>
+                                    <li><strong>微任务结束，执行宏任务:</strong> 执行 <code>setTimeout</code> 回调 (8)。</li>
+                                </ol>
+                                <p class="mt-2 font-medium">关键在于理解 <code>async/await</code> 的执行机制（<code>await</code>
+                                    后面的代码是微任务）以及微任务队列相对于宏任务队列的优先级。</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="conclusion" class="content-section fade-in-section" style="animation-delay: 0.4s;">
+                    <h2 class="flex items-center head2 "><span class="material-icons">flag</span>结语 & 准备面试</h2>
+                    <div class="content-card">
+                        <p>恭喜你！学习完这份指南，你已经对 JavaScript
+                            的核心语言基础和运行时机制有了更系统的认识。我们涵盖了类型系统、作用域、闭包、原型与继承、执行上下文、<code>this</code>
+                            指向以及事件循环等关键概念。</p>
+                        <p><strong>面试准备建议：</strong></p>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>理解而非死记：</strong> 重点在于理解每个概念背后的原理和解决的问题。</li>
+                            <li><strong>动手实践：</strong> 亲自编写代码，调试示例，尝试不同的场景。</li>
+                            <li><strong>清晰表达：</strong> 练习用简洁、准确的语言向他人解释这些概念。</li>
+                            <li><strong>关注高频点：</strong> 特别注意带有 ✨ 标记的面试考点。</li>
+                            <li><strong>扩展学习：</strong> JS 生态广阔，可继续深入 ES6+、异步编程、模块化、性能优化、框架原理、Node.js 等。</li>
+                        </ul>
+                        <p>扎实的基础是成为优秀前端工程师的关键。希望这份指南能成为你学习路上的得力助手，祝你在求职面试中取得成功！</p>
+                    </div>
+                </section>
+
+            </article>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+        // --- Ripple Effect Logic ---
+        function createRipple(event) {
+            const button = event.currentTarget;
+            if (!button || !button.classList.contains('quiz-toggle')) return; // Only apply to quiz toggles
+
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+
+            circle.style.width = circle.style.height = `${diameter}px`;
+            const rect = button.getBoundingClientRect();
+            circle.style.left = `${event.clientX - rect.left - radius}px`;
+            circle.style.top = `${event.clientY - rect.top - radius}px`;
+            circle.classList.add("ripple");
+
+            const existingRipple = button.querySelector(".ripple");
+            if (existingRipple) {
+                existingRipple.remove();
+            }
+            button.appendChild(circle);
+            setTimeout(() => circle.remove(), 600); // Match animation duration
+        }
+
+        // --- Quiz Toggle Logic (Improved) ---
+        function toggleAnswer(quizId, buttonElement) {
+            const quizCard = document.getElementById(quizId);
+            if (!quizCard) return;
+            const answer = quizCard.querySelector('.quiz-answer');
+            const icon = buttonElement.querySelector('.icon-arrow');
+            const buttonTextSpan = buttonElement.querySelector('.button-text'); // Target the span
+            if (!answer || !icon || !buttonTextSpan) return;
+
+            const isVisible = answer.classList.contains('visible');
+
+            if (isVisible) {
+                // Start collapsing: set max-height to 0
+                answer.style.maxHeight = '0';
+                answer.style.opacity = '0';
+                // Reset padding and margin after the transition ends
+                setTimeout(() => {
+                    // Double check if it's still hidden before resetting styles
+                    if (!answer.classList.contains('visible')) {
+                        answer.style.paddingTop = '0';
+                        answer.style.paddingBottom = '0';
+                        answer.style.marginTop = '0';
+                    }
+                }, 500); // Match CSS transition duration
+
+                answer.classList.remove('visible');
+                icon.classList.remove('rotated');
+                buttonTextSpan.textContent = ' 查看答案'; // Update text
+            } else {
+                // Start expanding: set styles needed for measurement and animation
+                answer.style.paddingTop = '1rem';
+                answer.style.paddingBottom = '1rem';
+                answer.style.marginTop = '1rem';
+                // Force reflow to ensure styles are applied before getting scrollHeight
+                answer.style.display = 'block'; // Temporarily make it block to measure
+                // Use requestAnimationFrame to ensure styles are applied before setting max-height
+                requestAnimationFrame(() => {
+                    answer.style.maxHeight = answer.scrollHeight + 'px';
+                    answer.style.opacity = '1';
+                    answer.style.removeProperty('display'); // Remove temporary display style
+                });
+
+
+                answer.classList.add('visible');
+                icon.classList.add('rotated');
+                buttonTextSpan.textContent = ' 隐藏答案'; // Update text
+            }
+        }
+
+
+        // Combined click handler for Quiz Toggle Button
+        function handleQuizToggleClick(quizId, buttonElement, event) {
+            createRipple(event);
+            toggleAnswer(quizId, buttonElement);
+        }
+
+        // --- Intersection Observer for TOC Highlighting & Fade-in ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('section[id]');
+            const tocLinks = document.querySelectorAll('#local-toc a');
+            const mainContentSections = document.querySelectorAll('article > section.content-section'); // Target direct children for fade-in
+
+            // Add ripple event listener to all quiz toggle buttons
+            const quizToggles = document.querySelectorAll('.quiz-toggle');
+            quizToggles.forEach(button => {
+                const quizId = button.closest('.quiz-card')?.id;
+                if (quizId) {
+                    button.addEventListener('click', (event) => {
+                        handleQuizToggleClick(quizId, button, event);
+                    });
+                }
+            });
+
+            // TOC Highlighting Logic
+            const tocObserverOptions = {
+                root: null,
+                rootMargin: '-20% 0px -60% 0px', // Prioritize sections near the top
+                threshold: 0
+            };
+            let lastActiveTocLink = null;
+            const tocObserverCallback = (entries) => {
+                let bestVisibleEntry = null;
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (!bestVisibleEntry || entry.boundingClientRect.top < bestVisibleEntry.boundingClientRect.top) {
+                            bestVisibleEntry = entry;
+                        }
+                    }
+                });
+
+                if (bestVisibleEntry) {
+                    const id = bestVisibleEntry.target.getAttribute('id');
+                    const activeLink = document.querySelector(`#local-toc a[href="#${id}"]`);
+                    if (activeLink && activeLink !== lastActiveTocLink) {
+                        if (lastActiveTocLink) lastActiveTocLink.classList.remove('active');
+                        activeLink.classList.add('active');
+                        lastActiveTocLink = activeLink;
+                    }
+                }
+            };
+            const tocObserver = new IntersectionObserver(tocObserverCallback, tocObserverOptions);
+            sections.forEach(section => tocObserver.observe(section));
+
+            // Initial active link check
+            const currentHash = window.location.hash;
+            if (currentHash) {
+                const initialActiveLink = document.querySelector(`#local-toc a[href="${currentHash}"]`);
+                if (initialActiveLink) {
+                    tocLinks.forEach(link => link.classList.remove('active')); // Clear default
+                    initialActiveLink.classList.add('active');
+                    lastActiveTocLink = initialActiveLink;
+                }
+            } else if (tocLinks.length > 0 && !lastActiveTocLink) {
+                tocLinks[0].classList.add('active'); // Activate first link by default
+                lastActiveTocLink = tocLinks[0];
+            }
+
+            // Fade-in Animation Logic
+            const fadeObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+            const fadeObserverCallback = (entries, observer) => {
+                entries.forEach((entry) => { // No need for index if using target's order
+                    if (entry.isIntersecting) {
+                        // Calculate delay based on the element's position in the NodeList
+                        const delayIndex = Array.from(mainContentSections).indexOf(entry.target);
+                        entry.target.style.animationDelay = `${delayIndex * 0.05}s`;
+                        entry.target.classList.add('fade-in-section');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            };
+            const fadeObserver = new IntersectionObserver(fadeObserverCallback, fadeObserverOptions);
+            mainContentSections.forEach(section => fadeObserver.observe(section));
+
+        });
+    </script>
+
+</body>
+
+</html>
