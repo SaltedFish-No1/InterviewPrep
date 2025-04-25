@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web 性能与实践</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&family=Fira+Code&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../../global.css">
+    <link rel="stylesheet" href="./style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <style>
+        /* Minimal inline styles - Prioritize global.css and style.css */
+
+        /* Level Tag Styles (Keep if specific) */
+        .level-tag {
+            display: inline-block;
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.1rem 0.5rem;
+            border-radius: 0.25rem;
+            vertical-align: middle;
+            border: 1px solid transparent;
+        }
+
+        .level-tag-high {
+            background-color: var(--danger-color-light, #fee2e2);
+            color: var(--danger-color, #ef4444);
+            border-color: var(--danger-color, #ef4444);
+        }
+
+        .level-tag-medium {
+            background-color: var(--warning-color-light, #fff7ed);
+            color: var(--warning-color, #f97316);
+            border-color: var(--warning-color, #f97316);
+        }
+
+        .level-tag-low {
+            background-color: var(--secondary-color-light, #ecfdf5);
+            color: var(--secondary-color, #10b981);
+            border-color: var(--secondary-color, #10b981);
+        }
+
+        .level-tag-base {
+            background-color: var(--bg-color-lighter, #f3f4f6);
+            color: var(--text-color-light, #6b7280);
+            border-color: var(--border-color-default, #d1d5db);
+        }
+
+        .level-tag-advanced {
+            background-color: var(--primary-color-light, #eff6ff);
+            color: var(--primary-color-dark, #2563eb);
+            border-color: var(--primary-color, #3b82f6);
+        }
+
+        /* Ensure heading scroll margin */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            scroll-margin-top: 5rem;
+        }
+
+        /* Wrapper for consistent padding inside sections */
+        .section-content-wrapper {
+            padding-left: calc(1rem + 4px);
+            /* Match h2 pl-4 + border-l-4 */
+            margin-top: 1.5rem;
+            /* mt-6 */
+        }
+
+        .section-content-wrapper>*+* {
+            margin-top: 1.5rem;
+        }
+
+        /* Ensure lists inside wrapper have correct styling */
+        .section-content-wrapper ul {
+            list-style: disc;
+            padding-left: 1.5em;
+            margin-bottom: 1em;
+        }
+
+        .section-content-wrapper ol {
+            list-style: decimal;
+            padding-left: 1.5em;
+            margin-bottom: 1em;
+        }
+
+        .section-content-wrapper li {
+            margin-bottom: 0.5em;
+        }
+
+        /* Consistent margins for diagrams/code blocks */
+        .mermaid {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        pre:not(.mermaid) {
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* --- Refined Quiz UI/UX Styles --- */
+        /* Ensure quiz container matches card style */
+        .section-quiz-container {
+            margin-top: 2.5rem;
+            padding: var(--card-padding, 1.5rem);
+            /* Use card padding variable */
+            background-color: var(--quiz-bg, var(--primary-color-light));
+            /* Use quiz bg variable */
+            border: 1px solid var(--border-color-default);
+            border-left-width: 4px;
+            border-radius: 0.5rem;
+            /* rounded-lg */
+            box-shadow: var(--card-shadow-default);
+            /* Use card shadow */
+            /* border-left-color is set dynamically by JS */
+        }
+
+        .quiz-card-title {
+            font-weight: 600;
+            /* font-semibold */
+            color: var(--text-color-dark);
+            /* Use dark text color */
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .quiz-card-title i {
+            margin-right: 0.5rem;
+            /* color is set dynamically by JS */
+        }
+
+        .quiz-card {
+            background-color: transparent;
+            /* Make card transparent inside container */
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px dashed var(--border-color-light);
+            /* Lighter separator */
+        }
+
+        .quiz-card:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .quiz-card p {
+            /* Question text */
+            font-weight: 500;
+            /* font-medium */
+            margin-bottom: 1rem;
+            color: var(--text-color-default);
+            font-size: 1rem;
+            /* text-base */
+        }
+
+        /* Option styling - make them look more like selectable items */
+        .quiz-options label {
+            display: flex;
+            /* Align radio and text */
+            align-items: center;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            /* Consistent padding */
+            border-radius: 0.375rem;
+            /* rounded-md */
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            border: 1px solid var(--border-color-default);
+            background-color: var(--bg-color-white);
+            /* White background for options */
+        }
+
+        .quiz-options label:hover:not(.disabled) {
+            /* Hover effect only if not disabled */
+            background-color: var(--bg-color-light);
+            border-color: var(--primary-color-dark);
+        }
+
+        .quiz-options input[type="radio"] {
+            margin-right: 0.75rem;
+            accent-color: var(--primary-color);
+            width: 1rem;
+            /* w-4 */
+            height: 1rem;
+            /* h-4 */
+            flex-shrink: 0;
+        }
+
+        .quiz-options input[type="radio"]:checked+span {
+            font-weight: 600;
+            /* font-semibold */
+            color: var(--primary-color-dark);
+        }
+
+        .quiz-options input[type="radio"]:disabled+span {
+            color: var(--text-color-light);
+            /* Lighter text when disabled */
+        }
+
+        .quiz-options label.disabled {
+            /* Style for disabled label after answering */
+            cursor: not-allowed;
+            background-color: var(--bg-color-lighter);
+            border-color: var(--border-color-light);
+            opacity: 0.8;
+        }
+
+        /* Specific styling for correct/incorrect labels after selection */
+        .quiz-options label.correct-answer {
+            border-color: var(--success-color, var(--secondary-color));
+            background-color: var(--success-color-light, var(--secondary-color-light));
+        }
+
+        .quiz-options label.incorrect-selection {
+            border-color: var(--danger-color);
+            background-color: var(--danger-color-light);
+        }
+
+        /* Feedback area styling */
+        .quiz-feedback {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            /* Consistent padding */
+            border-radius: 0.375rem;
+            /* rounded-md */
+            font-size: 0.9rem;
+            min-height: 40px;
+            /* Adjust min height */
+            display: none;
+            animation: feedbackFadeIn 0.5s ease-out;
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        @keyframes feedbackFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback-correct {
+            background-color: var(--success-color-light, var(--secondary-color-light));
+            border-color: var(--success-color, var(--secondary-color));
+            color: var(--success-color, var(--secondary-color));
+        }
+
+        .feedback-incorrect {
+            background-color: var(--danger-color-light);
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        .quiz-feedback strong {
+            font-weight: 600;
+        }
+
+        .feedback-explanation {
+            margin-top: 0.5rem;
+            font-style: normal;
+            /* Remove italic */
+            color: var(--text-color-default);
+            /* Default text color */
+            font-size: 0.85rem;
+            /* Slightly smaller */
+            border-top: 1px dashed var(--border-color-light);
+            /* Separator */
+            padding-top: 0.5rem;
+        }
+
+        /* Add check/cross icons to feedback */
+        .feedback-correct::before {
+            content: '✓ ';
+            /* Checkmark */
+            font-weight: bold;
+            margin-right: 0.3em;
+        }
+
+        .feedback-incorrect::before {
+            content: '✗ ';
+            /* Cross mark */
+            font-weight: bold;
+            margin-right: 0.3em;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50">
+    <button id="toc-toggle-btn" aria-label="Toggle Table of Contents" class="lg:hidden">
+        <i class="fas fa-bars text-xl"></i>
+    </button>
+
+    <div class="page-container">
+        <aside id="toc-aside" class="local-side-nav">
+            <nav id="table-of-contents" class="h-full overflow-y-auto py-4">
+                <h4 class="head4 px-6 mb-3">Web 性能与实践</h4>
+                <ul class="space-y-1"></ul>
+                <a href="../../index.html" class="back-link">
+                    &larr; 返回大纲目录
+                </a>
+            </nav>
+
+        </aside>
+
+        <main id="main-content" class="content-main">
+            <article>
+                <section id="intro" class="content-section fade-in-section">
+                    <h2 id="intro-title" class="head2">
+                        <span class="material-icons text-3xl text-sky-600 mr-3">rocket_launch</span>(四) Web 性能与实践
+                    </h2>
+                    <div class="section-content-wrapper">
+                        <p class="text-slate-600 leading-relaxed">Web 性能是衡量用户体验的关键指标，直接影响用户留存和转化。本节将深入探讨 HTTP
+                            缓存机制、性能优化策略、连接优化技术以及相关的 Web 技术如 WebSockets 和 API 设计风格。</p>
+                        <p class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md text-sm">💡
+                            <strong>提示:</strong> 点击左侧导航可以快速跳转到相应主题。括号内标注了面试中的考察频率和基础/进阶程度。将鼠标悬停在 <span
+                                class="tooltip-trigger" data-tooltip="就像这样！">带下划线的术语</span> 上可查看解释。
+                        </p>
+                    </div>
+                </section>
+
+                <section id="http-cache" class="content-section fade-in-section">
+                    <h2 id="http-cache-title" class="head2">
+                        <span class="material-icons">inventory_2</span>HTTP 缓存机制
+                    </h2>
+                    <div class="section-content-wrapper">
+                        <p class="mb-4 text-slate-600">HTTP 缓存是 Web 性能优化的核心手段，通过复用已获取的资源，减少网络请求，降低延迟，节省带宽。</p>
+
+                        <div class="content-card">
+                            <h3 id="cache-location" class="font-semibold text-lg text-teal-700 mb-2">🗂️ 缓存位置</h3>
+                            <p class="text-slate-600">浏览器缓存资源可以存储在不同的位置，查找顺序通常为：</p>
+                            <ol>
+                                <li><strong>Service Worker Cache:</strong> Service Worker 脚本可以拦截网络请求并管理自己的缓存。优先级最高，最灵活。
+                                </li>
+                                <li><strong>内存缓存 (Memory Cache):</strong> 存储在内存中，速度最快，但<span class="tooltip-trigger"
+                                        data-tooltip="关闭标签页或浏览器进程后，内存缓存通常会丢失。">浏览器/标签页关闭后失效</span>。通常缓存体积较小、使用频繁的资源。
+                                </li>
+                                <li><strong>硬盘缓存 (Disk Cache):</strong> 存储在硬盘上，容量大，持久性强。浏览器关闭后依然存在（除非手动清除或过期）。</li>
+                                <li><strong>推送缓存 (Push Cache, HTTP/2):</strong> HTTP/2 服务器推送的资源会暂时存储在这里。</li>
+                                <li><strong>网络请求:</strong> 如果以上缓存都未命中，则发起网络请求。</li>
+                            </ol>
+                            <p class="text-xs text-slate-500 mt-2">注意：上述顺序并非绝对，具体实现可能因浏览器而异，但大体逻辑如此。</p>
+                        </div>
+
+                        <div class="content-card">
+                            <h3 id="strong-vs-negotiation" class="font-semibold text-lg text-teal-700 mb-2">⚖️ 强缓存 vs
+                                协商缓存
+                                <span class="level-tag level-tag-high">高频</span>
+                                <span class="level-tag level-tag-base">基础</span>
+                            </h3>
+                            <p class="mb-4 text-slate-600">HTTP 缓存主要分为两类：强缓存和协商缓存。浏览器在请求资源时，会先检查强缓存。</p>
+                            <div id="cache-flow-diagram" class="diagram">
+                                <h4 class="head4">图示：浏览器缓存决策流程 (简化)</h4>
+                                <pre class="mermaid">graph TD
+    A["请求资源"] --> B{"本地有缓存吗？"}
+    B -- "否" --> C["向服务器请求资源"]
+    C --> D["服务器返回 200 OK + 资源 + 缓存头"]
+    D --> E["缓存资源 + 使用"]
+    B -- "是" --> F{"缓存是否新鲜？(max-age/Expires)"}
+    F -- "是 (新鲜)" --> G["直接使用本地缓存（强缓存）"]
+    F -- "否 (陈旧/需验证)" --> H["发送条件请求 (If-None-Match/If-Modified-Since)"]
+    H --> I{"服务器验证资源是否变更"}
+    I -- "否 (未变更)" --> J["服务器返回 304 Not Modified"]
+    J --> K["更新缓存有效期 + 使用本地缓存（协商缓存）"]
+    I -- "是 (已变更)" --> L["服务器返回 200 OK + 新资源 + 新缓存头"]
+    L --> E
+                                </pre>
+                            </div>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-4">
+                                <li><strong>强缓存 (Strong Cache):</strong> 浏览器直接检查本地缓存的<span class="tooltip-trigger"
+                                        data-tooltip="由 Expires (绝对时间) 或 Cache-Control: max-age (相对时间) 决定。">过期时间</span>。如果资源未过期，则直接使用缓存副本，<strong>不向服务器发送任何请求</strong>。HTTP
+                                    状态码通常是 <code>200 OK (from memory cache / from disk cache)</code>。</li>
+                                <li><strong>协商缓存 (Negotiation Cache / Weak Cache):</strong>
+                                    强缓存失效后（或被设置为不使用强缓存），浏览器会向服务器发送一个<span class="tooltip-trigger"
+                                        data-tooltip="携带 If-Modified-Since 或 If-None-Match 请求头。">条件请求</span>。服务器根据这些标识判断资源是否有更新。
+                                    <ul>
+                                        <li>如果资源<strong>未更新</strong>，服务器返回 <code>304 Not Modified</code> 状态码，响应体为空。浏览器收到
+                                            304 后，使用本地缓存。</li>
+                                        <li>如果资源<strong>已更新</strong>，服务器返回 <code>200 OK</code> 状态码和新的资源内容。浏览器使用新资源并更新缓存。
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <p class="mt-4 font-medium text-slate-700"><strong>判断流程：</strong>
+                                浏览器先判断强缓存是否命中，如果命中则直接使用；如果强缓存未命中，则进行协商缓存判断。</p>
+                        </div>
+
+                        <div class="content-card">
+                            <h3 id="strong-cache-impl" class="font-semibold text-lg text-teal-700 mb-2">⚡ 强缓存实现: Expires
+                                & Cache-Control (max-age)
+                                <span class="level-tag level-tag-high">高频</span>
+                                <span class="level-tag level-tag-base">基础</span>
+                            </h3>
+                            <p class="text-slate-600">控制强缓存主要通过两个 HTTP 响应头字段：</p>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li><strong><code>Expires</code> (HTTP/1.0):</strong> 指定一个<strong>绝对的过期时间</strong> (GMT
+                                    格式)。例如：<code>Expires: Wed, 21 Oct 2025 07:28:00 GMT</code>。
+                                    <br><strong>缺点：</strong> 依赖于客户端和服务器的时间同步。
+                                </li>
+                                <li><strong><code>Cache-Control: max-age=&lt;seconds&gt;</code> (HTTP/1.1):</strong>
+                                    指定一个<strong>相对的有效时长</strong> (单位：秒)。例如：<code>Cache-Control: max-age=3600</code>
+                                    表示资源在 1 小时内有效。
+                                    <br><strong>优点：</strong> 不依赖本地时间，更精确。<strong>优先级高于 <code>Expires</code></strong>。
+                                </li>
+                            </ul>
+                            <pre><code class="language-http"># 响应头示例: 设置强缓存1小时
+Cache-Control: public, max-age=3600
+Expires: Wed, 24 Apr 2025 23:59:59 GMT  # 作为兼容</code></pre>
+                        </div>
+
+                        <div class="content-card">
+                            <h3 id="negotiation-cache-impl" class="font-semibold text-lg text-teal-700 mb-2">🤝 协商缓存实现:
+                                Last-Modified & ETag
+                                <span class="level-tag level-tag-high">高频</span>
+                                <span class="level-tag level-tag-base">基础</span>
+                            </h3>
+                            <p class="text-slate-600">协商缓存通过两对请求/响应头字段实现：</p>
+                            <ol class="list-decimal list-inside space-y-3 text-sm text-slate-600 mt-2">
+                                <li>
+                                    <strong>基于修改时间：</strong>
+                                    <ul class="list-disc list-inside ml-4 mt-1 space-y-1">
+                                        <li><strong><code>Last-Modified</code> (响应头):</strong> 服务器资源最后修改时间。</li>
+                                        <li><strong><code>If-Modified-Since</code> (请求头):</strong> 浏览器带上上次的
+                                            <code>Last-Modified</code> 值询问。
+                                        </li>
+                                        <li><strong>缺点：</strong> 精度到秒；内容未变但时间变了；分布式时间同步问题。</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <strong>基于内容标识：</strong>
+                                    <ul class="list-disc list-inside ml-4 mt-1 space-y-1">
+                                        <li><strong><code>ETag</code> (响应头):</strong> 服务器资源内容的唯一标识符 (如 Hash)。</li>
+                                        <li><strong><code>If-None-Match</code> (请求头):</strong> 浏览器带上上次的
+                                            <code>ETag</code> 值询问。
+                                        </li>
+                                        <li><strong>优点：</strong> 更精确可靠。<strong>服务器优先验证 <code>ETag</code></strong>。</li>
+                                    </ul>
+                                </li>
+                            </ol>
+                            <p class="mt-4 font-medium text-slate-700"><strong>流程：</strong>浏览器发送条件请求 -> 服务器比较标识 -> 未修改返回
+                                <code>304</code> -> 已修改返回 <code>200</code> + 新资源 + 新标识。
+                            </p>
+                        </div>
+                        <div class="quiz-placeholder" data-section-id="caching"></div>
+                    </div>
+                </section>
+
+                <section id="cache-control-details" class="content-section fade-in-section">
+                    <h2 id="cache-control-title"  class="head2">
+                        <span class="material-icons">tune</span>Cache-Control 指令详解
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-advanced">进阶</span>
+                    </h2>
+                    <div class="section-content-wrapper">
+                        <div class="content-card">
+                            <p class="text-slate-600"><code>Cache-Control</code> 响应头可以包含多个指令，用于更精细地控制缓存行为：</p>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li><strong><code>public</code>:</strong> 响应可被任何<span class="tooltip-trigger"
+                                        data-tooltip="如 CDN、代理服务器等">中间缓存</span>缓存。</li>
+                                <li><strong><code>private</code>:</strong> 响应只能被最终用户的<span class="tooltip-trigger"
+                                        data-tooltip="通常指浏览器缓存">私有缓存</span>缓存。</li>
+                                <li><strong><code>no-cache</code>:</strong> <span
+                                        class="font-semibold">强制协商缓存</span>。使用缓存前必须向服务器验证。</li>
+                                <li><strong><code>no-store</code>:</strong> <span
+                                        class="font-semibold">完全禁止缓存</span>。不得存储响应任何部分。</li>
+                                <li><strong><code>max-age=&lt;seconds&gt;</code>:</strong> 强缓存有效时长 (相对时间)。</li>
+                                <li><strong><code>s-maxage=&lt;seconds&gt;</code>:</strong> 共享缓存的 <code>max-age</code>
+                                    (优先级更高)。</li>
+                                <li><strong><code>must-revalidate</code>:</strong> 缓存过期后<span
+                                        class="font-semibold">必须</span>向源服务器验证，不能用旧副本。</li>
+                                <li><strong><code>proxy-revalidate</code>:</strong> 仅对共享缓存的
+                                    <code>must-revalidate</code>。
+                                </li>
+                                <li><strong><code>immutable</code>:</strong> 提示资源在新鲜期内<span
+                                        class="font-semibold">不会改变</span>，可优化验证。</li>
+                            </ul>
+                            <pre><code class="language-http"># 示例1: 缓存1小时，公共缓存
+Cache-Control: public, max-age=3600
+
+# 示例2: 强制协商缓存
+Cache-Control: no-cache
+
+# 示例3: 完全禁止缓存
+Cache-Control: no-store
+
+# 示例4: 私有缓存1天，过期后必须验证
+Cache-Control: private, max-age=86400, must-revalidate
+
+# 示例5: 带哈希的资源，长期缓存且不可变
+Cache-Control: public, max-age=31536000, immutable</code></pre>
+                            <p class="mt-4 font-medium text-slate-700"><strong><code>no-cache</code> vs
+                                    <code>no-store</code> 的区别 (面试常问):</strong></p>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li><code>no-cache</code>: 缓存还在，但用前必问服务器。</li>
+                                <li><code>no-store</code>: 完全不缓存，每次都重新下载。</li>
+                            </ul>
+                        </div>
+                        <div class="quiz-placeholder" data-section-id="cache_control"></div>
+                    </div>
+                </section>
+
+                <section id="cache-busting" class="content-section fade-in-section">
+                    <h2 id="cache-busting-title"  class="head2">
+                        <span class="material-icons">restart_alt</span>缓存失效策略 (Cache Busting)
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="section-content-wrapper">
+                        <div class="content-card">
+                            <p class="text-slate-600">当静态资源（JS, CSS, 图片）更新后，需要确保用户获取最新版本，而不是旧的强缓存。</p>
+                            <p class="text-slate-600"><strong>核心思想：</strong>通过改变资源的 URL，让浏览器认为它是新资源。</p>
+                            <p class="text-slate-600"><strong>常见方法：</strong></p>
+                            <ul class="list-disc list-inside space-y-2 text-sm text-slate-600 mt-2">
+                                <li><strong>文件名哈希 (Filename Hashing):</strong> (推荐) 根据文件内容生成哈希值加入文件名
+                                    (<code>bundle.[contenthash].js</code>)。内容变，URL 变。
+                                    <br><strong>优点：</strong> 精确，最大化利用缓存，构建工具自动化。
+                                </li>
+                                <li><strong>查询参数版本号 (Query String Versioning):</strong> URL 后加版本号
+                                    (<code>style.css?v=1.1</code>)。
+                                    <br><strong>缺点：</strong> 部分代理/CDN 可能不缓存带参数 URL。
+                                </li>
+                                <li><strong>路径版本号 (Path Versioning):</strong> 版本号放路径中 (<code>/v1.1/style.css</code>)。
+                                    <br><strong>缺点：</strong> 可能需服务器配置，部署稍复杂。
+                                </li>
+                            </ul>
+                            <pre><code class="language-html">&lt;!-- 文件名哈希 (推荐) --&gt;
+&lt;script src="/static/js/app.a1b2c3d4.js"&gt;&lt;/script&gt;
+
+&lt;!-- 查询参数版本号 --&gt;
+&lt;link rel="stylesheet" href="/css/style.css?v=1.2.0"&gt;
+
+&lt;!-- 路径版本号 --&gt;
+&lt;script src="/v1.2/js/script.js"&gt;&lt;/script&gt;</code></pre>
+                            <p class="mt-4 font-medium text-slate-700">
+                                <strong>最佳实践：</strong>对静态资源使用<strong>文件名哈希</strong> + 长时间的
+                                <code>Cache-Control: public, max-age=31536000, immutable</code>。
+                            </p>
+                        </div>
+                        <div class="quiz-placeholder" data-section-id="cache_busting"></div>
+                    </div>
+                </section>
+
+                <section id="http-perf-opt" class="content-section fade-in-section">
+                    <h2 id="http-perf-title" class="head2">
+                        <span class="material-icons">speed</span>HTTP 性能优化策略
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="section-content-wrapper">
+                        <p class="mb-4 text-slate-600">优化 HTTP 性能旨在减少加载时间，提升用户体验。主要从协议、请求数、体积、CDN、连接等方面入手。</p>
+
+                        <div class="content-card">
+                            <h3 id="protocol-upgrade" class="font-semibold text-lg text-orange-700 mb-2">🚀 协议升级 (H2/H3)
+                            </h3>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li><strong>HTTP/1.1 问题:</strong> <span class="tooltip-trigger"
+                                        data-tooltip="同一 TCP 连接上，响应必须按请求顺序返回，慢响应阻塞后续。">应用层队头阻塞</span>、文本头部冗余、多连接开销。</li>
+                                <li><strong>HTTP/2 改进:</strong> <span class="tooltip-trigger"
+                                        data-tooltip="单 TCP 连接并发流，帧可交错传输。">多路复用</span>、<span class="tooltip-trigger"
+                                        data-tooltip="HPACK 算法压缩重复头部。">头部压缩</span>、服务器推送 (少用)、二进制分帧。</li>
+                                <li><strong>HTTP/3 改进:</strong> 基于 <span class="tooltip-trigger"
+                                        data-tooltip="基于 UDP 的现代传输协议。">QUIC</span>，彻底解决<span class="tooltip-trigger"
+                                        data-tooltip="QUIC 流独立，丢包不影响其他流。">传输层队头阻塞</span>、<span class="tooltip-trigger"
+                                        data-tooltip="结合 TLS 1.3，首次 1-RTT，重连 0-RTT。">更快连接建立</span>、<span
+                                        class="tooltip-trigger" data-tooltip="基于连接 ID，切换网络不中断。">连接迁移</span>、强制加密。</li>
+                            </ul>
+                            <p class="mt-2 font-medium text-slate-700"><strong>策略：</strong>尽可能启用 HTTP/2 或 HTTP/3。</p>
+                        </div>
+
+                        <div class="content-card">
+                            <h3 id="reduce-requests" class="font-semibold text-lg text-orange-700 mb-2">📉 减少请求数</h3>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li><strong>合并文件 (Bundling):</strong> JS/CSS 合并 (构建工具)。</li>
+                                <li><strong>CSS Sprites (雪碧图):</strong> 小图标合并大图。</li>
+                                <li><strong>内联资源 (Inlining):</strong> Data URI (小图片/字体)、Inline SVG/CSS/JS (谨慎使用)。</li>
+                                <li><strong>字体图标 (Icon Fonts):</strong> 用字体文件展示图标。</li>
+                            </ul>
+                        </div>
+
+                        <div class="content-card">
+                            <h3 id="reduce-size" class="font-semibold text-lg text-orange-700 mb-2">📦 减小资源体积</h3>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li><strong>压缩 (Compression):</strong> 服务器启用 Gzip / Brotli。</li>
+                                <li><strong>精简代码 (Minification):</strong> JS/CSS/HTML 移除空白、注释。</li>
+                                <li><strong>图片优化:</strong> 合适格式 (WebP/AVIF)、压缩、响应式图片 (<code>srcset</code>)、懒加载。</li>
+                                <li><strong>Tree Shaking:</strong> 移除未使用的 JS 代码。</li>
+                                <li><strong>代码分割 (Code Splitting):</strong> JS 包拆分，按需加载。</li>
+                            </ul>
+                        </div>
+
+                        <div class="content-card">
+                            <h3 id="use-cdn" class="font-semibold text-lg text-orange-700 mb-2">🌍 使用 CDN</h3>
+                            <p class="text-slate-600"><strong>内容分发网络 (CDN):</strong> 将静态资源部署到全球边缘节点。</p>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li><strong>优点：</strong> 降低延迟 (就近访问)、提高可用性 (分担负载)、带宽优化。</li>
+                                <li><strong>策略：</strong>将静态资源托管到 CDN。</li>
+                            </ul>
+                        </div>
+                        <div class="quiz-placeholder" data-section-id="http_perf"></div>
+                    </div>
+                </section>
+
+                <section id="connection-opt" class="content-section fade-in-section">
+                    <h2 id="connection-opt-title" class="head2">
+                        <span class="material-icons">link</span>连接优化
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-advanced">进阶</span>
+                    </h2>
+                    <div class="section-content-wrapper">
+                        <p class="mb-4 text-slate-600">浏览器建立连接需要时间（DNS 查询、TCP 握手、TLS 握手）。通过预先执行这些步骤，可以减少后续资源请求的延迟。</p>
+                        <div class="content-card">
+                            <p class="text-slate-600">使用 <code>&lt;link rel="..."&gt;</code> 标签提示浏览器进行连接优化：</p>
+                            <ul class="list-disc list-inside space-y-3 text-sm text-slate-600 mt-2">
+                                <li>
+                                    <strong><code>dns-prefetch</code>:</strong> <strong>预解析 DNS。</strong> 提前对指定域名进行 DNS
+                                    查询。
+                                    <pre><code class="language-html">&lt;link rel="dns-prefetch" href="//third-party.com"&gt;</code></pre>
+                                </li>
+                                <li>
+                                    <strong><code>preconnect</code>:</strong> <strong>预连接。</strong> DNS 查询 + TCP 握手 +
+                                    TLS 握手。用于很快会请求的关键域名。
+                                    <pre><code class="language-html">&lt;link rel="preconnect" href="https://api.example.com" crossorigin&gt;</code></pre>
+                                </li>
+                                <li>
+                                    <strong><code>preload</code>:</strong> <strong>预加载<span
+                                            class="font-semibold">当前页必需</span>资源。</strong> 高优先级获取，阻塞
+                                    <code>window.onload</code>。
+                                    <pre><code class="language-html">&lt;link rel="preload" href="critical.css" as="style"&gt;
+&lt;link rel="preload" href="/fonts/font.woff2" as="font" type="font/woff2" crossorigin&gt;</code></pre>
+                                    <p class="text-xs text-slate-500"><code>as</code> 属性必需，指定资源类型。</p>
+                                </li>
+                                <li>
+                                    <strong><code>prefetch</code>:</strong> <strong>预获取<span
+                                            class="font-semibold">未来导航可能用</span>的资源。</strong> 低优先级，浏览器空闲时下载。
+                                    <pre><code class="language-html">&lt;link rel="prefetch" href="/next-page.js" as="script"&gt;</code></pre>
+                                </li>
+                            </ul>
+                            <p class="mt-4 font-medium text-slate-700"><strong>总结与选择：</strong></p>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li>不确定马上用：<code>dns-prefetch</code>。</li>
+                                <li>确定很快用：<code>preconnect</code>。</li>
+                                <li>当前页必需：<code>preload</code>。</li>
+                                <li>未来导航用：<code>prefetch</code>。</li>
+                            </ul>
+                            <p class="text-sm text-red-500 mt-2"><strong>注意：</strong>过度使用 <code>preconnect</code> 和
+                                <code>preload</code> 可能浪费资源或阻塞更重要的加载。
+                            </p>
+                        </div>
+                        <div class="quiz-placeholder" data-section-id="connection_opt"></div>
+                    </div>
+                </section>
+
+                <section id="websockets" class="content-section fade-in-section">
+                    <h2 id="websockets-title" class="head2">
+                        <span class="material-icons">lan</span>WebSockets
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-advanced">进阶</span>
+                    </h2>
+                    <div class="section-content-wrapper">
+                        <div class="content-card">
+                            <h3 id="ws-vs-polling" class="font-semibold text-lg text-pink-700 mb-2">🆚 与 HTTP 轮询对比</h3>
+                            <p class="text-slate-600">传统实时通信依赖 HTTP 轮询：</p>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li><strong>短轮询:</strong> 定期请求。缺点：延迟高，无效请求多。</li>
+                                <li><strong>长轮询:</strong> 服务器 hold 连接。缺点：仍有开销和延迟。</li>
+                                <li><strong>SSE (Server-Sent Events):</strong> HTTP 单向推送 (服务器->客户端)。</li>
+                            </ul>
+                            <p class="mt-2 font-medium text-slate-700"><strong>WebSocket 优势：</strong></p>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li><span class="tooltip-trigger" data-tooltip="客户端和服务器可在同一连接上同时双向发送数据。">全双工通信</span>。
+                                </li>
+                                <li>低延迟 (无 HTTP 头部开销)。</li>
+                                <li>持久连接。</li>
+                            </ul>
+                        </div>
+
+                        <div class="content-card">
+                            <h3 id="ws-mechanism" class="font-semibold text-lg text-pink-700 mb-2">🤝 工作机制 (协议升级)</h3>
+                            <p class="text-slate-600">利用 HTTP 建立连接：</p>
+                            <ol class="list-decimal list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li>客户端发 HTTP GET 请求，含 <code>Upgrade: websocket</code>,
+                                    <code>Connection: Upgrade</code>, <code>Sec-WebSocket-Key</code> 等头。
+                                </li>
+                                <li>服务器若同意，返回 <code>101 Switching Protocols</code>，含 <code>Upgrade: websocket</code>,
+                                    <code>Connection: Upgrade</code>, <code>Sec-WebSocket-Accept</code> (基于 Key 计算)。
+                                </li>
+                                <li>握手成功，TCP 连接转为 WebSocket 数据帧传输。</li>
+                            </ol>
+                            <pre><code class="language-http"># Client Request (Simplified)
+GET /chat HTTP/1.1
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: ...
+
+# Server Response (Simplified)
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: ...</code></pre>
+                        </div>
+
+                        <div class="content-card">
+                            <h3 id="ws-features-usecases" class="font-semibold text-lg text-pink-700 mb-2">✨ 特性与应用场景
+                            </h3>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li><strong>特性：</strong> 事件驱动 (<code>onopen</code>,
+                                    <code>onmessage</code>...)、支持文本/二进制帧、Ping/Pong 心跳。
+                                </li>
+                                <li><strong>场景：</strong> 实时聊天、协作编辑、实时数据推送 (股票、比分)、在线游戏等。</li>
+                            </ul>
+                            <pre><code class="language-javascript">// Frontend WebSocket API Example
+const socket = new WebSocket('wss://server.example.com/chat');
+
+socket.onopen = () => { socket.send('Hello!'); };
+socket.onmessage = (event) => { console.log('Server:', event.data); };
+socket.onclose = (event) => { console.log('Closed:', event.code); };
+socket.onerror = (error) => { console.error('Error:', error); };</code></pre>
+                        </div>
+                        <div class="quiz-placeholder" data-section-id="websockets"></div>
+                    </div>
+                </section>
+
+                <section id="api-design" class="content-section fade-in-section">
+                    <h2 id="api-design-title" class="head2">
+                        <span class="material-icons">api</span>API 设计风格简介
+                        <span class="level-tag level-tag-low">低频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="section-content-wrapper">
+                        <p class="mb-4 text-slate-600">不同的 API 设计风格适用于不同的场景和需求。</p>
+                        <div class="content-card">
+                            <h3 id="rest-style"class="head3">REST
+                                (Representational State Transfer)</h3>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li><strong>核心：</strong> 面向<span class="tooltip-trigger"
+                                        data-tooltip="如用户、订单、产品等">资源</span>，通过标准 HTTP 方法 (GET/POST/PUT/DELETE) 操作。</li>
+                                <li><strong>特点：</strong> 无状态、URI 标识资源、JSON/XML 表示、利用 HTTP 缓存。</li>
+                                <li><strong>优缺点：</strong> 简单标准化 / 可能 Over/Under-fetching。</li>
+                                <li><strong>示例：</strong> <code>GET /users/123</code>, <code>POST /users</code>。</li>
+                            </ul>
+                        </div>
+                        <div class="content-card">
+                            <h3 id="rpc-style"class="head3">RPC (Remote Procedure
+                                Call)</h3>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li><strong>核心：</strong> 像调用本地函数一样调用远程<span class="tooltip-trigger"
+                                        data-tooltip="如 getUserInfo, placeOrder 等">过程/方法</span>。关注动作。</li>
+                                <li><strong>特点：</strong> 协议多样 (gRPC/JSON-RPC)、通常 POST 请求体含方法名+参数。</li>
+                                <li><strong>优缺点：</strong> 动作直观，性能可能高 (gRPC) / 风格不统一，不易缓存。</li>
+                                <li><strong>示例 (JSON-RPC):</strong> <code>{"method": "getUser", "params": [123]}</code>。
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="content-card">
+                            <h3 id="graphql-style"class="head3">GraphQL</h3>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600 mt-2">
+                                <li><strong>核心：</strong> API <span class="tooltip-trigger"
+                                        data-tooltip="客户端精确描述需要的数据结构。">查询语言</span>。客户端驱动。</li>
+                                <li><strong>特点：</strong> 强类型 Schema、单一入口点 (<code>/graphql</code>)、解决
+                                    Over/Under-fetching。</li>
+                                <li><strong>优缺点：</strong> 灵活高效 / 学习曲线，缓存/服务端实现复杂。</li>
+                                <li><strong>示例 (查询):</strong>
+                                    <pre><code class="language-graphql">query { user(id:"1") { name posts { title } } }</code></pre>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="quiz-placeholder" data-section-id="api_styles"></div>
+                    </div>
+                </section>
+
+                <footer class="mt-16 pt-8 border-t border-slate-200 text-center text-slate-500 text-sm">
+                    Web 性能与实践 - 学习指南
+                </footer>
+
+            </article>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        /* script.js content embedded here */
+        console.log('Embedded script.js loaded');
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const tocContainer = document.getElementById('table-of-contents');
+            const mainContent = document.getElementById('main-content');
+            const tocAside = document.getElementById('toc-aside');
+            const tocToggleBtn = document.getElementById('toc-toggle-btn');
+            const sections = mainContent?.querySelectorAll('section[id]');
+            const quizPlaceholders = document.querySelectorAll('.quiz-placeholder');
+            let activeTocLink = null;
+            let tocScrollDebounceTimer;
+
+            // --- Quiz Data ---
+            const quizzes = {
+                caching: [
+                    { question: "强缓存主要依赖于以下哪些 HTTP 响应头？", options: ["ETag 和 If-None-Match", "Last-Modified 和 If-Modified-Since", "Cache-Control: max-age 和 Expires", "Cache-Control: no-cache 和 Pragma"], correctAnswer: 2, explanation: "强缓存通过设置资源的有效期来工作。HTTP/1.1 使用 `Cache-Control: max-age=<seconds>` (相对时间)，HTTP/1.0 使用 `Expires` (绝对时间)。ETag 和 Last-Modified 用于协商缓存。" },
+                    { question: "当服务器返回 304 Not Modified 状态码时，意味着什么？", options: ["资源已永久移动", "请求成功，但无内容返回", "协商缓存命中，客户端可以使用本地缓存的副本", "客户端请求的资源不存在"], correctAnswer: 2, explanation: "304 Not Modified 是协商缓存成功的标志。服务器通过比较客户端发送的 `If-None-Match` (ETag) 或 `If-Modified-Since` (Last-Modified) 发现资源未改变，告知浏览器可以直接使用本地缓存，无需重新下载资源体。" }
+                ],
+                cache_control: [
+                    { question: "Cache-Control: no-cache 指令的作用是什么？", options: ["完全禁止浏览器缓存该资源", "允许缓存，但每次使用前必须向服务器验证其有效性", "只允许私有缓存（浏览器）缓存", "设置缓存有效期为 0 秒"], correctAnswer: 1, explanation: "`no-cache` 并不意味着不缓存，而是指示缓存副本在使用前必须先与服务器确认（重新验证），即强制进行协商缓存。如果想完全禁止缓存，应使用 `no-store`。" }
+                ],
+                cache_busting: [
+                    { question: "哪种缓存失效策略通常被认为是最佳实践，尤其适用于构建工具自动化的场景？", options: ["查询参数版本号 (e.g., style.css?v=1.1)", "路径版本号 (e.g., /v1.1/style.css)", "文件名哈希 (e.g., bundle.[contenthash].js)", "设置 Cache-Control: no-store"], correctAnswer: 2, explanation: "文件名哈希（通常基于文件内容生成）是最精确的缓存失效策略。只有当文件内容实际改变时，文件名（URL）才会改变，从而确保浏览器请求新版本，同时最大化利用未改变资源的缓存。构建工具可以轻松实现自动化。" }
+                ],
+                http_perf: [
+                    { question: "HTTP/2 相比 HTTP/1.1 的主要性能优势是什么？", options: ["强制使用 UDP 协议", "通过多路复用消除了应用层队头阻塞", "完全消除了所有类型的队头阻塞", "引入了更强大的缓存控制指令"], correctAnswer: 1, explanation: "HTTP/2 最大的改进之一是引入了多路复用，允许在单个 TCP 连接上并发处理多个请求/响应流，解决了 HTTP/1.1 中因响应必须按序返回而造成的应用层队头阻塞问题。但它仍然运行在 TCP 上，会受 TCP 队头阻塞的影响。" }
+                ],
+                connection_opt: [
+                    { question: "使用 `<link rel=\"preconnect\" href=\"...\">` 的主要目的是什么？", options: ["仅预先解析指定域名的 DNS", "预先下载指定资源到缓存", "预先完成 DNS 解析、TCP 握手和 TLS 握手", "强制浏览器使用 HTTP/3 连接"], correctAnswer: 2, explanation: "`preconnect` 指令提示浏览器，用户很可能会访问指定来源，并建议浏览器预先建立连接。这包括 DNS 查询、TCP 握手以及 TLS 协商（如果适用），从而减少后续实际请求时的连接建立延迟。" }
+                ],
+                websockets: [
+                    { question: "WebSocket 协议与传统的 HTTP 长轮询相比，最核心的区别是什么？", options: ["WebSocket 使用 UDP，长轮询使用 TCP", "WebSocket 支持服务器推送，长轮询不支持", "WebSocket 提供真正的全双工、低开销的持久连接", "WebSocket 只能传输文本数据"], correctAnswer: 2, explanation: "WebSocket 通过一次 HTTP 握手升级协议后，建立的是一个真正的全双工 TCP 连接，允许客户端和服务器随时双向发送数据，且后续数据帧开销很小。长轮询本质上还是一系列 HTTP 请求-响应，存在连接建立/保持和头部的开销。" }
+                ],
+                api_styles: [
+                    { question: "GraphQL 主要解决了 REST API 中的什么问题？", options: ["缺乏安全性", "不支持缓存", "数据冗余 (Over-fetching) 和数据不足 (Under-fetching)", "只能使用 JSON 格式"], correctAnswer: 2, explanation: "GraphQL 允许客户端在一个请求中精确指定需要哪些数据以及数据的结构，服务器只返回所需的数据。这避免了 REST API 中常见的 Over-fetching（返回过多不需要的数据）和 Under-fetching（需要多次请求才能获取所有数据）的问题。" }
+                ]
+            };
+
+            // --- Initialization Functions ---
+            function initTOC() {
+                if (!tocContainer || !mainContent || !sections || sections.length === 0) {
+                    console.warn("TOC elements missing."); return;
+                }
+                const navElement = tocContainer.querySelector('nav') || tocContainer;
+                const existingList = navElement.querySelector('ul'); // Find existing list if any
+                if (existingList) {
+                    existingList.innerHTML = ''; // Clear only the list items
+                } else {
+                    navElement.innerHTML = ''; // Clear everything if no list found
+                    // Add title back
+                    const tocTitle = document.createElement('h4'); // Use h4 like global.css
+                    tocTitle.className = 'head4 px-6 mb-3'; // Use head4 class
+                    tocTitle.textContent = 'Web 性能与实践';
+                    navElement.appendChild(tocTitle);
+                }
+
+                const tocList = existingList || document.createElement('ul'); // Reuse or create UL
+                if (!existingList) {
+                    tocList.className = 'space-y-1'; // Add spacing if new list
+                    navElement.appendChild(tocList);
+                }
+
+                const headings = mainContent.querySelectorAll('section[id] > h2[id]');
+
+                headings.forEach(heading => {
+                    const listItem = document.createElement('li');
+                    const link = document.createElement('a');
+                    // Use classes from global.css for TOC links
+                    // link.className = 'flex items-center gap-2 px-6 py-2 text-sm rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800';
+                    link.href = `#${heading.id}`;
+                    link.dataset.targetId = heading.id;
+
+                    const iconElement = heading.querySelector('.material-icons');
+                    const iconName = iconElement ? iconElement.textContent.trim() : 'article';
+                    const iconSpan = document.createElement('span');
+                    iconSpan.className = 'material-icons nav-icon'; // Class from global.css
+                    iconSpan.textContent = iconName;
+                    link.appendChild(iconSpan);
+
+                    const headingText = heading.textContent.replace(iconName, '').trim();
+                    link.appendChild(document.createTextNode(headingText));
+
+                    link.addEventListener('click', (e) => {
+                        if (window.innerWidth < 1024 && tocAside?.classList.contains('open')) {
+                            tocAside.classList.remove('open');
+                            tocToggleBtn?.querySelector('i')?.classList.replace('fa-times', 'fa-bars');
+                        }
+                    });
+
+                    listItem.appendChild(link);
+                    tocList.appendChild(listItem);
+                });
+
+                window.addEventListener('scroll', handleTocScrollHighlight);
+                handleTocScrollHighlight();
+            }
+
+            function handleTocScrollHighlight() {
+                clearTimeout(tocScrollDebounceTimer);
+                tocScrollDebounceTimer = setTimeout(() => {
+                    if (!sections || sections.length === 0 || !tocContainer) return;
+                    let currentSectionId = null;
+                    const scrollPosition = window.scrollY;
+                    const offset = window.innerHeight * 0.3;
+
+                    sections.forEach(section => {
+                        const headerHeight = 0;
+                        const sectionTop = section.offsetTop - headerHeight - 10;
+                        if (scrollPosition >= sectionTop - offset) {
+                            const h2 = section.querySelector('h2[id]');
+                            if (h2) currentSectionId = h2.id;
+                        }
+                    });
+
+                    const navLinks = tocContainer.querySelectorAll('nav a');
+                    let foundActive = false;
+                    navLinks.forEach(link => {
+                        link.classList.remove('active'); // Use class from global.css
+                        if (link.dataset.targetId === currentSectionId) {
+                            link.classList.add('active');
+                            activeTocLink = link;
+                            foundActive = true;
+                        }
+                    });
+
+                    // If no section is active (scrolled to top), activate the first link
+                    if (!foundActive && navLinks.length > 0) {
+                        navLinks[0].classList.add('active');
+                        activeTocLink = navLinks[0];
+                    }
+
+                }, 50);
+            }
+
+            function initTocToggle() {
+                if (!tocToggleBtn || !tocAside) {
+                    console.warn("TOC toggle elements missing."); return;
+                }
+                tocToggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const icon = tocToggleBtn.querySelector('i');
+                    tocAside.classList.toggle('open'); // Class defined in style.css for mobile overlay
+                    if (tocAside.classList.contains('open')) {
+                        icon?.classList.replace('fa-bars', 'fa-times');
+                    } else {
+                        icon?.classList.replace('fa-times', 'fa-bars');
+                    }
+                });
+                document.addEventListener('click', (event) => {
+                    if (window.innerWidth < 1024 && tocAside?.classList.contains('open')) {
+                        const isClickInsideToc = tocAside.contains(event.target);
+                        const isClickOnToggleBtn = tocToggleBtn.contains(event.target);
+                        if (!isClickInsideToc && !isClickOnToggleBtn) {
+                            tocAside.classList.remove('open');
+                            tocToggleBtn.querySelector('i')?.classList.replace('fa-times', 'fa-bars');
+                        }
+                    }
+                });
+            }
+
+            function initFadeInSection() {
+                if (!('IntersectionObserver' in window)) {
+                    console.warn("Intersection Observer not supported.");
+                    document.querySelectorAll('.fade-in-section').forEach(el => el.classList.add('is-visible'));
+                    return;
+                }
+                const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+                const sectionsToFade = document.querySelectorAll('.fade-in-section');
+                const observerCallback = (entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('is-visible'); // Class from style.css
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                };
+                const observer = new IntersectionObserver(observerCallback, observerOptions);
+                sectionsToFade.forEach(el => observer.observe(el));
+            }
+
+            function initMermaid() {
+                if (typeof mermaid !== 'undefined' && mermaid?.initialize) {
+                    try {
+                        mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+                        mermaid.run({ nodes: document.querySelectorAll('.mermaid') })
+                            .catch(err => console.error('Mermaid rendering error:', err));
+                    } catch (error) {
+                        console.error('Error initializing or running Mermaid:', error);
+                    }
+                } else {
+                    console.warn('Mermaid library not found.');
+                }
+            }
+
+            function initQuizzes() {
+                if (!quizPlaceholders || quizPlaceholders.length === 0) return;
+                quizPlaceholders.forEach(placeholder => {
+                    const sectionId = placeholder.dataset.sectionId;
+                    const sectionQuizzes = quizzes[sectionId];
+                    if (sectionQuizzes && sectionQuizzes.length > 0) {
+                        renderQuiz(placeholder, sectionId, sectionQuizzes);
+                    } else {
+                        placeholder.remove();
+                    }
+                });
+            }
+
+            function renderQuiz(container, sectionId, quizData) {
+                const quizContainer = document.createElement('div');
+                quizContainer.className = 'section-quiz-container'; // Use refined class
+                const sectionH2 = document.getElementById(`${sectionId}-title`);
+                const sectionColor = sectionH2 ? sectionH2.style.borderLeftColor : 'var(--sky-500)';
+                quizContainer.style.borderLeftColor = sectionColor || 'var(--sky-500)';
+
+                const title = document.createElement('h4');
+                title.className = 'quiz-card-title'; // Use refined class
+                title.innerHTML = `<i class="fas fa-question-circle" style="color: ${sectionColor || 'var(--sky-500)'};"></i> 章节测验：巩固知识`;
+                quizContainer.appendChild(title);
+
+                quizData.forEach((quizItem, index) => {
+                    const quizCard = document.createElement('div');
+                    quizCard.className = 'quiz-card'; // Use refined class
+                    quizCard.dataset.quizIndex = index;
+
+                    const questionText = document.createElement('p');
+                    questionText.textContent = `${index + 1}. ${quizItem.question}`;
+                    quizCard.appendChild(questionText);
+
+                    const optionsDiv = document.createElement('div');
+                    optionsDiv.className = 'quiz-options'; // Use refined class
+
+                    quizItem.options.forEach((option, optionIndex) => {
+                        const label = document.createElement('label'); // Label itself is the container now
+                        const input = document.createElement('input');
+                        input.type = 'radio';
+                        input.name = `quiz-${sectionId}-${index}`;
+                        input.value = optionIndex;
+                        input.dataset.correct = (optionIndex === quizItem.correctAnswer);
+                        const span = document.createElement('span');
+                        span.textContent = option;
+                        label.appendChild(input);
+                        label.appendChild(span);
+                        optionsDiv.appendChild(label);
+                        input.addEventListener('change', handleQuizAnswer);
+                    });
+
+                    quizCard.appendChild(optionsDiv);
+                    const feedbackDiv = document.createElement('div');
+                    feedbackDiv.className = 'quiz-feedback'; // Use refined class
+                    quizCard.appendChild(feedbackDiv);
+                    quizContainer.appendChild(quizCard);
+                });
+                container.replaceWith(quizContainer);
+            }
+
+            function handleQuizAnswer(event) {
+                const selectedInput = event.target;
+                const quizCard = selectedInput.closest('.quiz-card');
+                if (!quizCard) return;
+                const feedbackDiv = quizCard.querySelector('.quiz-feedback');
+                const optionsDiv = quizCard.querySelector('.quiz-options');
+                if (!feedbackDiv || !optionsDiv) return;
+
+                const allLabels = optionsDiv.querySelectorAll('label'); // Target labels for styling
+                const nameParts = selectedInput.name.split('-');
+                if (nameParts.length < 3) return;
+                const sectionId = nameParts[1];
+                const questionIndex = parseInt(nameParts[2], 10);
+                if (isNaN(questionIndex) || !quizzes[sectionId] || !quizzes[sectionId][questionIndex]) {
+                    console.error("Could not find quiz data for", sectionId, questionIndex);
+                    return;
+                }
+                const quizItem = quizzes[sectionId][questionIndex];
+
+                feedbackDiv.className = 'quiz-feedback'; // Reset classes
+                feedbackDiv.innerHTML = '';
+                const isCorrect = selectedInput.dataset.correct === 'true';
+
+                if (isCorrect) {
+                    feedbackDiv.classList.add('feedback-correct');
+                    feedbackDiv.innerHTML = `<strong>回答正确！</strong><div class="feedback-explanation">${quizItem.explanation}</div>`;
+                } else {
+                    feedbackDiv.classList.add('feedback-incorrect');
+                    const correctOptionText = quizItem.options[quizItem.correctAnswer];
+                    feedbackDiv.innerHTML = `<strong>回答错误。</strong> 正确答案是：<strong>${correctOptionText}</strong><div class="feedback-explanation">${quizItem.explanation}</div>`;
+                }
+                feedbackDiv.style.display = 'block';
+
+                // Disable all inputs and style labels
+                allLabels.forEach(label => {
+                    const input = label.querySelector('input[type="radio"]');
+                    if (input) {
+                        input.disabled = true;
+                        label.classList.add('disabled');
+                        if (input.dataset.correct === 'true') {
+                            label.classList.add('correct-answer'); // Add class for correct answer styling
+                        } else if (input === selectedInput) {
+                            label.classList.add('incorrect-selection'); // Add class for incorrect selection styling
+                        }
+                    }
+                });
+            }
+
+            // --- Execute Initialization Functions ---
+            if (tocContainer && mainContent && sections) initTOC();
+            else console.error("TOC elements missing.");
+
+            if (tocToggleBtn && tocAside) initTocToggle();
+            else console.error("TOC toggle elements missing.");
+
+            initFadeInSection();
+            initMermaid();
+            if (quizPlaceholders.length > 0) initQuizzes();
+
+        }); // End DOMContentLoaded
+    </script>
+
+</body>
+
+</html>

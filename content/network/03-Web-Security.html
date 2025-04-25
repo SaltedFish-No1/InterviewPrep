@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web 安全与状态管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../../global.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+
+    <style>
+        /* Minimal inline styles - Primarily rely on global.css and Tailwind */
+        /* Styles copied/adapted from 01-Network-Basics.html and example.html if not in global.css */
+
+        /* --- Base & Layout Adjustments --- */
+        html {
+            scroll-padding-top: 6rem; /* Adjust based on potential sticky nav height */
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: var(--bg-color-lighter); /* Consistent background */
+            color: var(--text-color-default);
+        }
+
+        /* --- Typography --- */
+        h1, h2, h3, h4, h5, h6 {
+            scroll-margin-top: 6rem; /* Offset for sticky nav */
+            font-family: 'Inter', sans-serif; /* Ensure font consistency */
+        }
+
+        /* Use heading styles from global.css if defined (.head1, .head2, etc.) */
+        /* Otherwise, define basic structure */
+         h1.page-title { /* Specific class for the main page title */
+            font-size: 2rem; /* text-3xl */
+            font-weight: 600; /* font-semibold */
+            margin-bottom: 1.5rem; /* mb-6 */
+            color: var(--text-color-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; /* space between icon and text */
+         }
+         h1.page-title .material-icons {
+             font-size: 2.5rem; /* Larger icon for main title */
+             color: var(--primary-color);
+         }
+
+         h2.section-title { /* Specific class for main section titles */
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 600; /* font-semibold */
+            color: var(--text-color-dark);
+            border-bottom: 1px solid var(--border-color-light);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap; /* Allow tags to wrap on smaller screens */
+            gap: 0.5rem; /* Space between icon, text, and tags */
+         }
+         h2.section-title .material-icons {
+             font-size: 1.75rem; /* Slightly smaller than h1 icon */
+             color: var(--primary-color);
+             margin-right: 0.25rem; /* Small space after icon */
+         }
+
+         h3.card-title { /* Specific class for card titles */
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            color: var(--primary-color-dark); /* Distinct color */
+            margin-top: 0; /* Reset top margin */
+            margin-bottom: 1rem; /* mb-4 */
+         }
+
+        /* Style for frequency/level tags (Copied from 01-Network-Basics.html) */
+        .level-tag {
+            display: inline-block;
+            margin-left: 0.5rem;
+            font-size: 0.75rem; /* text-xs */
+            font-weight: 500; /* font-medium */
+            padding: 0.1rem 0.5rem;
+            border-radius: 0.25rem; /* rounded-sm */
+            vertical-align: middle;
+            border: 1px solid transparent;
+            white-space: nowrap; /* Prevent tags from breaking */
+        }
+        .level-tag-high { background-color: var(--danger-color-light); color: var(--danger-color); border-color: var(--danger-color); }
+        .level-tag-medium { background-color: var(--warning-color-light); color: var(--warning-color); border-color: var(--warning-color); }
+        .level-tag-low { background-color: var(--secondary-color-light); color: var(--secondary-color); border-color: var(--secondary-color); }
+        .level-tag-base { background-color: var(--bg-color-lighter); color: var(--text-color-light); border-color: var(--border-color-default); }
+        .level-tag-advanced { background-color: var(--primary-color-light); color: var(--primary-color-dark); border-color: var(--primary-color); }
+
+        /* --- Fade-in Animation --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-section {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* --- Content Card Adjustments --- */
+        /* Use .content-card styles from global.css */
+        .content-card {
+            margin-bottom: 1.5rem; /* Ensure spacing between cards */
+        }
+        .content-card:last-child {
+            margin-bottom: 0;
+        }
+        .content-section > .content-card + .content-card {
+            margin-top: 1.5rem; /* Space between cards within the same section */
+        }
+        /* Remove bottom margin from last element inside a card */
+        .content-card > *:last-child {
+            margin-bottom: 0 !important;
+        }
+
+        /* --- List Styling within Content --- */
+        /* Use list styles from global.css (.prose or .content-main scope) */
+        article ul { list-style: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        article ol { list-style: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+        article li { margin-bottom: 0.5em; }
+        article ul ul, article ol ol, article ul ol, article ol ul { margin-top: 0.5em; margin-bottom: 0.5em; }
+
+        /* --- Code Block Styling --- */
+        /* Use pre/code styles from global.css */
+        /* Ensure Prism theme compatibility */
+        article pre code[class*="language-"] {
+            background: none;
+            color: inherit;
+            padding: 0;
+            border-radius: 0;
+            font-size: inherit;
+            font-family: inherit;
+            line-height: inherit;
+            text-shadow: none;
+            white-space: pre;
+            display: block;
+        }
+        /* Inline code style from global.css */
+        *:not(pre)>code {
+            background-color: rgba(17, 24, 39, 0.05); /* Light gray background */
+            color: #DC2626; /* Reddish text color */
+            padding: 0.1em 0.3em;
+            border-radius: 0.25rem;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9em; /* Slightly smaller */
+        }
+
+        /* --- Table Styling --- */
+        /* Use Tailwind classes or define basic table styles if needed */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 1rem;
+            font-size: 0.875rem; /* text-sm */
+        }
+        th, td {
+            border: 1px solid var(--border-color-default);
+            padding: 0.5rem 0.75rem; /* py-2 px-3 */
+            text-align: left;
+            vertical-align: top; /* Align content to top */
+        }
+        th {
+            background-color: var(--bg-color-lighter); /* gray-100 */
+            font-weight: 600; /* font-semibold */
+            color: var(--text-color-dark);
+        }
+        tbody tr:nth-child(odd) {
+            background-color: var(--bg-color-light); /* gray-50 */
+        }
+        tbody tr:hover {
+            background-color: #eff6ff; /* blue-50 */
+        }
+
+        /* --- Mermaid Diagram Styling --- */
+        /* Use .mermaid styles from global.css */
+        .mermaid {
+            transition: opacity 0.5s ease-in-out;
+            margin: 1.5rem 0;
+            text-align: center;
+            background-color: var(--bg-color-light);
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color-light);
+        }
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: auto;
+        }
+
+        /* --- Tooltip Styling (If needed, copy from example.html) --- */
+        .tooltip-term {
+            border-bottom: 1px dotted var(--primary-color);
+            cursor: help;
+            position: relative;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        .tooltip-term::before {
+            content: attr(data-tooltip);
+            position: absolute; bottom: 100%; left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background-color: rgba(0, 0, 0, 0.85); color: white;
+            padding: 0.4rem 0.75rem; border-radius: 4px; font-size: 0.8rem;
+            white-space: nowrap; opacity: 0; visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            z-index: 10;
+        }
+        .tooltip-term::after {
+            content: ''; position: absolute; bottom: 100%; left: 50%;
+            transform: translateX(-50%) translateY(0px);
+            border-width: 5px; border-style: solid;
+            border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            z-index: 10;
+        }
+        .tooltip-term:hover::before, .tooltip-term:hover::after {
+            opacity: 1; visibility: visible;
+        }
+
+    </style>
+
+</head>
+
+<body class="bg-gray-100">
+    <div class="page-container">
+
+        <aside class="local-side-nav">
+            <h4 class="head4">Web 安全与状态管理</h4>
+            <ul id="local-toc">
+                <li><a href="#https" class="active"><span class="material-icons nav-icon">https</span>HTTPS</a></li>
+                <li><a href="#tls-ssl"><span class="material-icons nav-icon">lock</span>TLS/SSL 握手</a></li>
+                <li><a href="#tls-compare"><span class="material-icons nav-icon">compare_arrows</span>TLS 1.2 vs 1.3</a></li>
+                <li><a href="#cookies"><span class="material-icons nav-icon">cookie</span>Cookies</a></li>
+                <li><a href="#sessions"><span class="material-icons nav-icon">vpn_key</span>Sessions</a></li>
+                <li><a href="#session-vs-token"><span class="material-icons nav-icon">rule</span>Session vs Token</a></li>
+                <li><a href="#jwt"><span class="material-icons nav-icon">token</span>JWT</a></li>
+                <li><a href="#token-storage"><span class="material-icons nav-icon">security</span>Token 存储</a></li>
+                <li><a href="#cors"><span class="material-icons nav-icon">public</span>CORS</a></li>
+                <li><a href="#cors-requests"><span class="material-icons nav-icon">flight_takeoff</span>CORS 请求类型</a></li>
+                <li><a href="#security-headers"><span class="material-icons nav-icon">shield</span>安全头部</a></li>
+            </ul>
+            <a href="../../index.html" class="back-link">
+                &larr; 返回大纲目录
+            </a>
+        </aside>
+
+        <main class="content-main">
+            <article>
+                <h1 class="page-title">
+                    <span class="material-icons">security</span>(三) Web 安全与状态管理
+                </h1>
+
+                <section id="https" class="content-section fade-in-section" style="animation-delay: 0s;">
+                    <h2 class="section-title">
+                        <span class="material-icons">https</span>HTTPS
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="card-title">概念与目标</h3>
+                        <p>HTTPS (HyperText Transfer Protocol Secure) 是 HTTP 的安全版本。它通过在 HTTP 和 TCP 之间添加一个安全层 (SSL/TLS) 来加密通信内容、验证服务器身份并确保数据完整性。</p>
+                        <p class="mt-2"><strong>主要目标：</strong></p>
+                        <ul>
+                            <li><strong>加密 (Encryption):</strong> 防止第三方窃听通信内容。即使数据包被截获，没有密钥也无法解密。</li>
+                            <li><strong>数据完整性 (Integrity):</strong> 使用消息认证码 (MAC) 确保数据在传输过程中没有被篡改。</li>
+                            <li><strong>身份认证 (Authentication):</strong> 通常通过验证服务器的 SSL/TLS 证书来确认你正在与预期的服务器通信，防止<span class="tooltip-term" data-tooltip="攻击者冒充合法服务器与用户通信">中间人攻击</span>。</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="card-title">与 HTTP 的区别</h3>
+                        <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>特性</th>
+                                        <th>HTTP</th>
+                                        <th>HTTPS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>安全性</td>
+                                        <td>明文传输，不安全</td>
+                                        <td>SSL/TLS 加密传输，安全</td>
+                                    </tr>
+                                    <tr>
+                                        <td>默认端口</td>
+                                        <td>80</td>
+                                        <td>443</td>
+                                    </tr>
+                                    <tr>
+                                        <td>连接方式</td>
+                                        <td>简单，无状态</td>
+                                        <td>需要 SSL/TLS 握手建立安全连接</td>
+                                    </tr>
+                                    <tr>
+                                        <td>证书要求</td>
+                                        <td>不需要</td>
+                                        <td>需要 CA 颁发的 SSL/TLS 证书 (通常)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>性能开销</td>
+                                        <td>较低</td>
+                                        <td>略高 (加密/解密计算，握手过程)</td>
+                                    </tr>
+                                     <tr>
+                                        <td>SEO</td>
+                                        <td>较低权重</td>
+                                        <td>更高权重 (Google 推荐)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="mt-4 text-sm text-gray-600">💡 现代 Web 应用几乎都强制使用 HTTPS 来保护用户数据和隐私。</p>
+                    </div>
+                </section>
+
+                <section id="tls-ssl" class="content-section fade-in-section" style="animation-delay: 0.05s;">
+                    <h2 class="section-title">
+                        <span class="material-icons">lock</span>TLS/SSL 握手过程 (重点)
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-advanced">进阶</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="card-title">握手目的</h3>
+                        <p>TLS/SSL 握手是在客户端和服务器之间建立安全连接的过程。其主要目的是：</p>
+                        <ul>
+                            <li>验证服务器身份 (通过证书)。</li>
+                            <li>协商加密套件 (双方都支持的加密算法、哈希算法等)。</li>
+                            <li>安全地生成和交换用于后续通信的<span class="tooltip-term" data-tooltip="通信双方共享的密钥，用于对称加密实际传输的数据">会话密钥</span>。</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="card-title">简化握手流程 (TLS 1.2 示例)</h3>
+                        <p class="text-sm text-gray-600 mb-4">以下是 TLS 1.2 握手的简化流程图：</p>
+                        <div class="mermaid">
+                        sequenceDiagram
+                            participant C as Client
+                            participant S as Server
+
+                            C->>S: ClientHello (支持的TLS版本, 密码套件, 随机数 C_Random)
+                            Note right of S: 服务器选择密码套件
+                            S-->>C: ServerHello (选择的TLS版本, 密码套件, 随机数 S_Random)
+                            S-->>C: Certificate (服务器证书)
+                            S-->>C: ServerKeyExchange (可选, 如用于 PFS 的 DH 参数)
+                            S-->>C: ServerHelloDone
+
+                            Note left of C: 客户端验证证书
+                            Note left of C: 生成 Pre-Master Secret (PMS)
+                            C->>S: ClientKeyExchange (用服务器公钥加密 PMS)
+                            C->>S: ChangeCipherSpec (通知后续消息将加密)
+                            C->>S: Finished (已加密的握手消息哈希)
+
+                            Note right of S: 服务器用私钥解密 PMS
+                            Note right of S: 双方基于 C_Random, S_Random, PMS 生成 Master Secret 和会话密钥
+                            S-->>C: ChangeCipherSpec (通知后续消息将加密)
+                            S-->>C: Finished (已加密的握手消息哈希)
+
+                            Note over C,S: 握手完成，开始使用会话密钥加密应用数据
+                            C<->>S: Encrypted Application Data
+                        </div>
+                        <p class="mt-4"><strong>关键步骤解释：</strong></p>
+                        <ol>
+                            <li><strong>ClientHello:</strong> 客户端发起，告知服务器支持的 TLS 版本、加密套件列表和一个随机数 (<code>Client Random</code>)。</li>
+                            <li><strong>ServerHello & Certificate:</strong> 服务器回应，确定使用的 TLS 版本和加密套件，发送自己的随机数 (<code>Server Random</code>) 和数字证书。</li>
+                            <li><strong>(可选) ServerKeyExchange:</strong> 如果选择的密钥交换算法需要额外参数（如 Diffie-Hellman 用于 PFS），服务器会在此发送。</li>
+                            <li><strong>客户端验证与密钥交换:</strong>
+                                <ul>
+                                    <li>客户端验证服务器证书的有效性（颁发机构、有效期、域名匹配等）。</li>
+                                    <li>生成一个<span class="tooltip-term" data-tooltip="一个随机数，用于与服务器协商最终的会话密钥">预主密钥 (Pre-Master Secret, PMS)</span>。</li>
+                                    <li>使用服务器证书中的公钥加密 PMS，并通过 <code>ClientKeyExchange</code> 发送给服务器。</li>
+                                </ul>
+                            </li>
+                             <li><strong>生成会话密钥:</strong> 客户端和服务器现在都拥有 <code>Client Random</code>, <code>Server Random</code> 和 PMS。双方使用协商好的算法，独立计算出相同的<span class="tooltip-term" data-tooltip="由预主密钥和随机数派生出的主密钥">主密钥 (Master Secret)</span>，并进一步派生出会话密钥（用于对称加密和 MAC）。</li>
+                            <li><strong>ChangeCipherSpec & Finished:</strong> 双方各自发送 <code>ChangeCipherSpec</code> 消息，通知对方后续将使用协商好的密钥进行加密。接着发送 <code>Finished</code> 消息（包含之前所有握手消息的哈希值，并用新密钥加密），用于验证握手过程是否被篡改。</li>
+                            <li><strong>安全通信:</strong> 双方验证对方的 <code>Finished</code> 消息无误后，握手完成，开始使用会话密钥加密和解密应用层数据 (HTTP 请求/响应)。</li>
+                        </ol>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="card-title">前向保密 (Perfect Forward Secrecy, PFS)</h3>
+                        <p>PFS 是一种特性，确保即使服务器的长期私钥（用于解密 PMS 或签名）在未来被泄露，也无法解密过去的会话内容。</p>
+                        <p class="mt-2">实现方式：通常使用<span class="tooltip-term" data-tooltip="一种密钥交换协议，允许双方在不安全的信道上安全地协商共享密钥，无需事先共享任何秘密">Diffie-Hellman (DH)</span> 或 <span class="tooltip-term" data-tooltip="基于椭圆曲线的DH算法，效率更高">Elliptic Curve Diffie-Hellman (ECDH)</span> 密钥交换算法。在握手过程中，双方动态生成临时的 DH/ECDH 密钥对，并交换公钥。通过这些临时密钥协商出会话密钥，这个过程不依赖服务器的长期私钥来加密会话密钥本身。握手结束后，临时密钥被丢弃。</p>
+                        <p class="mt-2">💡 TLS 1.3 强制要求使用支持 PFS 的密钥交换算法。</p>
+                    </div>
+                </section>
+
+                <section id="tls-compare" class="content-section fade-in-section" style="animation-delay: 0.1s;">
+                    <h2 class="section-title">
+                        <span class="material-icons">compare_arrows</span>TLS 1.2 与 TLS 1.3 改进对比
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-advanced">进阶</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="card-title">主要改进点</h3>
+                        <p>TLS 1.3 相较于 TLS 1.2 在速度和安全性方面都有显著提升：</p>
+                        <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>方面</th>
+                                        <th>TLS 1.2</th>
+                                        <th>TLS 1.3</th>
+                                        <th>改进说明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>握手速度</strong></td>
+                                        <td>通常需要 2-RTT (Round Trip Time)</td>
+                                        <td>通常 <strong>1-RTT</strong>，支持 <strong>0-RTT</strong> (会话恢复)</td>
+                                        <td>减少了握手消息的往返次数，显著降低连接延迟。</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>安全性</strong></td>
+                                        <td>支持多种加密套件，部分已不安全 (如 RC4, SHA-1)；PFS 可选</td>
+                                        <td><strong>移除</strong>过时和不安全的算法；<strong>强制</strong>使用 PFS 的密钥交换算法 (如 ECDHE)</td>
+                                        <td>减少了配置错误和降级攻击的风险，默认安全性更高。</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>加密范围</strong></td>
+                                        <td>部分握手消息 (如 ServerHello, Certificate) 未加密</td>
+                                        <td><strong>加密更多</strong>握手消息 (包括 Certificate)</td>
+                                        <td>提高了握手过程的隐私性，减少信息泄露。</td>
+                                    </tr>
+                                     <tr>
+                                        <td><strong>会话恢复</strong></td>
+                                        <td>Session ID / Session Ticket (可能被动跟踪)</td>
+                                        <td>PSK (Pre-Shared Key) 模式 (更安全)，支持 0-RTT</td>
+                                        <td>改进了会话恢复机制，提高了安全性和效率。</td>
+                                    </tr>
+                                     <tr>
+                                        <td><strong>密钥派生</strong></td>
+                                        <td>基于 Master Secret</td>
+                                        <td>使用 HKDF (HMAC-based Key Derivation Function)</td>
+                                        <td>更现代、更安全的密钥派生方法。</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                         <p class="mt-4">💡 TLS 1.3 是当前推荐的标准，提供了更好的性能和安全性。</p>
+                    </div>
+                </section>
+
+                <section id="cookies" class="content-section fade-in-section" style="animation-delay: 0.15s;">
+                    <h2 class="section-title">
+                        <span class="material-icons">cookie</span>Cookies (重点)
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-advanced">进阶</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="card-title">工作机制</h3>
+                        <p>Cookie 是服务器发送到用户浏览器并保存在本地的一小块数据。浏览器在后续向<strong>同一服务器</strong>（或域名匹配的服务器）发起请求时，会自动将这些 Cookie 通过 <code>Cookie</code> 请求头发送回去。</p>
+                        <p class="mt-2"><strong>主要用途：</strong></p>
+                        <ul>
+                            <li><strong>会话管理 (Session Management):</strong> 登录状态、购物车等。</li>
+                            <li><strong>个性化 (Personalization):</strong> 用户偏好设置、主题等。</li>
+                            <li><strong>追踪 (Tracking):</strong> 分析用户行为。</li>
+                        </ul>
+                         <div class="mermaid">
+                            sequenceDiagram
+                            participant B as Browser
+                            participant S as Server
+                        
+                            B->>S: HTTP Request (e.g., login)
+                            S-->>B: HTTP Response + Set-Cookie: sessionid=xyz#59; HttpOnly#59; Path=/
+                            Note over B: Browser stores the cookie 'sessionid=xyz' for the server's domain.
+                            
+                            B->>S: HTTP Request (e.g., fetch user data) + Cookie: sessionid=xyz
+                            Note over S: Server uses 'sessionid=xyz' to identify the user session.
+                            
+                            S-->>B: HTTP Response (user data)
+                            B->>S: HTTP Request (another page) + Cookie: sessionid=xyz
+                            S-->>B: HTTP Response (page content)
+                        
+                         </div>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="card-title">Cookie 属性详解</h3>
+                        <p><code>Set-Cookie</code> 响应头可以包含多个属性来控制 Cookie 的行为：</p>
+                        <div class="overflow-x-auto">
+                           <table>
+                                <thead>
+                                    <tr>
+                                        <th>属性</th>
+                                        <th>描述</th>
+                                        <th>示例</th>
+                                        <th>安全性/用途</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>&lt;cookie-name&gt;=&lt;cookie-value&gt;</code></td>
+                                        <td>Cookie 的名称和值 (必需)。</td>
+                                        <td><code>sessionid=abc123</code></td>
+                                        <td>存储实际数据。</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>Expires=&lt;date&gt;</code></td>
+                                        <td>指定 Cookie 的<strong>绝对</strong>过期时间 (GMT 格式)。</td>
+                                        <td><code>Expires=Wed, 21 Oct 2026 07:28:00 GMT</code></td>
+                                        <td>控制 Cookie 的持久性。若不设置，则为会话 Cookie，浏览器关闭时删除。</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>Max-Age=&lt;seconds&gt;</code></td>
+                                        <td>指定 Cookie 从<strong>当前时间</strong>开始的有效秒数。优先级高于 <code>Expires</code>。</td>
+                                        <td><code>Max-Age=3600</code> (1小时)</td>
+                                        <td>现代推荐的控制 Cookie 持久性的方式。0 或负数会删除 Cookie。</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>Domain=&lt;domain-value&gt;</code></td>
+                                        <td>指定 Cookie 可以发送到的主机名。默认为设置 Cookie 的服务器域名。</td>
+                                        <td><code>Domain=.example.com</code></td>
+                                        <td>控制 Cookie 的作用域。设置父域名可让子域名共享。</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>Path=&lt;path-value&gt;</code></td>
+                                        <td>指定 Cookie 在服务器上的有效路径。只有请求路径匹配（或为其子路径）时才会发送。</td>
+                                        <td><code>Path=/app</code></td>
+                                        <td>限制 Cookie 的作用范围，增加安全性。默认为设置 Cookie 的文档路径。</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>Secure</code></td>
+                                        <td>标记，指示 Cookie 只能通过 HTTPS 协议传输。</td>
+                                        <td><code>Secure</code></td>
+                                        <td><strong>关键安全属性</strong>。防止 Cookie 在不安全的 HTTP 连接中被窃听。</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>HttpOnly</code></td>
+                                        <td>标记，指示 Cookie 不能通过客户端 JavaScript (<code>document.cookie</code> API) 访问。</td>
+                                        <td><code>HttpOnly</code></td>
+                                        <td><strong>关键安全属性</strong>。有效缓解 <span class="tooltip-term" data-tooltip="跨站脚本攻击：攻击者注入恶意脚本窃取用户信息">XSS</span> 攻击窃取会话 Cookie。</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>SameSite=&lt;Strict | Lax | None&gt;</code></td>
+                                        <td>控制 Cookie 是否随跨站请求发送。</td>
+                                        <td><code>SameSite=Lax</code></td>
+                                        <td><strong>关键安全属性</strong>。用于防御 <span class="tooltip-term" data-tooltip="跨站请求伪造：诱导用户在已登录状态下发送非预期请求">CSRF</span> 攻击。
+                                        <ul class="text-xs list-disc list-inside mt-1">
+                                            <li><code>Strict</code>: 完全禁止跨站发送。</li>
+                                            <li><code>Lax</code>: (浏览器默认) 允许部分顶层导航 GET 请求跨站发送。</li>
+                                            <li><code>None</code>: 允许所有跨站发送 (必须同时设置 <code>Secure</code>)。</li>
+                                        </ul>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                 <section id="sessions" class="content-section fade-in-section" style="animation-delay: 0.2s;">
+                    <h2 class="section-title">
+                        <span class="material-icons">vpn_key</span>Sessions
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="card-title">工作机制</h3>
+                        <p>Session 是一种服务器端的状态管理机制。</p>
+                        <ol>
+                            <li>用户首次访问或登录时，服务器创建一个唯一的 Session ID。</li>
+                            <li>服务器在内存、数据库或缓存中开辟一块空间，用于存储与该 Session ID 关联的用户状态数据（如用户 ID、权限、购物车内容等）。</li>
+                            <li>服务器通过 <code>Set-Cookie</code> 将 Session ID 发送给客户端浏览器。</li>
+                            <li>浏览器存储 Session ID Cookie。</li>
+                            <li>在后续请求中，浏览器自动携带该 Session ID Cookie。</li>
+                            <li>服务器收到请求后，提取 Session ID，并在服务器端存储中查找对应的 Session 数据，从而识别用户并获取其状态。</li>
+                        </ol>
+                         <div class="mermaid">
+                            sequenceDiagram
+                            participant B as Browser
+                            participant S as Server
+                            participant Store as "Session Store (Server-side)"
+                        
+                            B->>S: Login Request (user, pass)
+                            S->>Store: Create Session for user, Get SessionID='xyz'
+                            Store-->>S: SessionID='xyz'
+                            S-->>B: Response + Set-Cookie: sessionid=xyz#59; HttpOnly
+                        
+                            B->>S: Request Page A + Cookie: sessionid=xyz
+                            S->>Store: Get Session Data for ID='xyz'
+                            Store-->>S: User Data (e.g., username, roles)
+                            S-->>B: Response (Page A content for logged-in user)
+                        
+                            B->>S: Request Page B + Cookie: sessionid=xyz
+                            S->>Store: Get Session Data for ID='xyz'
+                            Store-->>S: User Data
+                            S-->>B: Response (Page B content for logged-in user)
+                        
+                         </div>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="card-title">优缺点</h3>
+                        <p><strong>优点：</strong></p>
+                        <ul>
+                            <li><strong>相对安全:</strong> 敏感的用户状态数据存储在服务器端，客户端只持有无意义的 Session ID。</li>
+                            <li><strong>存储灵活:</strong> 理论上可以存储任意类型和大小的数据（受服务器资源限制）。</li>
+                        </ul>
+                        <p class="mt-2"><strong>缺点：</strong></p>
+                        <ul>
+                            <li><strong>服务器资源开销:</strong> 每个活跃用户都需要在服务器端维护 Session 数据，占用内存或存储资源。</li>
+                            <li><strong>可扩展性问题:</strong> 在分布式或负载均衡环境下，需要额外的机制（如 Session 共享、粘性 Session）来保证用户请求被路由到存有其 Session 数据的服务器，增加了复杂性。</li>
+                            <li><strong>依赖 Cookie:</strong> 默认依赖 Cookie 传输 Session ID，对不使用 Cookie 的客户端（如某些 API 调用）不友好。</li>
+                            <li><strong>CSRF 风险:</strong> 如果仅依赖 Session Cookie 进行认证，容易受到 CSRF 攻击（需要配合 SameSite Cookie 或 Token 等策略防御）。</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section id="session-vs-token" class="content-section fade-in-section" style="animation-delay: 0.25s;">
+                    <h2 class="section-title">
+                        <span class="material-icons">rule</span>Session vs Token (JWT) 认证对比 (重点)
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-advanced">进阶</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="card-title">核心区别：状态存储</h3>
+                        <ul>
+                            <li><strong>Session-Based Authentication:</strong> <strong>有状态 (Stateful)</strong>。服务器需要存储每个用户的会话信息。客户端只持有 Session ID 作为凭证。</li>
+                            <li><strong>Token-Based Authentication (e.g., JWT):</strong> <strong>无状态 (Stateless)</strong>。服务器不存储会话信息。用户信息和权限等被编码在 Token 中，由客户端持有。服务器只需验证 Token 的有效性（如签名）。</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="card-title">对比总结</h3>
+                         <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>特性</th>
+                                        <th>Session-Based</th>
+                                        <th>Token-Based (JWT)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>状态存储</td>
+                                        <td>服务器端 (有状态)</td>
+                                        <td>客户端 / Token 本身 (无状态)</td>
+                                    </tr>
+                                     <tr>
+                                        <td>服务器开销</td>
+                                        <td>存储开销 (内存/DB/缓存)</td>
+                                        <td>CPU 开销 (签名/验证)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>可扩展性</td>
+                                        <td>较差 (需 Session 共享/粘性)</td>
+                                        <td>良好 (无状态，易于水平扩展)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>跨域/多平台</td>
+                                        <td>依赖 Cookie，跨域处理复杂</td>
+                                        <td>不依赖 Cookie，易于跨域，适用于 Web, Mobile, API</td>
+                                    </tr>
+                                    <tr>
+                                        <td>安全性 (CSRF)</td>
+                                        <td>易受攻击 (需 SameSite/Token 防御)</td>
+                                        <td>若存储在 localStorage 易受 XSS；存储在 HttpOnly Cookie 也需 SameSite</td>
+                                    </tr>
+                                     <tr>
+                                        <td>安全性 (XSS)</td>
+                                        <td>Session ID 存 HttpOnly Cookie 可防 XSS 窃取</td>
+                                        <td>若存 localStorage 易被 XSS 窃取；存 HttpOnly Cookie 可防</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Token 失效</td>
+                                        <td>服务器端易于控制 (删除 Session)</td>
+                                        <td>较难 (JWT 默认在有效期内一直有效，需黑名单机制)</td>
+                                    </tr>
+                                     <tr>
+                                        <td>数据传输量</td>
+                                        <td>小 (只传 Session ID)</td>
+                                        <td>可能较大 (JWT 包含用户信息)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="mt-4">💡 Token 认证（特别是 JWT）因其无状态、易扩展、跨平台友好的特性，在现代 Web 应用（尤其是 SPA、微服务、API）中越来越流行。</p>
+                    </div>
+                </section>
+
+                <section id="jwt" class="content-section fade-in-section" style="animation-delay: 0.3s;">
+                    <h2 class="section-title">
+                        <span class="material-icons">token</span>JWT (JSON Web Token)
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-advanced">进阶</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="card-title">结构</h3>
+                        <p>JWT 是一个开放标准 (RFC 7519)，定义了一种紧凑且自包含的方式，用于在各方之间安全地传输信息（声明）。它由三部分组成，用点 (<code>.</code>) 分隔：</p>
+                        <p><code>Header.Payload.Signature</code></p>
+                        <div class="mermaid">
+                            graph LR
+                                JWT --> H(Header<br>Base64Url);
+                                JWT --> P(Payload<br>Base64Url);
+                                JWT --> S(Signature<br>Base64Url);
+                                H -- "包含" --> HA(alg: 算法 HS256/RS256);
+                                H -- "包含" --> HT(typ: 类型 JWT);
+                                P -- "包含" --> C(Claims 声明<br>iss: 签发者<br>sub: 主题<br>aud: 受众<br>exp: 过期时间<br>nbf: 生效时间<br>iat: 签发时间<br>jti: 唯一标识<br>...自定义数据);
+                                S -- "生成自" --> H;
+                                S -- "生成自" --> P;
+                                S -- "生成自" --> Secret(服务器密钥<br>或私钥);
+
+                                style JWT fill:#f3e8ff,stroke:#7e22ce,stroke-width:2px
+                                style H fill:#e0f2fe,stroke:#0ea5e9
+                                style P fill:#fefce8,stroke:#ca8a04
+                                style S fill:#fecaca,stroke:#dc2626
+                                style Secret fill:#f1f5f9,stroke:#64748b
+                        </div>
+                        <ul>
+                            <li><strong>Header (头部):</strong> 包含 Token 类型 (<code>typ</code>, 通常是 "JWT") 和使用的签名算法 (<code>alg</code>, 如 HMAC SHA256 或 RSA)。进行 Base64Url 编码。</li>
+                            <li><strong>Payload (载荷):</strong> 包含<span class="tooltip-term" data-tooltip="关于实体（通常是用户）和其他数据的陈述">声明 (Claims)</span>。声明是关于实体（通常是用户）和其他数据的陈述。有三种类型的声明：
+                                <ul>
+                                    <li><strong>Registered claims (注册声明):</strong> 预定义的一组声明，非强制但推荐使用 (如 <code>iss</code> 签发者, <code>exp</code> 过期时间, <code>sub</code> 主题, <code>aud</code> 受众)。</li>
+                                    <li><strong>Public claims (公共声明):</strong> 自定义声明，但应避免与注册声明冲突，最好在 <a href="https://www.iana.org/assignments/jwt/jwt.xhtml" target="_blank" class="text-blue-600 hover:underline">IANA JSON Web Token Registry</a> 中注册或使用抗冲突的命名空间。</li>
+                                    <li><strong>Private claims (私有声明):</strong> 通信双方自定义的声明，用于共享信息。</li>
+                                </ul>
+                                Payload 也进行 Base64Url 编码。<strong>注意：Base64 只是编码，不是加密！不要在 Payload 中存放敏感信息。</strong>
+                            </li>
+                            <li><strong>Signature (签名):</strong> 用于验证消息在传输过程中没有被篡改，并且（对于使用私钥签名的 Token）可以验证发送者的身份。签名通过将编码后的 Header、编码后的 Payload、一个秘钥（对于 HMAC）或私钥（对于 RSA/ECDSA）以及 Header 中指定的算法进行计算得出。</li>
+                        </ul>
+                        <pre><code class="language-text"># 示例 JWT (换行仅为展示)
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.  # Header: { "alg": "HS256", "typ": "JWT" } (Base64Url)
+eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.  # Payload: { "sub": "1234567890", "name": "John Doe", "iat": 1516239022 } (Base64Url)
+SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c   # Signature: HMACSHA256(base64UrlEncode(header) + "." + base64UrlEncode(payload), secret) (Base64Url)</code></pre>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="card-title">优缺点</h3>
+                        <p><strong>优点：</strong></p>
+                        <ul>
+                            <li><strong>自包含 (Self-contained):</strong> Payload 中可以包含必要的用户信息，服务器无需再次查询数据库（用于基本信息验证）。</li>
+                            <li><strong>无状态 & 可扩展:</strong> 服务器不存储 Session 信息，易于水平扩展。</li>
+                            <li><strong>跨平台/跨域友好:</strong> 可以通过 HTTP Header (Authorization: Bearer <token>), URL 参数或 POST Body 传输，不依赖 Cookie。</li>
+                            <li><strong>适用于分布式系统/微服务:</strong> 服务之间可以通过 JWT 传递用户信息和权限。</li>
+                        </ul>
+                        <p class="mt-2"><strong>缺点：</strong></p>
+                        <ul>
+                            <li><strong>难以主动失效:</strong> 一旦签发，在过期之前默认有效。如果需要提前让某个 Token 失效（如用户修改密码、退出登录、权限变更），需要引入额外的<span class="tooltip-term" data-tooltip="服务器端维护一个已失效 Token 的列表">黑名单 (Blacklist)</span> 机制，增加了复杂性，一定程度上破坏了无状态性。</li>
+                            <li><strong>安全性依赖签名密钥:</strong> 签名密钥（HMAC 的 secret 或 RSA/ECDSA 的私钥）必须保密，一旦泄露，攻击者可以伪造任意 Token。</li>
+                            <li><strong>Payload 不加密:</strong> Base64 编码是可逆的，不能在 Payload 中存放敏感信息。如果需要加密，可以使用 JWE (JSON Web Encryption)。</li>
+                            <li><strong>可能体积较大:</strong> 如果 Payload 中包含较多信息，JWT 会比简单的 Session ID 更长，增加传输开销。</li>
+                            <li><strong>续签问题:</strong> 如何在用户活跃时自动刷新 Token (Refresh Token 机制) 需要设计。</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section id="token-storage" class="content-section fade-in-section" style="animation-delay: 0.35s;">
+                    <h2 class="section-title">
+                        <span class="material-icons">security</span>Token 存储安全 (重点)
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-advanced">进阶</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="card-title">常见存储位置对比</h3>
+                        <p>将认证 Token (如 JWT) 安全地存储在客户端是至关重要的。常见的存储位置有利有弊：</p>
+                         <div class="overflow-x-auto">
+                           <table>
+                                <thead>
+                                    <tr>
+                                        <th>存储位置</th>
+                                        <th>优点</th>
+                                        <th>缺点</th>
+                                        <th>安全性考量</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>localStorage / sessionStorage</strong></td>
+                                        <td>容量大 (5-10MB)；API 简单易用；sessionStorage 随会话结束清除。</td>
+                                        <td><strong>易受 XSS 攻击</strong>：任何注入页面的 JS 都可以读取所有 localStorage/sessionStorage 内容。</td>
+                                        <td>❌ <strong>不推荐</strong>存储敏感的认证 Token。一旦 XSS 成功，Token 极易被盗取。</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Cookie (无 HttpOnly)</strong></td>
+                                        <td>浏览器自动发送；可设置过期时间。</td>
+                                        <td><strong>易受 XSS 攻击</strong>：与 localStorage 类似，JS 可以通过 <code>document.cookie</code> 读取。同样存在 CSRF 风险。</td>
+                                        <td>❌ <strong>不推荐</strong>存储敏感的认证 Token。</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Cookie (设置 HttpOnly)</strong></td>
+                                        <td><strong>防 XSS 窃取</strong>：JS 无法访问，提高了安全性。可设置 Secure, SameSite 属性。</td>
+                                        <td><strong>CSRF 风险</strong>：浏览器会自动携带 Cookie 发送请求，容易被 CSRF 攻击利用（需配合 SameSite 策略）。容量小 (4KB)。</td>
+                                        <td>✅ <strong>相对推荐</strong>。是目前防御 XSS 窃取 Token 的最佳方式。必须配合 <code>Secure</code> 和 <code>SameSite=Lax</code> (或 <code>Strict</code>) 属性来增强对 CSRF 的防御。</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>内存变量 (JS)</strong></td>
+                                        <td>相对安全，不易被持久化 XSS 窃取 (除非 XSS 发生在 Token 有效期内)。</td>
+                                        <td>页面刷新后丢失；不利于跨页面/标签页状态保持；实现复杂。</td>
+                                        <td>适用于单页面应用 (SPA) 的短期 Token 存储，通常配合 Refresh Token 机制。</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="card-title">最佳实践与权衡</h3>
+                        <ul>
+                            <li><strong>优先选择 HttpOnly Cookie:</strong> 对于 Web 应用，将认证 Token (Access Token) 存储在设置了 <code>HttpOnly</code>, <code>Secure</code>, <code>SameSite=Lax</code> (或 <code>Strict</code>) 的 Cookie 中，是目前公认的相对最安全的方案，可以有效防御 XSS 窃取和大部分 CSRF 攻击。</li>
+                            <li><strong>Refresh Token 策略:</strong> 通常会使用两种 Token：
+                                <ul>
+                                    <li><strong>Access Token:</strong> 生命周期短（如 15 分钟），用于访问受保护资源。存储在 <strong>HttpOnly Cookie</strong> 中。</li>
+                                    <li><strong>Refresh Token:</strong> 生命周期长（如几天或几周），用于获取新的 Access Token。存储在 <strong>HttpOnly Cookie</strong> 中（更安全）或（风险稍高地）存储在 localStorage/内存中（如果必须由 JS 访问）。Refresh Token 的验证通常需要更严格的措施。</li>
+                                </ul>
+                            </li>
+                            <li><strong>避免 localStorage:</strong> 尽量避免在 localStorage 中存储任何敏感信息，尤其是认证凭证。</li>
+                            <li><strong>API 认证:</strong> 对于无状态 API，通常在 <code>Authorization: Bearer &lt;token&gt;</code> HTTP Header 中传递 Token。客户端（如移动 App 或 SPA）需要安全地管理这个 Token（例如存储在安全的设备存储或内存中）。</li>
+                        </ul>
+                        <p class="mt-4 text-sm text-red-600">⚠️ 没有绝对安全的存储方式，需要根据应用场景、风险承受能力和安全需求进行权衡。</p>
+                    </div>
+                </section>
+
+                <section id="cors" class="content-section fade-in-section" style="animation-delay: 0.4s;">
+                    <h2 class="section-title">
+                        <span class="material-icons">public</span>CORS (跨域资源共享) (重点)
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-advanced">进阶</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="card-title">同源策略 (Same-Origin Policy, SOP)</h3>
+                        <p>是浏览器的一个核心安全基石。它限制了从一个<span class="tooltip-term" data-tooltip="协议 (protocol) + 域名 (domain) + 端口 (port) 完全相同">源 (Origin)</span> 加载的文档或脚本如何与来自<span class="tooltip-term" data-tooltip="协议、域名、端口至少有一个不同">另一个源</span>的资源进行交互。</p>
+                        <p class="mt-2"><strong>目的：</strong>防止恶意网站读取或篡改其他网站的敏感数据。</p>
+                        <p class="mt-2"><strong>限制范围：</strong>主要限制的是<strong class="text-red-600">脚本 (JavaScript) 发起的跨源 HTTP 请求</strong>（如 <code>XMLHttpRequest</code> 或 <code>Fetch API</code>）和对非同源 DOM 的访问。</p>
+                        <p class="mt-2"><strong>不受同源策略限制的场景（通常）：</strong></p>
+                        <ul>
+                            <li><code>&lt;script src="..."&gt;</code></li>
+                            <li><code>&lt;link rel="stylesheet" href="..."&gt;</code></li>
+                            <li><code>&lt;img src="..."&gt;</code></li>
+                            <li><code>&lt;iframe src="..."&gt;</code> (但 iframe 内外 DOM 访问受限)</li>
+                            <li>表单提交 (<code>&lt;form action="..."&gt;</code>)</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="card-title">CORS 解决机制</h3>
+                        <p>CORS (Cross-Origin Resource Sharing) 是一种 W3C 标准，它允许服务器通过设置特定的 <strong>HTTP 响应头</strong> 来<span class="tooltip-term" data-tooltip="明确告知浏览器哪些源站被授权访问其资源">“放松”同源策略</span>，从而允许来自不同源的客户端脚本访问其资源。</p>
+                        <p class="mt-2"><strong>核心思想：</strong>跨域请求是否成功，<strong>最终决定权在服务器</strong>。浏览器作为执行者，根据服务器返回的 CORS 相关头部来判断是否允许客户端脚本访问响应数据。</p>
+                         <div class="mermaid">
+                            sequenceDiagram
+                                participant B as Browser (Origin A)
+                                participant S as Server (Origin B)
+
+                                B->>S: HTTP Request (e.g., GET /data)\n+ Origin: http://origin-a.com
+                                Note over S: Server checks Origin header.
+                                Note over S: If Origin A is allowed...
+                                S-->>B: HTTP Response\n+ Access-Control-Allow-Origin: http://origin-a.com \n(or *)
+                                Note over B: Browser sees ACAO matches Origin A (or is *).\nAllows JS to access response.
+
+                                B->>S: HTTP Request (e.g., GET /data)\n+ Origin: http://other-origin.com
+                                Note over S: Server checks Origin header.
+                                Note over S: If other-origin.com is NOT allowed...
+                                S-->>B: HTTP Response (No ACAO header or ACAO doesn't match)
+                                Note over B: Browser sees ACAO missing or mismatch.\nBlocks JS from accessing response (CORS Error).
+                         </div>
+                         <p class="mt-4 text-sm text-gray-600">💡 CORS 错误是由浏览器阻止的，请求实际上已经到达服务器，但响应被浏览器拦截，不允许前端 JS 读取。</p>
+                    </div>
+                </section>
+
+                <section id="cors-requests" class="content-section fade-in-section" style="animation-delay: 0.45s;">
+                    <h2 class="section-title">
+                        <span class="material-icons">flight_takeoff</span>CORS：简单请求 vs 非简单请求
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-advanced">进阶</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="card-title">简单请求 (Simple Requests)</h3>
+                        <p>如果一个跨域请求满足<strong>所有</strong>以下条件，它就被视为“简单请求”，浏览器会直接发送实际请求，并在请求头中加入 <code>Origin</code> 字段。服务器根据 <code>Origin</code> 判断是否允许，并在响应头中加入 <code>Access-Control-Allow-Origin</code>。</p>
+                        <ul>
+                            <li><strong>请求方法</strong>是以下之一：
+                                <ul>
+                                    <li><code>GET</code></li>
+                                    <li><code>HEAD</code></li>
+                                    <li><code>POST</code></li>
+                                </ul>
+                            </li>
+                            <li><strong>HTTP 头部信息</strong>不超出以下字段集合：
+                                <ul>
+                                    <li><code>Accept</code></li>
+                                    <li><code>Accept-Language</code></li>
+                                    <li><code>Content-Language</code></li>
+                                    <li><code>Content-Type</code> (仅限三个值，见下条)</li>
+                                    <li><code>DPR</code>, <code>Downlink</code>, <code>Save-Data</code>, <code>Viewport-Width</code>, <code>Width</code></li>
+                                </ul>
+                            </li>
+                             <li><strong><code>Content-Type</code></strong> 的值仅限于以下三个之一：
+                                <ul>
+                                    <li><code>text/plain</code></li>
+                                    <li><code>application/x-www-form-urlencoded</code></li>
+                                    <li><code>multipart/form-data</code></li>
+                                </ul>
+                            </li>
+                             <li>请求中没有使用 <code>ReadableStream</code> 对象。</li>
+                             <li>请求中没有注册事件监听器 (如 <code>XMLHttpRequestUpload</code> 对象)。</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="card-title">非简单请求 (Preflighted Requests)</h3>
+                        <p>不满足“简单请求”条件的跨域请求，都属于“非简单请求”。常见的例子包括：</p>
+                        <ul>
+                            <li>使用了 <code>PUT</code>, <code>DELETE</code>, <code>CONNECT</code>, <code>OPTIONS</code>, <code>TRACE</code>, <code>PATCH</code> 等方法。</li>
+                            <li>设置了非简单的请求头（如 <code>Content-Type: application/json</code>, 自定义头 <code>X-My-Header</code> 等）。</li>
+                        </ul>
+                        <p class="mt-2">对于非简单请求，浏览器在发送实际请求之前，会先自动发送一个 <strong>预检请求 (Preflight Request)</strong>。</p>
+                        <ul>
+                            <li><strong>预检请求方法：</strong> <code>OPTIONS</code></li>
+                            <li><strong>预检请求头：</strong>
+                                <ul>
+                                    <li><code>Origin</code>: 请求的源。</li>
+                                    <li><code>Access-Control-Request-Method</code>: 实际请求将使用的方法。</li>
+                                    <li><code>Access-Control-Request-Headers</code>: (可选) 实际请求将携带的非简单头部。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <p class="mt-2">服务器收到预检请求后，需要检查这些信息，如果允许实际请求，则在预检响应中返回相应的 CORS 头部 (见下文)。浏览器收到成功的预检响应后，才会发送实际的跨域请求。</p>
+                         <div class="mermaid">
+                         sequenceDiagram
+                            participant B as Browser (Origin A)
+                            participant S as Server (Origin B)
+
+                            Note over B: Preparing Non-Simple Request (e.g., PUT /data with Content-Type: application/json)
+                            B->>S: OPTIONS /data (Preflight Request)\n+ Origin: http://origin-a.com\n+ Access-Control-Request-Method: PUT\n+ Access-Control-Request-Headers: Content-Type
+                            Note over S: Server checks Origin, Method, Headers.
+                            Note over S: If allowed...
+                            S-->>B: HTTP/1.1 204 No Content (or 200 OK)\n+ Access-Control-Allow-Origin: http://origin-a.com\n+ Access-Control-Allow-Methods: PUT, GET, POST\n+ Access-Control-Allow-Headers: Content-Type\n+ Access-Control-Max-Age: 86400 (Optional: Cache preflight result)
+                            Note over B: Preflight successful. Browser proceeds.
+
+                            B->>S: PUT /data (Actual Request)\n+ Origin: http://origin-a.com\n+ Content-Type: application/json\n\n{ "key": "value" }
+                            S-->>B: HTTP/1.1 200 OK\n+ Access-Control-Allow-Origin: http://origin-a.com \n\n{ "status": "updated" }
+                            Note over B: Actual request successful. JS can access response.
+                         </div>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="card-title">关键 CORS 响应头部</h3>
+                        <p>服务器通过设置以下响应头来控制 CORS 行为：</p>
+                         <div class="overflow-x-auto">
+                           <table>
+                                <thead>
+                                    <tr>
+                                        <th>响应头</th>
+                                        <th>作用</th>
+                                        <th>适用请求</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>Access-Control-Allow-Origin</code></td>
+                                        <td>指定允许访问资源的源。可以是单个源 (<code>http://example.com</code>) 或 <code>*</code> (允许任何源，不安全，且不能与携带凭证一起使用)。</td>
+                                        <td>简单请求 & 预检请求</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>Access-Control-Allow-Methods</code></td>
+                                        <td>指定允许的 HTTP 方法 (如 <code>GET, POST, PUT</code>)。</td>
+                                        <td>预检请求</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>Access-Control-Allow-Headers</code></td>
+                                        <td>指定允许的非简单请求头。</td>
+                                        <td>预检请求</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>Access-Control-Allow-Credentials</code></td>
+                                        <td><code>true</code> / <code>false</code>。指示是否允许请求携带凭证 (如 Cookies, HTTP 认证)。如果为 <code>true</code>，<code>Access-Control-Allow-Origin</code> 不能是 <code>*</code>。</td>
+                                        <td>简单请求 & 预检请求</td>
+                                    </tr>
+                                     <tr>
+                                        <td><code>Access-Control-Expose-Headers</code></td>
+                                        <td>指定浏览器允许客户端脚本访问的响应头（除了 6 个默认安全头之外）。</td>
+                                        <td>简单请求 & 实际请求 (非预检)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>Access-Control-Max-Age</code></td>
+                                        <td>指定预检请求结果可以缓存的秒数。</td>
+                                        <td>预检请求</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="security-headers" class="content-section fade-in-section" style="animation-delay: 0.5s;">
+                    <h2 class="section-title">
+                        <span class="material-icons">shield</span>常见 Web 安全头部 (重点)
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-advanced">进阶</span>
+                    </h2>
+                    <p class="mb-4">除了 CORS 头部，服务器还可以设置其他 HTTP 响应头来增强 Web 应用的安全性。</p>
+                    <div class="content-card">
+                        <h3 class="card-title">关键安全响应头</h3>
+                        <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>头部</th>
+                                        <th>作用</th>
+                                        <th>常见指令/值</th>
+                                        <th>防御目标</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong><code>Content-Security-Policy</code> (CSP)</strong></td>
+                                        <td>定义允许浏览器加载资源的来源 (脚本、样式、图片、字体、框架等)。是防御 XSS 的有力武器。</td>
+                                        <td><code>default-src 'self'; script-src 'self' trusted.com; img-src *; ...</code></td>
+                                        <td><strong>XSS</strong>, 数据注入, 点击劫持 (通过 <code>frame-ancestors</code>)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong><code>Strict-Transport-Security</code> (HSTS)</strong></td>
+                                        <td>强制浏览器在指定时间内只能通过 HTTPS 访问该站点。</td>
+                                        <td><code>max-age=31536000; includeSubDomains; preload</code></td>
+                                        <td><span class="tooltip-term" data-tooltip="强制使用HTTPS，防止降级到HTTP">协议降级攻击</span>, <span class="tooltip-term" data-tooltip="在首次HTTP访问时可能被劫持">中间人攻击 (SSL Stripping)</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong><code>X-Content-Type-Options</code></strong></td>
+                                        <td>防止浏览器基于内容进行 MIME 类型嗅探。</td>
+                                        <td><code>nosniff</code></td>
+                                        <td>防御基于 MIME 嗅探的 XSS 攻击 (如将文本文件误判为脚本执行)。</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong><code>X-Frame-Options</code></strong></td>
+                                        <td>控制页面是否能被嵌入到 <code>&lt;frame&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;embed&gt;</code>, <code>&lt;object&gt;</code> 中。</td>
+                                        <td><code>DENY</code>, <code>SAMEORIGIN</code></td>
+                                        <td><strong>点击劫持 (Clickjacking)</strong></td>
+                                    </tr>
+                                     <tr>
+                                        <td><strong><code>Referrer-Policy</code></strong></td>
+                                        <td>控制 <code>Referer</code> 请求头的内容，决定在导航时发送多少来源信息。</td>
+                                        <td><code>no-referrer</code>, <code>same-origin</code>, <code>strict-origin-when-cross-origin</code> (推荐)</td>
+                                        <td>隐私保护，防止敏感信息通过 URL 泄露给第三方。</td>
+                                    </tr>
+                                     <tr>
+                                        <td><strong><code>Permissions-Policy</code></strong> (曾用名 <code>Feature-Policy</code>)</td>
+                                        <td>允许或禁止浏览器使用某些特性或 API (如摄像头、麦克风、地理位置、全屏等)。</td>
+                                        <td><code>camera=(), microphone=(), geolocation=(self "https://trusted.com")</code></td>
+                                        <td>控制功能权限，增强安全性与隐私。</td>
+                                    </tr>
+                                     <tr>
+                                        <td><strong><code>Cross-Origin-Embedder-Policy</code> (COEP)</strong></td>
+                                        <td>要求跨域资源必须明确授权才能被嵌入 (通过 CORS 或 CORP)。</td>
+                                        <td><code>require-corp</code></td>
+                                        <td>与 COOP 配合，启用<span class="tooltip-term" data-tooltip="提供更强的进程隔离，防御 Spectre 等侧信道攻击">跨域隔离</span>。</td>
+                                    </tr>
+                                     <tr>
+                                        <td><strong><code>Cross-Origin-Opener-Policy</code> (COOP)</strong></td>
+                                        <td>控制顶级文档与其弹出的跨域窗口之间的关系，防止窗口引用。</td>
+                                        <td><code>same-origin</code>, <code>same-origin-allow-popups</code></td>
+                                        <td>与 COEP 配合，启用跨域隔离。防御 <span class="tooltip-term" data-tooltip="利用 window.opener 访问父窗口进行钓鱼或注入">Cross-window attacks</span>。</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="mt-4 text-sm text-gray-600">💡 推荐使用 <a href="https://securityheaders.com/" target="_blank" class="text-blue-600 hover:underline">Security Headers Scanner</a> 等工具检查网站的安全头部配置。</p>
+                    </div>
+                </section>
+
+            </article>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+        // Initialize Mermaid JS
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- TOC Highlighting Logic (Adapted from 01-Network-Basics.html) ---
+            const sections = document.querySelectorAll('main section[id]');
+            const tocLinks = document.querySelectorAll('#local-toc a');
+            let lastActiveTocLink = null;
+
+            const tocObserverOptions = {
+                root: null, // viewport
+                rootMargin: '-20% 0px -60% 0px', // Adjust margins to prioritize top sections
+                threshold: 0 // Trigger as soon as any part enters/leaves margin
+            };
+
+            const tocObserverCallback = (entries) => {
+                let bestVisibleEntry = null;
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Find the entry closest to the top edge of the intersection area
+                        if (!bestVisibleEntry || entry.boundingClientRect.top < bestVisibleEntry.boundingClientRect.top) {
+                            bestVisibleEntry = entry;
+                        }
+                    }
+                });
+
+                if (bestVisibleEntry) {
+                    const id = bestVisibleEntry.target.getAttribute('id');
+                    const activeLink = document.querySelector(`#local-toc a[href="#${id}"]`);
+
+                    if (activeLink && activeLink !== lastActiveTocLink) {
+                        // Remove active class from the previously active link
+                        if (lastActiveTocLink) {
+                            lastActiveTocLink.classList.remove('active');
+                        }
+                        // Add active class to the new active link
+                        activeLink.classList.add('active');
+                        lastActiveTocLink = activeLink; // Update the last active link
+                    }
+                }
+            };
+
+            const tocObserver = new IntersectionObserver(tocObserverCallback, tocObserverOptions);
+            sections.forEach(section => tocObserver.observe(section));
+
+            // Initial active link check based on hash or default to first
+            const currentHash = window.location.hash;
+            if (currentHash) {
+                const initialActiveLink = document.querySelector(`#local-toc a[href="${currentHash}"]`);
+                if (initialActiveLink) {
+                    tocLinks.forEach(link => link.classList.remove('active')); // Clear default
+                    initialActiveLink.classList.add('active');
+                    lastActiveTocLink = initialActiveLink;
+                }
+            } else if (tocLinks.length > 0 && !lastActiveTocLink) {
+                // Default to the first link if no hash or matching link found
+                 tocLinks.forEach(link => link.classList.remove('active')); // Clear default just in case
+                 tocLinks[0].classList.add('active');
+                 lastActiveTocLink = tocLinks[0];
+            }
+
+            // --- Fade-in Animation Logic for Sections ---
+            const mainContentSections = document.querySelectorAll('main > article > section.content-section');
+            const fadeObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+            const fadeObserverCallback = (entries, observer) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                         // Calculate delay based on the section's order in the article
+                        const delayIndex = Array.from(mainContentSections).indexOf(entry.target);
+                        entry.target.style.animationDelay = `${delayIndex * 0.05}s`; // Staggered delay
+                        entry.target.classList.add('fade-in-section');
+                        observer.unobserve(entry.target); // Stop observing once faded in
+                    }
+                });
+            };
+            const fadeObserver = new IntersectionObserver(fadeObserverCallback, fadeObserverOptions);
+            mainContentSections.forEach(section => fadeObserver.observe(section));
+
+             // --- Prism Highlighting Trigger (Optional but good practice) ---
+             // Prism's autoloader usually works, but explicit call can help sometimes
+             // Prism.highlightAll();
+
+        }); // End of DOMContentLoaded listener
+    </script>
+</body>
+
+</html>
