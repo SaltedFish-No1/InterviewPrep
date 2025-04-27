@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>构建工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../../global.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <style>
+        /* Minimal inline styles - Primarily rely on global.css and Tailwind */
+
+        /* --- Base & Layout Adjustments --- */
+        html {
+            scroll-padding-top: 6rem; /* Adjust based on potential sticky nav height */
+            scroll-behavior: smooth;
+        }
+
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-family: 'Inter', sans-serif; /* Ensure Inter is primary */
+            background-color: var(--bg-color-lighter); /* Consistent background */
+        }
+
+        /* --- Typography --- */
+        h1, h2, h3, h4, h5, h6 {
+            scroll-margin-top: 6rem; /* Offset for sticky nav */
+        }
+        h2 {
+            border-bottom: 1px solid var(--border-color-light);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        h3 {
+            margin-top: 0; /* Reset top margin as card handles spacing */
+            margin-bottom: 1rem;
+            color: var(--primary-color-dark);
+            font-size: 1.25rem; /* text-xl */
+        }
+
+        /* Style for frequency/level tags */
+        .level-tag { display: inline-block; margin-left: 0.5rem; font-size: 0.75rem; font-weight: 500; padding: 0.1rem 0.5rem; border-radius: 0.25rem; vertical-align: middle; border: 1px solid transparent; }
+        .level-tag-high { background-color: var(--danger-color-light); color: var(--danger-color); border-color: var(--danger-color); }
+        .level-tag-medium { background-color: var(--warning-color-light); color: var(--warning-color); border-color: var(--warning-color); }
+        .level-tag-low { background-color: var(--secondary-color-light); color: var(--secondary-color); border-color: var(--secondary-color); }
+        .level-tag-base { background-color: var(--bg-color-lighter); color: var(--text-color-light); border-color: var(--border-color-default); }
+
+        /* --- Fade-in Animation --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in-section { opacity: 0; animation: fadeIn 0.5s ease-out forwards; }
+
+        /* --- Content Card Adjustments --- */
+        /* Using .content-card from global.css */
+        .content-card {
+            margin-bottom: 1.5rem;
+            transition: box-shadow 0.2s ease-in-out; /* Added transition for hover effect */
+        }
+        .content-card:hover {
+             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* Tailwind shadow-lg on hover */
+        }
+        .content-card:last-child { margin-bottom: 0; }
+        .content-section > .content-card + .content-card { margin-top: 1.5rem; }
+
+        /* Improved list styling for concepts */
+        .concept-list li {
+            display: flex; /* Use flex for alignment */
+            align-items: flex-start; /* Align items to the top */
+            gap: 0.75rem; /* Space between icon and text */
+            margin-bottom: 1.25rem; /* Increased spacing between items */
+        }
+        .concept-list .concept-icon {
+            margin-top: 0.15rem; /* Align icon slightly better with first line */
+            color: var(--primary-color);
+            font-size: 1.25rem; /* Slightly larger icon */
+        }
+        .concept-list .concept-content {
+            flex: 1; /* Allow content to take remaining space */
+        }
+        .concept-list .concept-content strong {
+             display: block; /* Make title block */
+             margin-bottom: 0.25rem; /* Space below title */
+             font-weight: 600; /* font-semibold */
+             color: var(--text-color-dark);
+        }
+        .concept-list .concept-content p {
+            font-size: 0.9rem; /* Slightly smaller text for description */
+            color: var(--text-color-default);
+            margin-bottom: 0.5rem; /* Space below description */
+        }
+        .concept-list .concept-content pre {
+             margin-top: 0.5rem; /* Space above code example */
+             margin-bottom: 0; /* Remove bottom margin for code in list */
+        }
+
+
+        /* --- Code Block Styling --- */
+        /* Rely on global.css 'pre' and Prism theme */
+        *:not(pre) > code { background-color: var(--primary-color-light); color: var(--primary-color-dark); padding: 0.1rem 0.4rem; border-radius: 0.25rem; font-family: var(--font-family-mono); font-size: 0.9em; }
+
+        /* --- Mermaid Diagram Styling (Using global.css .mermaid styles) --- */
+
+        /* --- Table Styling (for Vite vs Webpack comparison) --- */
+        table { border-collapse: collapse; width: 100%; margin-bottom: 1rem; font-size: 0.9rem; }
+        th, td { border: 1px solid var(--border-color-default); padding: 0.6rem 0.75rem; text-align: left; vertical-align: top; }
+        th { background-color: var(--bg-color-lighter); font-weight: 600; color: var(--text-color-dark); }
+        tbody tr:nth-child(odd) { background-color: var(--bg-color-light); }
+        tbody tr:hover { background-color: #eff6ff; } /* blue-50 */
+
+        /* --- Quiz Card Styles (Copied & adapted from example.html/global.css) --- */
+        /* Ensure .quiz-card, .quiz-question, .quiz-options, .quiz-option, .quiz-feedback, .quiz-toggle, .quiz-answer are defined in global.css or here */
+        /* Adding Ripple Effect CSS (from example.html) */
+        .quiz-toggle, .button { /* Apply ripple to buttons too */
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.4); /* Use RGB for opacity */
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            pointer-events: none;
+        }
+        @keyframes ripple-animation { to { transform: scale(4); opacity: 0; } }
+        .quiz-toggle .material-icons { font-size: 1.1rem; transition: transform 0.3s ease-in-out; }
+        .quiz-toggle .icon-arrow.rotated { transform: rotate(180deg); }
+        .quiz-answer { max-height: 0; opacity: 0; transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, padding-top 0.5s ease-in-out, padding-bottom 0.5s ease-in-out, margin-top 0.5s ease-in-out; overflow: hidden; padding-top: 0; padding-bottom: 0; margin-top: 0; border: 1px solid var(--border-color-default); background-color: var(--bg-color-lighter); border-radius: 0.375rem; color: var(--text-color-default); }
+        .quiz-answer.visible { max-height: 1000px; opacity: 1; padding-top: 1rem; padding-bottom: 1rem; margin-top: 1rem; overflow: auto; }
+
+        /* Sidebar Link Hover Transition */
+        .local-side-nav li a {
+             transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; /* Added from Design.md suggestion */
+        }
+        .local-side-nav li a:hover {
+             background-color: var(--bg-color-light); /* Added hover effect */
+             color: var(--text-color-dark);
+        }
+        .local-side-nav li a.active {
+             background-color: var(--primary-color-light);
+             color: var(--primary-color-dark);
+             font-weight: 500;
+             border-left-color: var(--primary-color);
+        }
+
+
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <div class="page-container">
+
+        <aside class="local-side-nav">
+            <h4 class="head4">构建工具</h4>
+            <ul id="local-toc">
+                <li><a href="#intro" class="active"><span class="material-icons nav-icon">info</span>简介</a></li>
+                <li><a href="#webpack"><span class="material-icons nav-icon">inventory_2</span>Webpack</a></li>
+                 <li><a href="#webpack-concepts" class="ml-4 text-sm"><span class="material-icons nav-icon text-base">checklist</span>核心概念</a></li>
+                 <li><a href="#webpack-optimization" class="ml-4 text-sm"><span class="material-icons nav-icon text-base">rocket_launch</span>性能优化简介</a></li>
+                <li><a href="#vite"><span class="material-icons nav-icon">bolt</span>Vite</a></li>
+                 <li><a href="#vite-comparison" class="ml-4 text-sm"><span class="material-icons nav-icon text-base">compare_arrows</span>与 Webpack 对比</a></li>
+                <li><a href="#babel"><span class="material-icons nav-icon">transform</span>Babel</a></li>
+                 <li><a href="#babel-config" class="ml-4 text-sm"><span class="material-icons nav-icon text-base">settings</span>配置简介</a></li>
+            </ul>
+            <a href="../../index.html" class="back-link">
+                &larr; 返回大纲目录
+            </a>
+        </aside>
+
+        <main class="content-main">
+            <article>
+                <section id="intro" class="content-section fade-in-section" style="animation-delay: 0s;">
+                    <h1 class="head1 flex items-center gap-2">
+                        <span class="material-icons text-3xl text-blue-600">construction</span>(二) 构建工具
+                    </h1>
+                    <p>构建工具是现代前端开发流程中不可或缺的一部分，它们负责将我们编写的源代码（可能包含 ES6+ 语法、TypeScript、Sass、图片等）转换和打包成浏览器可以理解和高效运行的静态资源（如 HTML, CSS, JavaScript）。理解主流构建工具的原理和用法对于前端和全栈开发者至关重要。</p>
+                    <p class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md text-sm">💡
+                        <strong>提示:</strong> 点击左侧导航可以快速跳转到相应主题。括号内标注了知识点的重要程度和难度级别。将鼠标悬停在 <span class="tooltip-term" data-tooltip="例如这个解释！">带下划线的术语</span> 上可查看解释。尝试章节末尾的测验来巩固知识！
+                    </p>
+                </section>
+
+                <section id="webpack" class="content-section fade-in-section" style="animation-delay: 0.05s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-icons">inventory_2</span>Webpack
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">作用 (模块打包)</h3>
+                        <p>Webpack 的核心作用是 <strong>模块打包器 (Module Bundler)</strong>。它将项目中的所有资源（JavaScript 文件、CSS 文件、图片、字体等）都视为模块，分析它们之间的依赖关系，并将它们打包成一个或多个优化过的静态资源文件，通常是 JavaScript 文件，供浏览器加载。</p>
+                        <p>主要解决的问题包括：</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm mt-2">
+                            <li><strong>模块化开发支持：</strong> 允许开发者使用 CommonJS, ES Module 等模块化规范组织代码。</li>
+                            <li><strong>资源编译与处理：</strong> 通过 Loader 处理各种类型的资源文件（如将 Sass 转为 CSS，将 ES6+ 转为 ES5）。</li>
+                            <li><strong>性能优化：</strong> 通过代码分割、压缩、Tree Shaking 等手段优化最终输出资源的大小和加载性能。</li>
+                            <li><strong>开发效率：</strong> 提供热模块替换 (HMR) 等功能提升开发体验。</li>
+                        </ul>
+                    </div>
+                    <section id="webpack-concepts" class="fade-in-section" style="animation-delay: 0.1s;">
+                        <div class="content-card">
+                            <h3 class="head3">核心概念</h3>
+                            <p>理解 Webpack 的工作流程需要掌握以下几个核心概念：</p>
+                            <ul class="concept-list mt-4">
+                                <li>
+                                    <span class="material-icons concept-icon">login</span>
+                                    <div class="concept-content">
+                                        <strong>Entry (入口)</strong>
+                                        <p>指示 Webpack 从哪个文件开始构建其内部的 <span class="tooltip-term" data-tooltip="Webpack根据入口文件及其递归依赖构建的图谱">依赖图 (Dependency Graph)</span>。Webpack 会找出入口文件直接或间接依赖的所有模块。默认值通常是 <code>./src/index.js</code>。</p>
+                                        <pre><code class="language-javascript">// webpack.config.js (Example)
+module.exports = {
+  entry: './src/main.js' // 指定入口文件
+};</code></pre>
+                                    </div>
+                                </li>
+                                <li>
+                                    <span class="material-icons concept-icon">output</span>
+                                    <div class="concept-content">
+                                        <strong>Output (输出)</strong>
+                                        <p>告诉 Webpack 在哪里以及如何输出打包后的文件（称为 bundles）。通常需要指定输出目录 (<code>path</code>) 和输出文件名 (<code>filename</code>)。</p>
+                                        <pre><code class="language-javascript">// webpack.config.js (Example)
+const path = require('path');
+
+module.exports = {
+  // ... entry
+  output: {
+    path: path.resolve(__dirname, 'dist'), // 输出目录
+    filename: 'bundle.js' // 输出文件名
+  }
+};</code></pre>
+                                    </div>
+                                </li>
+                                <li>
+                                    <span class="material-icons concept-icon">construction</span>
+                                    <div class="concept-content">
+                                        <strong>Loader (加载器)</strong>
+                                        <p>Webpack 本身只理解 JavaScript 和 JSON。Loader 让 Webpack 能够处理其他类型的文件（如 CSS, Sass, 图片, TS），并将它们转换为有效的模块。Loader 在模块加载时按顺序执行转换。常用的有 <code>css-loader</code>, <code>style-loader</code>, <code>sass-loader</code>, <code>babel-loader</code>, <code>file-loader</code> (或使用 Asset Modules)。</p>
+                                        <pre><code class="language-javascript">// webpack.config.js (Example)
+module.exports = {
+  module: {
+    rules: [
+      { test: /\.css$/i, use: ['style-loader', 'css-loader'] },
+      { test: /\.(png|svg|jpg)$/i, type: 'asset/resource' },
+      { test: /\.js$/, exclude: /node_modules/, use: 'babel-loader' } // 集成 Babel
+    ]
+  }
+};</code></pre>
+                                    </div>
+                                </li>
+                                <li>
+                                    <span class="material-icons concept-icon">extension</span>
+                                    <div class="concept-content">
+                                        <strong>Plugin (插件)</strong>
+                                        <p>Loader 用于转换模块，而 Plugin 则作用于整个构建过程，执行更广泛的任务，如打包优化、资源管理、环境变量注入等。常用的有 <code>HtmlWebpackPlugin</code> (生成 HTML), <code>TerserWebpackPlugin</code> (压缩 JS), <code>MiniCssExtractPlugin</code> (提取 CSS 到单独文件)。</p>
+                                        <pre><code class="language-javascript">// webpack.config.js (Example)
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+module.exports = {
+  plugins: [ new HtmlWebpackPlugin({ template: './src/index.html' }) ]
+};</code></pre>
+                                    </div>
+                                </li>
+                                <li>
+                                    <span class="material-icons concept-icon">tune</span>
+                                    <div class="concept-content">
+                                        <strong>Mode (模式)</strong>
+                                        <p>通过设置 <code>mode</code> (<code>'development'</code>, <code>'production'</code>, <code>'none'</code>)，启用针对不同环境的内置优化。<code>'production'</code> 会自动进行代码压缩、Tree Shaking 等。</p>
+                                    </div>
+                                </li>
+                            </ul>
+                            <div class="mermaid text-center my-4 p-2 border rounded bg-white shadow-sm">
+                                graph LR
+                                A[Entry Point] --> B[Webpack]
+                                B -- Finds Dependencies --> C[Module Graph]
+                                C -- Feeds Modules --> D[Loaders: css-loader, babel-loader]
+                                D -- Transformed Modules --> C
+                                C -- During Build --> E[Plugins: HtmlWebpackPlugin, TerserPlugin]
+                                E -- Process Bundle --> F[Output Bundles]
+                            
+                                style B fill:#eff6ff,stroke:#2563eb,stroke-width:2px
+                                style D fill:#fefce8,stroke:#ca8a04
+                                style E fill:#ecfdf5,stroke:#059669
+                                style F fill:#f3f4f6,stroke:#6b7280
+                            
+                            </div>
+                        </div>
+                    </section>
+                    <section id="webpack-optimization" class="fade-in-section" style="animation-delay: 0.15s;">
+                         <div class="content-card">
+                             <h3 class="head3">性能优化简介 (高频考点)</h3>
+                             <p>Webpack 提供了多种优化手段来减小打包体积、提升加载速度和开发效率：</p>
+                             <ul class="list-disc list-inside space-y-2 text-sm mt-2">
+                                 <li><strong>Tree Shaking (摇树):</strong> 在生产模式下自动移除 JavaScript 上下文中未引用的代码（死代码消除），有效减小包体积。依赖 ES Module 语法。</li>
+                                 <li><strong>Code Splitting (代码分割):</strong> 将代码拆分成多个小的 bundle 文件，可以按需加载或并行加载，而不是一次性加载所有代码。常见策略包括：入口点分割、动态导入 (<code>import()</code>)、提取公共模块 (<code>optimization.splitChunks</code>)。</li>
+                                 <li><strong>Hot Module Replacement (HMR / 模块热替换):</strong> 在开发模式下，当修改代码时，无需刷新整个页面，只替换更新过的模块，极大提升开发效率。通常需要配合 Webpack Dev Server 和特定 Loader/Plugin 使用。</li>
+                                 <li><strong>代码压缩 (Minification):</strong> 在生产模式下，使用插件（如内置的 <code>TerserWebpackPlugin</code>）移除空格、注释，缩短变量名，减小文件大小。</li>
+                                 <li><strong>Scope Hoisting (作用域提升):</strong> 在生产模式下，分析模块间的依赖关系，尽可能将模块合并到同一个函数作用域中，减少函数声明和闭包带来的开销。</li>
+                                 <li><strong>Caching (缓存):</strong> 通过配置输出文件名包含内容哈希 (<code>[contenthash]</code>)，利用浏览器缓存，只有当文件内容改变时才需要重新下载。</li>
+                             </ul>
+                             <p class="mt-2 text-xs text-gray-600">面试中常问及这些优化策略的原理和配置方法。</p>
+                         </div>
+                    </section>
+                    <div class="quiz-card mt-6" id="quiz-webpack">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>Webpack 测验：哪个 Webpack 核心概念主要负责处理非 JavaScript 文件（如 CSS、图片）？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"><input type="radio" name="q_webpack" value="a"><span>Entry</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_webpack" value="b"><span>Output</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_webpack" value="c"><span>Loader</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_webpack" value="d"><span>Plugin</span></label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_webpack"></div>
+                        <button class="quiz-toggle button button-secondary mt-4" onclick="checkAnswer('q_webpack', 'c')">
+                            <span class="material-icons icon-arrow">expand_more</span><span class="button-text">检查答案</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> C. Loader</p>
+                            <p><strong>解析:</strong> Loader 的主要职责是让 Webpack 能够理解和处理 JavaScript 和 JSON 以外的文件类型，将它们转换成 Webpack 可以处理的有效模块。</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="vite" class="content-section fade-in-section" style="animation-delay: 0.2s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-icons">bolt</span>Vite
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">作用与优势</h3>
+                        <p>Vite (法语意为 "快速"，发音 /vit/) 是一种新型前端构建工具，旨在显著提升开发体验。</p>
+                        <p><strong>核心优势：</strong></p>
+                        <ul class="list-disc list-inside space-y-2 text-sm mt-2">
+                            <li><strong>极速的冷启动 (Fast Cold Start):</strong> Vite 在开发环境下利用浏览器原生的 <span class="tooltip-term" data-tooltip="现代浏览器支持的模块系统，通过 <script type='module'> 加载">ES Module (ESM)</span> 支持。它不需要像 Webpack 那样在启动时打包整个应用，而是按需编译和提供代码。</li>
+                            <li><strong>闪电般的热模块替换 (HMR):</strong> HMR 更新性能与模块总数解耦，更新速度极快。</li>
+                            <li><strong>基于 Rollup 的优化构建:</strong> 在生产环境下，Vite 使用 <span class="tooltip-term" data-tooltip="一个高效的 JavaScript 模块打包器，特别擅长生成优化过的库代码">Rollup</span> 进行打包，生成高效生产代码。Vite 也会利用 esbuild 进行预构建依赖和 TS/JSX 转换，进一步提升速度。</li>
+                            <li><strong>开箱即用：</strong> 对 TypeScript, JSX, CSS, JSON, WebAssembly 等内置支持，配置简洁。</li>
+                        </ul>
+                        <p class="mt-4"><strong>工作原理对比 (开发环境):</strong></p>
+                        <ul class="list-disc list-inside space-y-1 text-sm mt-2">
+                            <li><strong>Webpack Dev Server:</strong> 先打包 (Bundle) 所有模块，然后启动服务器。</li>
+                            <li><strong>Vite Dev Server:</strong> 直接启动服务器，按需转换并提供源码 (利用 Native ESM)。</li>
+                        </ul>
+                        <div class="mermaid text-center my-4 p-2 border rounded bg-white shadow-sm">
+                            graph TD
+                                subgraph Webpack Dev
+                                    A[Source Code] --> B{Webpack Dev Server};
+                                    B -- Bundles All --> C[Bundle.js];
+                                    C --> D[Browser];
+                                end
+                                subgraph Vite Dev
+                                    E[Source Code] --> F{Vite Dev Server};
+                                    F -- Serves Native ESM --> G[Browser];
+                                    G -- Requests Module --> F;
+                                end
+                                style B fill:#eff6ff,stroke:#2563eb
+                                style F fill:#ecfdf5,stroke:#059669
+                        </div>
+                    </div>
+                     <section id="vite-comparison" class="fade-in-section" style="animation-delay: 0.25s;">
+                         <div class="content-card">
+                             <h3 class="head3">Vite 与 Webpack 对比</h3>
+                             <div class="overflow-x-auto">
+                                 <table>
+                                     <thead>
+                                         <tr>
+                                             <th>特性</th>
+                                             <th>Vite</th>
+                                             <th>Webpack</th>
+                                         </tr>
+                                     </thead>
+                                     <tbody>
+                                         <tr>
+                                             <td><strong>开发服务器启动</strong></td>
+                                             <td>极快 (基于 Native ESM, 按需编译)</td>
+                                             <td>相对较慢 (需要先打包所有模块)</td>
+                                         </tr>
+                                         <tr>
+                                             <td><strong>HMR (热模块替换)</strong></td>
+                                             <td>极快 (与模块总数解耦)</td>
+                                             <td>相对较慢 (可能受模块总数影响)</td>
+                                         </tr>
+                                         <tr>
+                                             <td><strong>生产构建</strong></td>
+                                             <td>基于 Rollup (优化良好, Tree Shaking 效果好)</td>
+                                             <td>自身打包 (功能强大, 可配置性高, 生态成熟)</td>
+                                         </tr>
+                                          <tr>
+                                             <td><strong>预构建依赖</strong></td>
+                                             <td>使用 esbuild (Go 编写, 速度快)</td>
+                                             <td>通常不进行显式预构建 (但可通过 DLLPlugin 等优化)</td>
+                                         </tr>
+                                         <tr>
+                                             <td><strong>配置复杂度</strong></td>
+                                             <td>相对简单, 约定优于配置</td>
+                                             <td>相对复杂, 配置灵活但繁琐</td>
+                                         </tr>
+                                         <tr>
+                                             <td><strong>生态系统</strong></td>
+                                             <td>快速发展中, 插件体系基于 Rollup</td>
+                                             <td>非常成熟, Loader/Plugin 生态庞大</td>
+                                         </tr>
+                                         <tr>
+                                             <td><strong>浏览器兼容性 (开发)</strong></td>
+                                             <td>需要支持 Native ESM 的现代浏览器</td>
+                                             <td>兼容性更好 (因预先打包)</td>
+                                         </tr>
+                                         <tr>
+                                             <td><strong>适用场景</strong></td>
+                                             <td>新项目、追求极致开发体验、中小型应用、库开发</td>
+                                             <td>大型复杂项目、需要高度定制构建流程、兼容性要求高的项目</td>
+                                         </tr>
+                                     </tbody>
+                                 </table>
+                             </div>
+                         </div>
+                    </section>
+                     <div class="quiz-card mt-6" id="quiz-vite">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>Vite 测验：Vite 在开发环境下实现快速冷启动的核心技术是？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"><input type="radio" name="q_vite" value="a"><span>Webpack 的 DllPlugin</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_vite" value="b"><span>Rollup 的 Tree Shaking</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_vite" value="c"><span>浏览器原生的 ES Module (ESM)</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_vite" value="d"><span>Babel 的 Polyfill</span></label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_vite"></div>
+                        <button class="quiz-toggle button button-secondary mt-4" onclick="checkAnswer('q_vite', 'c')">
+                            <span class="material-icons icon-arrow">expand_more</span><span class="button-text">检查答案</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> C. 浏览器原生的 ES Module (ESM)</p>
+                            <p><strong>解析:</strong> Vite 在开发模式下利用了现代浏览器对原生 ES Module 的支持。它不再需要像 Webpack 那样预先打包整个应用，而是直接启动开发服务器，并按需转换和提供源代码模块，从而实现了极快的冷启动速度。</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="babel" class="content-section fade-in-section" style="animation-delay: 0.3s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-icons">transform</span>Babel
+                        <span class="level-tag level-tag-low">低频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">作用 (JavaScript 编译器)</h3>
+                        <p>Babel 是一个广泛使用的 <strong>JavaScript 编译器</strong>。它的主要作用是将使用最新 ECMAScript 标准（ES6, ES7, ESNext 等）编写的代码，转换为向后兼容的 JavaScript 版本（通常是 ES5），以便能够在当前和旧版本的浏览器或其他环境中正确运行。</p>
+                        <p>核心功能：</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm mt-2">
+                            <li><strong>语法转换 (Syntax Transformation):</strong> 将新的语法（如箭头函数、类、解构赋值、async/await 等）转换为旧的等效语法。</li>
+                            <li><strong>Polyfill (垫片):</strong> 通过 <span class="tooltip-term" data-tooltip="如 core-js，提供目标环境中缺失的内置函数和对象">Polyfill 库</span> 提供目标环境中缺失的新功能（如 <code>Promise</code>, <code>Array.prototype.includes</code> 等）。Babel 本身不直接提供 Polyfill，但可以通过配置按需引入。</li>
+                            <li><strong>转换其他语言特性：</strong> 支持转换 JSX (React)、TypeScript 等。</li>
+                        </ul>
+                        <p class="mt-4">虽然 Vite 和 Webpack 等构建工具通常会通过 Loader (<code>babel-loader</code>) 或 Plugin 集成 Babel，但理解 Babel 的基本作用仍然很重要，因为它解决了前端开发中的一个核心问题：如何在享受新语言特性的同时保持代码的兼容性。</p>
+                        <pre><code class="language-javascript">// Input (ES6+)
+const greet = (name) => `Hello, ${name}!`;
+class Person { constructor(name) { this.name = name; } }
+
+// Output (ES5 - Simplified Example after Babel transformation)
+var greet = function greet(name) { return "Hello, " + name + "!"; };
+function _classCallCheck(instance, Constructor) { /* ... */ }
+var Person = function Person(name) { _classCallCheck(this, Person); this.name = name; };</code></pre>
+                        <p class="mt-2 text-xs text-gray-600">注意：实际的 Babel 输出可能更复杂，并可能包含辅助函数。</p>
+                         <p class="mt-4">Babel 的工作流程主要包括三个阶段：</p>
+                         <ol class="list-decimal list-inside space-y-1 text-sm mt-2">
+                             <li><strong>解析 (Parsing):</strong> 使用解析器 (如 <code>@babel/parser</code>) 将源代码转换成抽象语法树 (AST)。</li>
+                             <li><strong>转换 (Transformation):</strong> 使用转换器 (如 <code>@babel/traverse</code>) 遍历 AST，并应用一系列预设 (Presets) 和插件 (Plugins) 来修改 AST。</li>
+                             <li><strong>生成 (Generation):</strong> 使用代码生成器 (如 <code>@babel/generator</code>) 将修改后的 AST 转换回代码字符串，并可生成 Source Maps。</li>
+                         </ol>
+                         <div class="mermaid text-center my-4 p-2 border rounded bg-white shadow-sm">
+                            graph TD
+                            A["Source Code (ES6+)"] --> B["Parsing: @babel/parser"]
+                            B --> C["AST"]
+                            C --> D["Transformation: @babel/traverse, Plugins/Presets"]
+                            D --> E["Modified AST"]
+                            E --> F["Generation: @babel/generator"]
+                            F --> G["Output Code (ES5)"]
+                            F --> H["Source Map"]
+                        
+                            style C fill:#fef9c3,stroke:#a16207
+                            style E fill:#fef9c3,stroke:#a16207
+                        
+                         </div>
+                    </div>
+                     <section id="babel-config" class="fade-in-section" style="animation-delay: 0.35s;">
+                         <div class="content-card">
+                             <h3 class="head3">配置简介</h3>
+                             <p>Babel 的行为通过配置文件（如 <code>babel.config.js</code> 或 <code>.babelrc</code>）来控制，主要配置项是 <code>presets</code> 和 <code>plugins</code>。</p>
+                             <ul class="list-disc list-inside space-y-2 text-sm mt-2">
+                                 <li><strong>Presets (预设):</strong> 一组预先配置好的插件集合，用于支持特定的语言特性。最常用的是 <code>@babel/preset-env</code>。</li>
+                                 <li>
+                                     <strong><code>@babel/preset-env</code>:</strong> 一个智能预设，允许你指定目标环境（如浏览器版本列表或 Node.js 版本），它会自动确定所需的 Babel 插件和 Polyfill 来转换代码。
+                                     <ul class="list-['-_'] list-inside ml-4 mt-1 text-xs text-gray-600">
+                                         <li><code>targets</code>: 指定目标环境 (e.g., <code>"defaults"</code>, <code>"> 0.25%, not dead"</code>, <code>{ "chrome": "58", "ie": "11" }</code>)。</li>
+                                         <li><code>useBuiltIns</code>: 控制如何处理 Polyfill (通常配合 <code>core-js</code>)。<code>"usage"</code> 会按需引入代码中实际用到的 Polyfill；<code>"entry"</code> 需要在入口文件手动引入 <code>core-js</code>。</li>
+                                         <li><code>corejs</code>: 指定使用的 <code>core-js</code> 版本。</li>
+                                     </ul>
+                                 </li>
+                                 <li><strong>Plugins (插件):</strong> 用于启用或配置更细粒度的语法转换。插件在 Presets 之前运行。例如，<code>@babel/plugin-transform-runtime</code> 用于避免 Polyfill 污染全局作用域，并复用辅助函数。</li>
+                             </ul>
+                             <pre><code class="language-javascript">// babel.config.js (Example)
+module.exports = {
+  presets: [
+    [
+      '@babel/preset-env',
+      {
+        targets: "> 0.25%, not dead", // 定义目标浏览器
+        useBuiltIns: 'usage', // 按需引入 polyfill
+        corejs: 3 // 指定 core-js 版本
+      }
+    ]
+  ],
+  plugins: [
+    // '@babel/plugin-transform-runtime' // 可选插件
+  ]
+};</code></pre>
+                         </div>
+                    </section>
+                     <div class="quiz-card mt-6" id="quiz-babel">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>Babel 测验：Babel 主要通过什么机制来提供目标环境中缺失的 JavaScript 新功能（如 Promise, Array.includes）？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"><input type="radio" name="q_babel" value="a"><span>语法转换 (Syntax Transformation)</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_babel" value="b"><span>抽象语法树 (AST)</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_babel" value="c"><span>Presets (预设)</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_babel" value="d"><span>Polyfill (垫片)</span></label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_babel"></div>
+                        <button class="quiz-toggle button button-secondary mt-4" onclick="checkAnswer('q_babel', 'd')">
+                            <span class="material-icons icon-arrow">expand_more</span><span class="button-text">检查答案</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> D. Polyfill (垫片)</p>
+                            <p><strong>解析:</strong> Babel 的语法转换主要处理新的语法结构（如箭头函数转普通函数）。对于 JavaScript 引擎本身缺失的新内置函数、对象或方法（如 <code>Promise</code>, <code>Map</code>, <code>String.prototype.padStart</code>），需要通过 Polyfill（通常是像 <code>core-js</code> 这样的库）来提供实现，以确保代码在旧环境中也能运行。Babel (特别是 <code>@babel/preset-env</code>) 可以帮助按需引入所需的 Polyfill。</p>
+                        </div>
+                    </div>
+                </section>
+
+            </article>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+
+        // --- Ripple Effect Logic ---
+        function createRipple(event) {
+            const button = event.currentTarget;
+            if (!button || typeof button.getBoundingClientRect !== 'function') return;
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+            // Attempt to get RGB from CSS variable, fallback if needed
+            let primaryColorRgb = '59, 130, 246'; // Default blue-500
+            try {
+                 const rgbValue = getComputedStyle(document.documentElement).getPropertyValue('--primary-color-rgb').trim();
+                 if (rgbValue) primaryColorRgb = rgbValue;
+            } catch(e) { console.warn("Could not read --primary-color-rgb, using default."); }
+
+            circle.style.width = circle.style.height = `${diameter}px`;
+            const rect = button.getBoundingClientRect();
+            circle.style.left = `${event.clientX - rect.left - radius}px`;
+            circle.style.top = `${event.clientY - rect.top - radius}px`;
+            circle.style.backgroundColor = `rgba(${primaryColorRgb}, 0.4)`;
+            circle.classList.add("ripple");
+            const existingRipple = button.querySelector(".ripple");
+            if (existingRipple) existingRipple.remove();
+            button.appendChild(circle);
+            setTimeout(() => circle.remove(), 600); // Remove ripple after animation
+        }
+
+         // --- Quiz Toggle Logic ---
+        function toggleAnswer(quizId, buttonElement) {
+            const quizCard = document.getElementById(quizId);
+            if (!quizCard) return;
+            const answer = quizCard.querySelector('.quiz-answer');
+            const icon = buttonElement.querySelector('.icon-arrow');
+            const buttonTextSpan = buttonElement.querySelector('.button-text');
+            if (!answer || !icon || !buttonTextSpan) return;
+            const isVisible = answer.classList.contains('visible');
+            if (isVisible) {
+                // Hide
+                answer.style.maxHeight = '0';
+                answer.style.opacity = '0';
+                answer.style.marginTop = '0';
+                answer.style.paddingTop = '0';
+                answer.style.paddingBottom = '0';
+                answer.classList.remove('visible');
+                icon.classList.remove('rotated');
+                buttonTextSpan.textContent = ' 查看答案'; // Change text back
+                setTimeout(() => {
+                    if (!answer.classList.contains('visible')) {
+                         // Reset styles after transition for clean state
+                         answer.style.removeProperty('max-height');
+                         answer.style.removeProperty('opacity');
+                         answer.style.removeProperty('margin-top');
+                         answer.style.removeProperty('padding-top');
+                         answer.style.removeProperty('padding-bottom');
+                         answer.style.display = 'none'; // Explicitly hide after transition
+                    }
+                }, 500); // Match transition duration
+            } else {
+                // Show
+                answer.style.display = 'block'; // Make it visible to measure scrollHeight
+                answer.style.paddingTop = '1rem'; // Apply padding before measuring
+                answer.style.paddingBottom = '1rem';
+                answer.style.marginTop = '1rem'; // Apply margin before measuring
+                requestAnimationFrame(() => { // Wait for styles to apply
+                    answer.style.maxHeight = answer.scrollHeight + 'px'; // Set max-height for transition
+                    answer.style.opacity = '1';
+                    answer.classList.add('visible');
+                    icon.classList.add('rotated');
+                    buttonTextSpan.textContent = ' 隐藏答案'; // Change text
+                });
+            }
+        }
+
+        // --- Quiz Check Answer Logic ---
+        function checkAnswer(questionName, correctAnswerValue) {
+            const options = document.querySelectorAll(`input[name="${questionName}"]`);
+            const feedbackElement = document.getElementById(`feedback-${questionName}`);
+            const quizCard = feedbackElement ? feedbackElement.closest('.quiz-card') : null;
+            const toggleButton = quizCard?.querySelector('.quiz-toggle'); // Find the toggle button
+            let selectedValue = null;
+            let selectedLabel = null;
+
+            if (!feedbackElement || !quizCard || !toggleButton) return;
+
+            // Reset previous feedback and styles
+            quizCard.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+
+            options.forEach(option => {
+                if (option.checked) {
+                    selectedValue = option.value;
+                    selectedLabel = option.closest('.quiz-option');
+                    if (selectedLabel) selectedLabel.classList.add('selected');
+                }
+            });
+
+            if (!selectedValue) {
+                feedbackElement.textContent = "请选择一个选项！";
+                feedbackElement.className = 'quiz-feedback warning';
+                feedbackElement.style.display = 'block';
+                return; // Don't proceed if nothing selected
+            }
+
+            let correctAnswerLabel = null;
+            options.forEach(opt => { if (opt.value === correctAnswerValue) correctAnswerLabel = opt.closest('.quiz-option'); });
+
+            // Provide feedback
+            if (selectedValue === correctAnswerValue) {
+                feedbackElement.textContent = "回答正确！";
+                feedbackElement.className = 'quiz-feedback correct';
+                if(selectedLabel) selectedLabel.classList.add('correct');
+            } else {
+                let correctAnswerText = '';
+                if (correctAnswerLabel) {
+                    correctAnswerText = correctAnswerLabel.querySelector('span')?.textContent || `选项 ${correctAnswerValue}`;
+                    correctAnswerLabel.classList.add('correct'); // Highlight correct answer
+                }
+                feedbackElement.textContent = `回答错误。正确答案是: "${correctAnswerText}"`;
+                feedbackElement.className = 'quiz-feedback incorrect';
+                if(selectedLabel) selectedLabel.classList.add('incorrect'); // Mark selected as incorrect
+            }
+            feedbackElement.style.display = 'block'; // Show feedback
+
+            // Automatically toggle the answer section open when checking
+            const answerSection = quizCard.querySelector('.quiz-answer');
+             if (answerSection && !answerSection.classList.contains('visible')) {
+                 toggleAnswer(quizCard.id, toggleButton);
+             }
+        }
+
+
+        // --- TOC Highlighting & Fade-in Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('main section[id]');
+            const tocLinks = document.querySelectorAll('#local-toc a');
+            let lastActiveTocLink = null;
+
+            const tocObserverOptions = { root: null, rootMargin: '-20% 0px -60% 0px', threshold: 0 };
+
+            const tocObserverCallback = (entries) => {
+                let bestVisibleEntry = null;
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (!bestVisibleEntry || entry.boundingClientRect.top < bestVisibleEntry.boundingClientRect.top) {
+                            bestVisibleEntry = entry;
+                        }
+                    }
+                });
+
+                if (bestVisibleEntry) {
+                    const id = bestVisibleEntry.target.getAttribute('id');
+                    // Try to find a direct match first, then check if it's a sub-section link
+                    let activeLink = document.querySelector(`#local-toc a[href="#${id}"]`);
+                    if (!activeLink) {
+                        // If no direct match, find the parent section ID (e.g., 'webpack' from 'webpack-concepts')
+                        const parentId = id.split('-')[0];
+                         activeLink = document.querySelector(`#local-toc a[href="#${parentId}"]`);
+                    }
+
+                    if (activeLink && activeLink !== lastActiveTocLink) {
+                        if (lastActiveTocLink) lastActiveTocLink.classList.remove('active');
+                        activeLink.classList.add('active');
+                        lastActiveTocLink = activeLink;
+                    }
+                }
+            };
+
+            const tocObserver = new IntersectionObserver(tocObserverCallback, tocObserverOptions);
+            sections.forEach(section => tocObserver.observe(section));
+
+            // Initial active link check
+            const currentHash = window.location.hash;
+            if (currentHash) {
+                const initialActiveLink = document.querySelector(`#local-toc a[href="${currentHash}"]`);
+                if (initialActiveLink) {
+                    tocLinks.forEach(link => link.classList.remove('active'));
+                    initialActiveLink.classList.add('active');
+                    lastActiveTocLink = initialActiveLink;
+                }
+            } else if (tocLinks.length > 0 && !lastActiveTocLink) {
+                 tocLinks.forEach(link => link.classList.remove('active'));
+                 tocLinks[0].classList.add('active');
+                 lastActiveTocLink = tocLinks[0];
+            }
+
+            // Fade-in Animation Logic
+            const mainContentSections = document.querySelectorAll('main > article > section.content-section');
+            const fadeObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+            const fadeObserverCallback = (entries, observer) => {
+                entries.forEach((entry) => {
+                     const delayIndex = Array.from(mainContentSections).indexOf(entry.target);
+                    if (entry.isIntersecting) {
+                        entry.target.style.animationDelay = `${delayIndex * 0.05}s`;
+                        entry.target.classList.add('fade-in-section');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            };
+            const fadeObserver = new IntersectionObserver(fadeObserverCallback, fadeObserverOptions);
+            mainContentSections.forEach(section => fadeObserver.observe(section));
+
+             // --- Tooltip Activation CSS Injection ---
+             const tooltipTermStyle = `
+                .tooltip-term { border-bottom: 1px dotted var(--primary-color); cursor: help; position: relative; color: var(--primary-color-dark); font-weight: 500; }
+                .tooltip-term::before { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-8px); background-color: rgba(31, 41, 55, 0.9); color: white; padding: 0.4rem 0.75rem; border-radius: 4px; font-size: 0.8rem; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out; z-index: 10; pointer-events: none; }
+                .tooltip-term::after { content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(0px); border-width: 5px; border-style: solid; border-color: rgba(31, 41, 55, 0.9) transparent transparent transparent; opacity: 0; visibility: hidden; transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out; z-index: 10; pointer-events: none; }
+                .tooltip-term:hover::before, .tooltip-term:hover::after { opacity: 1; visibility: visible; }
+             `;
+             const styleSheet = document.createElement("style");
+             styleSheet.type = "text/css";
+             styleSheet.innerText = tooltipTermStyle;
+             document.head.appendChild(styleSheet);
+
+             // --- Attach Ripple Effect & Quiz Toggle Listeners ---
+             document.querySelectorAll('.button, .quiz-toggle').forEach(button => {
+                 button.addEventListener('click', createRipple);
+
+                 // Attach toggle logic specifically to quiz toggle buttons
+                 if (button.classList.contains('quiz-toggle')) {
+                     const quizCard = button.closest('.quiz-card');
+                     const quizId = quizCard?.id;
+                     if (quizId) {
+                         // The onclick in HTML handles checkAnswer, which now also calls toggleAnswer.
+                         // If we had a separate toggle button, we'd add the listener here:
+                         // button.addEventListener('click', () => toggleAnswer(quizId, button));
+                     }
+                 }
+             });
+
+        }); // End of DOMContentLoaded listener
+    </script>
+
+</body>
+
+</html>

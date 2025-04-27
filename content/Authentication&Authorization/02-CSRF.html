@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSRF (跨站请求伪造)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://unpkg.com/lucide-icons"></script>
+    <link rel="stylesheet" href="../../global.css"> <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <style>
+        /* Minimal inline styles - Primarily rely on global.css and Tailwind */
+
+        html { scroll-padding-top: 6rem; scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; color: var(--text-color-default, #374151); } /* Added default text color */
+
+        h1, h2, h3, h4, h5, h6 { scroll-margin-top: 6rem; /* Offset for sticky nav */ }
+
+        /* Heading Styles - Enhance visual hierarchy */
+        h2 {
+            border-bottom: 1px solid var(--border-color-light, #e5e7eb);
+            padding-bottom: 0.75rem; /* Increased padding */
+            margin-bottom: 2rem; /* Increased margin */
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 600; /* font-semibold */
+            color: var(--text-color-dark, #1f2937);
+        }
+        h3 {
+            margin-top: 0; /* Reset top margin as card handles spacing */
+            margin-bottom: 1rem; /* mb-4 */
+            color: var(--primary-color-dark, #2563eb); /* Use primary dark color */
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+        }
+        h4 {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600;
+            margin-top: 1.5rem; /* mt-6 */
+            margin-bottom: 0.75rem; /* mb-3 */
+            color: var(--text-color-dark, #1f2937);
+        }
+        h5 {
+            font-size: 1rem; /* text-base */
+            font-weight: 600;
+            margin-top: 1rem; /* mt-4 */
+            margin-bottom: 0.5rem; /* mb-2 */
+            color: var(--text-color-default, #374151);
+        }
+
+        /* Level Tags (Copied from 01-Network-Basics.html) */
+        .level-tag { display: inline-block; margin-left: 0.5rem; font-size: 0.75rem; font-weight: 500; padding: 0.1rem 0.5rem; border-radius: 0.25rem; vertical-align: middle; border: 1px solid transparent; }
+        .level-tag-high { background-color: var(--danger-color-light, #fee2e2); color: var(--danger-color, #ef4444); border-color: var(--danger-color, #ef4444); }
+        .level-tag-medium { background-color: var(--warning-color-light, #fff7ed); color: var(--warning-color, #f97316); border-color: var(--warning-color, #f97316); }
+        .level-tag-low { background-color: var(--secondary-color-light, #ecfdf5); color: var(--secondary-color, #10b981); border-color: var(--secondary-color, #10b981); }
+        .level-tag-base { background-color: var(--bg-color-lighter, #f3f4f6); color: var(--text-color-light, #6b7280); border-color: var(--border-color-default, #d1d5db); }
+        .level-tag-advanced { background-color: var(--primary-color-light, #eff6ff); color: var(--primary-color-dark, #2563eb); border-color: var(--primary-color, #3b82f6); }
+
+        /* Fade-in Animation */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in-section { opacity: 0; animation: fadeIn 0.5s ease-out forwards; }
+
+        /* Tooltips (Copied from example.html) */
+        .tooltip-term { border-bottom: 1px dotted var(--primary-color, #3b82f6); cursor: help; position: relative; color: var(--primary-color, #3b82f6); font-weight: 500; }
+        .tooltip-term::before { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-8px); background-color: rgba(0, 0, 0, 0.85); color: white; padding: 0.4rem 0.75rem; border-radius: 4px; font-size: 0.8rem; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out; z-index: 10; }
+        .tooltip-term::after { content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(0px); border-width: 5px; border-style: solid; border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent; opacity: 0; visibility: hidden; transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out; z-index: 10; }
+        .tooltip-term:hover::before, .tooltip-term:hover::after { opacity: 1; visibility: visible; }
+
+        /* Code Block Styling */
+        article pre {
+            font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+            border-radius: 0.375rem; /* rounded-md */
+            margin-top: 1rem; /* Added top margin */
+            margin-bottom: 1rem; /* Consistent bottom margin */
+            padding: 1em;
+            overflow: auto;
+            background-color: #272822; /* Default Okaidia background */
+            color: #f8f8f2; /* Default Okaidia text */
+            border: 1px solid #444; /* Added border for definition */
+        }
+        article pre code[class*="language-"] {
+            background: none; color: inherit; padding: 0; border-radius: 0;
+            font-size: inherit; font-family: inherit; line-height: inherit;
+            text-shadow: none; white-space: pre; display: block;
+        }
+        /* Inline code style */
+         *:not(pre) > code {
+            background-color: var(--primary-color-light, #eff6ff);
+            color: var(--primary-color-dark, #2563eb);
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.25rem; /* rounded-sm */
+            font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+            font-size: 0.875em;
+        }
+
+        /* Mermaid Diagram Styling */
+        .mermaid { margin: 1.5rem 0; text-align: center; background-color: var(--bg-color-light, #f9fafb); padding: 1rem; border-radius: 0.375rem; border: 1px solid var(--border-color-light, #e5e7eb); }
+        .mermaid svg { max-width: 100%; height: auto; display: block; margin: auto; }
+
+        /* List styles */
+        article ul { list-style: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        article ol { list-style: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+        article li { margin-bottom: 0.5em; }
+        article ul ul, article ol ol, article ul ol, article ol ul { margin-top: 0.5em; margin-bottom: 0.5em; list-style-type: circle; } /* Nested lists */
+        article ul ul ul, article ol ol ol { list-style-type: square; }
+
+        /* Content Card Enhancements */
+        .content-card {
+            /* Inherit styles from global.css if defined */
+            background-color: var(--bg-color-white, white);
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: 1.5rem; /* p-6 */
+            margin-bottom: 1.5rem; /* mb-6 */
+            border: 1px solid var(--border-color-light, #e5e7eb); /* Subtle border */
+            box-shadow: var(--card-shadow-default, 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)); /* shadow-md */
+            transition: box-shadow 0.2s ease-in-out; /* Smooth transition */
+        }
+        .content-card:hover {
+            box-shadow: var(--card-shadow-hover, 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)); /* shadow-lg */
+        }
+        /* Consistent spacing inside cards */
+        .content-card > *:not(:last-child) {
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        .content-card > *:last-child { margin-bottom: 0 !important; } /* Ensure last element has no bottom margin */
+        .content-card h3:first-child { margin-top: 0; } /* Ensure first heading has no top margin */
+
+
+        /* Playground styles */
+        .playground-container { display: grid; grid-template-columns: 1fr; /* Default to single column */ gap: 1.5rem; margin-top: 1rem; }
+        @media (min-width: 768px) { /* md breakpoint */
+            .playground-container { grid-template-columns: 1fr 1fr; }
+        }
+        .playground-box { border: 1px solid var(--border-color-light, #e5e7eb); border-radius: 0.5rem; padding: 1.5rem; background-color: var(--bg-color-light, #f9fafb); }
+        .playground-box h3 { font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-color-dark, #1f2937); }
+        .playground-output {
+            margin-top: 1rem; padding: 0.75rem; background-color: var(--bg-color-white, #ffffff);
+            border: 1px solid var(--border-color-default, #d1d5db); border-radius: 0.375rem;
+            font-family: var(--font-family-mono, monospace); font-size: 0.875rem;
+            min-height: 80px; white-space: pre-wrap; word-wrap: break-word;
+            max-height: 200px; overflow-y: auto;
+            /* Custom Scrollbar */
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: var(--border-color-default, #d1d5db) var(--bg-color-light, #f9fafb); /* Firefox */
+        }
+        /* Webkit Scrollbar Styles */
+        .playground-output::-webkit-scrollbar { width: 8px; }
+        .playground-output::-webkit-scrollbar-track { background: var(--bg-color-light, #f9fafb); border-radius: 4px; }
+        .playground-output::-webkit-scrollbar-thumb { background-color: var(--border-color-default, #d1d5db); border-radius: 4px; border: 2px solid var(--bg-color-light, #f9fafb); }
+        .playground-output::-webkit-scrollbar-thumb:hover { background-color: var(--text-color-light, #6b7280); }
+
+        /* Enhanced Playground Buttons */
+        .playground-box button {
+            position: relative; /* Needed for potential ripple */
+            overflow: hidden; /* Needed for potential ripple */
+            transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+            /* Add focus-visible styles using Tailwind classes where the button is defined, or here: */
+        }
+        .playground-box button:focus-visible {
+             outline: 2px solid transparent;
+             outline-offset: 2px;
+             box-shadow: 0 0 0 3px var(--focus-ring-color, rgba(59, 130, 246, 0.5));
+        }
+        /* Add subtle transform on hover/active */
+         .playground-box button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+         }
+         .playground-box button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+         }
+
+
+        /* Sidebar active link style */
+        .local-side-nav li a.active {
+            background-color: var(--primary-color-light, #eff6ff);
+            color: var(--primary-color-dark, #2563eb);
+            font-weight: 600;
+             border-left-width: 3px; /* Ensure border width is set */
+             border-left-color: var(--primary-color, #3b82f6); /* Ensure border color matches */
+             padding-left: calc(0.75rem - 3px); /* Adjust padding to account for border */
+        }
+         .local-side-nav li a {
+             border-left-width: 3px;
+             border-left-color: transparent; /* Default transparent border */
+             padding-left: calc(0.75rem - 3px);
+         }
+
+        /* Ensure icons align vertically */
+         .local-side-nav li a .material-icons,
+         .head1 .material-icons,
+         .head2 .material-icons,
+         .playground-box h3 .lucide,
+         .content-card h3 .lucide {
+             vertical-align: middle; /* Better alignment */
+             display: inline-block; /* Ensure proper alignment */
+             margin-bottom: 0.125em; /* Fine-tune alignment */
+         }
+
+         /* Add styles for details/summary */
+         details { margin-bottom: 1rem; } /* Add spacing between details */
+         details > summary { list-style: none; } /* Remove default marker */
+         details > summary::-webkit-details-marker { display: none; } /* Remove default marker for Chrome/Safari */
+         details summary .lucide-chevron-down { transition: transform 0.2s ease-in-out; }
+         details[open] summary .lucide-chevron-down { transform: rotate(180deg); }
+         details summary { cursor: pointer; }
+         details[open] { padding-bottom: 0.5rem; } /* Add padding when open */
+
+         /* Table styling improvements */
+         table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1rem; /* Add margin */
+            margin-bottom: 1rem;
+            box-shadow: var(--card-shadow-default, 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1));
+            border-radius: 0.375rem; /* rounded-md */
+            overflow: hidden; /* Clip shadow */
+         }
+
+         th, td {
+            border: 1px solid var(--border-color-light, #e5e7eb);
+            padding: 0.75rem 1rem; /* Increased padding */
+            text-align: left;
+            vertical-align: top; /* Align content top */
+         }
+
+         th {
+            background-color: var(--bg-color-lighter, #f3f4f6);
+            font-weight: 600;
+            color: var(--text-color-dark, #1f2937);
+         }
+
+         tbody tr:nth-child(even) { /* Use even for striping */
+            background-color: var(--bg-color-light, #f9fafb);
+         }
+
+         tbody tr:hover {
+            background-color: var(--primary-color-light, #eff6ff); /* Use primary light for hover */
+         }
+
+
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-700"> <div class="page-container"> <aside class="local-side-nav"> <h4 class="head4">Web 安全</h4> <ul id="local-toc">
+                <li><a href="#intro" class="active"><span class="material-icons nav-icon">security</span>CSRF 简介</a></li>
+                <li><a href="#attack-principle"><span class="material-icons nav-icon">bug_report</span>攻击原理</a></li>
+                <li><a href="#attack-types"><span class="material-icons nav-icon">list_alt</span>CSRF 攻击类型</a></li> <li><a href="#playground"><span class="material-icons nav-icon">science</span>CSRF Playground</a></li> <li><a href="#defense-token"><span class="material-icons nav-icon">token</span>防御：Token</a></li>
+                <li><a href="#defense-samesite"><span class="material-icons nav-icon">cookie</span>防御：SameSite</a></li>
+                <li><a href="#other-defenses"><span class="material-icons nav-icon">add_moderator</span>其他防御手段</a></li>
+                <li><a href="#vs-xss"><span class="material-icons nav-icon">compare_arrows</span>与 XSS 对比</a></li>
+                 <li><a href="#interview"><span class="material-icons nav-icon">school</span>面试高频问题</a></li> <li><a href="#summary"><span class="material-icons nav-icon">summarize</span>总结</a></li>
+            </ul>
+            <a href="../../index.html" class="back-link">
+                &larr; 返回大纲目录
+            </a>
+        </aside>
+
+        <main class="content-main"> <article>
+                <section id="intro" class="content-section fade-in-section mb-8" style="animation-delay: 0s;">
+                    <h1 class="head1 flex items-center gap-2">
+                        <span class="material-icons text-3xl text-red-600 align-middle">security</span>CSRF (跨站请求伪造)
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-medium">中等</span>
+                    </h1>
+                    <p class="text-lg text-gray-600 mb-4">CSRF (Cross-Site Request Forgery)，跨站请求伪造，是一种常见的 Web 安全漏洞。攻击者诱导受害者（已登录用户）在不知情的情况下，向目标网站发送伪造的请求，执行非预期的操作（如修改密码、发帖、转账等）。理解 CSRF 及其防御是前端和全栈开发者的必备技能。</p>
+                     <p class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md text-sm">💡
+                        <strong>提示:</strong> 点击左侧导航可以快速跳转。将鼠标悬停在 <span class="tooltip-term" data-tooltip="像这样的术语会有解释！">带下划线的术语</span> 上可查看解释。
+                    </p>
+                </section>
+
+                <section id="attack-principle" class="content-section fade-in-section mb-8" style="animation-delay: 0.05s;">
+                    <h2 class="flex items-center head2"><span class="material-icons align-middle mr-2">bug_report</span>攻击原理与流程</h2>
+                    <div class="content-card">
+                        <h3 class="head3">核心概念</h3>
+                        <p>CSRF 攻击的核心在于利用了 Web 浏览器在发送跨域请求时会自动携带目标域 <span class="tooltip-term" data-tooltip="存储在浏览器中，用于维持用户会话和身份认证的小段数据。">Cookie</span> 的特性。攻击者本身无法获取用户的 Cookie，但可以构造一个恶意页面或链接，诱导用户去点击，从而让用户的浏览器代替攻击者发送带有合法 Cookie 的请求。</p>
+                         <p class="mt-4">要理解 CSRF，首先需要了解几个 Web 基础概念：</p>
+                        <ul class="list-none space-y-4 pl-4 mt-4"> 
+                            <li class="flex items-start">
+                                <i data-lucide="cookie" class="mr-3 text-green-600 mt-1 flex-shrink-0 h-5 w-5"></i> 
+                                <div><strong class="font-medium text-base block mb-1"><code>Cookie</code> 与会话 (<code>Session</code>)：</strong> 当用户登录网站时，服务器通常会创建一个会话 (<code>Session</code>) 来跟踪用户状态，并通过 <code>Set-Cookie</code> 响应头将一个唯一的 Session ID 发送给浏览器。浏览器会将这个 <code>Cookie</code> 保存下来。之后，浏览器向该网站发起的<strong class="font-medium">每一个请求</strong>，都会<strong class="font-medium">自动</strong>携带这个 <code>Cookie</code>。服务器通过验证 <code>Cookie</code> 中的 Session ID 来识别用户身份。</div>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="lock" class="mr-3 text-red-600 mt-1 flex-shrink-0 h-5 w-5"></i> 
+                                <div><strong class="font-medium text-base block mb-1">同源策略 (Same-Origin Policy)：</strong> 这是浏览器的一个核心安全策略，限制来自一个源 (Origin) 的文档或脚本如何与来自另一个源的资源进行交互。源由协议、域名和端口号组合定义。它主要限制<strong class="font-medium">脚本读取</strong>跨源响应，但对于<strong class="font-medium">发送</strong>跨源请求（特别是像 <code>&lt;img&gt;</code>, <code>&lt;form&gt;</code>, <code>&lt;script&gt;</code> 标签发起的请求）限制较少，并且浏览器<strong class="font-medium">默认会携带目标域的 <code>Cookie</code></strong>，这正是 CSRF 攻击能够得逞的关键。</div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">典型攻击流程</h3>
+                        <ol class="list-decimal list-inside space-y-3 text-sm"> 
+                            <li><strong class="font-medium">登录受信任站点：</strong> 用户 Alice 登录了她的银行网站 `bank.com`，浏览器保存了 `bank.com` 的会话 <code>Cookie</code>。</li>
+                            <li><strong class="font-medium">访问恶意站点：</strong> Alice 在未登出 `bank.com` 的情况下，访问了一个恶意网站 `evil.com` (可能是一个论坛帖子、一封邮件里的链接等)。</li>
+                            <li><strong class="font-medium">恶意站点发起请求：</strong> `evil.com` 页面包含一个隐藏的表单或者一个图片标签，其目标指向 `bank.com` 的一个转账操作接口，例如：
+                                <pre><code class="language-html">&lt;!-- 隐藏的表单 --&gt;
+&lt;form id="csrf-form" action="https://bank.com/transfer" method="POST" style="display:none;"&gt;
+  &lt;input type="hidden" name="toAccount" value="Mallory"&gt; &lt;!-- 转给攻击者 Mallory --&gt;
+  &lt;input type="hidden" name="amount" value="1000"&gt;
+&lt;/form&gt;
+&lt;script&gt;document.getElementById('csrf-form').submit();&lt;/script&gt;
+
+&lt;!-- 或者使用 GET 请求 (如果接口允许) --&gt;
+&lt;img src="https://bank.com/transfer?toAccount=Mallory&amount=1000" width="1" height="1" border="0"&gt;</code></pre>
+                            </li>
+                             <li><strong class="font-medium">浏览器携带 Cookie 发送：</strong> Alice 的浏览器加载 `evil.com` 页面时，会解析到上述代码，并向 `https://bank.com/transfer` 发起请求。因为请求的目标是 `bank.com`，浏览器会<strong class="text-red-600">自动</strong>将 Alice 之前登录时 `bank.com` 设置的会话 <code>Cookie</code> 一并发送过去。</li>
+                             <li><strong class="font-medium">银行网站处理请求：</strong> `bank.com` 的服务器收到请求，检查到请求中带有合法的会话 <code>Cookie</code>，误认为这是 Alice 本人发起的转账操作，于是执行了转账。</li>
+                             <li><strong class="font-medium">攻击成功：</strong> Alice 在完全不知情的情况下，被转走了 1000 元。</li>
+                        </ol>
+                        <div class="mermaid">
+                        sequenceDiagram
+                            participant U as User (Alice)
+                            participant B as Browser
+                            participant E as Evil Site (evil.com)
+                            participant T as Target Site (bank.com)
+
+                            U->>B: 1. Login to bank.com
+                            B->>T: Sends credentials
+                            T-->>B: Sets session Cookie
+                            Note over B: Browser stores bank.com Cookie
+
+                            U->>B: 2. Visits evil.com (Malicious Link)
+                            B->>E: Request evil.com
+                            E-->>B: Response with hidden form/img tag targeting bank.com/transfer
+                            Note over B: Browser automatically prepares request to bank.com
+
+                            B->>T: 3. Sends forged request (e.g., POST /transfer) <br/> **Includes bank.com Cookie automatically!**
+                            T->>T: 4. Verifies Cookie (Valid!)
+                            T->>T: 5. Executes transfer operation (Success!)
+                            T-->>B: Response (e.g., Transfer successful page)
+                            Note over U: Alice is unaware of the transfer!
+                        </div>
+                    </div>
+                     <div class="content-card bg-yellow-50 border-l-4 border-yellow-500">
+                        <h4 class="head4 text-yellow-800">关键点</h4>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-yellow-700">
+                            <li>攻击利用的是用户的**身份凭证 (Cookie)**，而不是窃取凭证本身。</li>
+                            <li>攻击发生在用户**已登录**目标网站的情况下。</li>
+                            <li>攻击请求是从**第三方站点**发起的。</li>
+                            <li>核心是浏览器**自动携带 Cookie**。</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section id="attack-types" class="content-section fade-in-section mb-8" style="animation-delay: 0.1s;">
+                    <h2 class="flex items-center head2"><span class="material-icons align-middle mr-2">list_alt</span>CSRF 攻击类型</h2>
+                    <p class="mb-4 text-gray-600">CSRF 攻击可以利用不同的 HTTP 方法发起，常见类型包括：</p>
+                    <div class="content-card">
+                         <h3 class="head3 flex items-center"><i data-lucide="arrow-right-circle" class="mr-2 text-purple-600 h-5 w-5"></i>GET 请求型 CSRF</h3>
+                         <p class="text-sm text-gray-700 mt-1">这是最简单的 CSRF 形式。攻击者将恶意操作的 URL 隐藏在 <code>&lt;img&gt;</code>、<code>&lt;a&gt;</code>、<code>&lt;link&gt;</code>、<code>&lt;script&gt;</code> 标签的 <code>src</code> 或 <code>href</code> 属性中，或者直接让用户点击恶意链接。当浏览器加载这些资源或用户点击链接时，就会向目标服务器发送 <code>GET</code> 请求。</p>
+                         <p class="text-sm text-gray-700 mt-1"><strong class="font-medium">示例：</strong> <code>&lt;img src="https://example.com/delete_account?confirm=yes" width="1" height="1"&gt;</code></p>
+                         <p class="text-sm text-gray-700 mt-1"><strong class="font-medium">危害：</strong> 如果网站将状态变更操作（如删除、修改）设计为可以通过 <code>GET</code> 请求完成，就容易受到此类攻击。</p>
+                         <p class="text-sm text-red-600 mt-2 p-3 bg-red-50 border border-red-200 rounded">⚠️ <strong class="font-medium">最佳实践：</strong> 永远不要使用 <code>GET</code> 请求执行状态变更操作。<code>GET</code> 应用于获取资源，应是幂等的（多次请求结果相同）且无副作用。</p>
+                    </div>
+                    <div class="content-card">
+                         <h3 class="head3 flex items-center"><i data-lucide="send" class="mr-2 text-indigo-600 h-5 w-5"></i>POST 请求型 CSRF</h3>
+                         <p class="text-sm text-gray-700 mt-1">对于需要 <code>POST</code> 请求才能执行的操作（如表单提交），攻击者会构建一个自动提交的隐藏表单。当用户访问包含该表单的恶意页面时，表单会自动提交到目标网站。</p>
+                         <p class="text-sm text-gray-700 mt-1"><strong class="font-medium">示例：</strong> (见上方攻击流程中的表单示例)</p>
+                         <p class="text-sm text-gray-700 mt-1"><strong class="font-medium">危害：</strong> 这是更常见的 CSRF 形式，因为大多数状态变更操作都通过 <code>POST</code> 请求完成。</p>
+                    </div>
+                    <div class="content-card">
+                         <h3 class="head3 flex items-center"><i data-lucide="shuffle" class="mr-2 text-teal-600 h-5 w-5"></i>其他请求类型 (PUT, DELETE 等)</h3>
+                         <p class="text-sm text-gray-700 mt-1">理论上，如果 Web 应用使用 <code>PUT</code> 或 <code>DELETE</code> 等方法进行状态变更，并且仅依赖 <code>Cookie</code> 进行认证，也可能受到 CSRF 攻击。但这通常需要结合 JavaScript (AJAX) 来发起这类请求。由于同源策略限制，来自恶意域的 JavaScript 通常无法直接向目标域发送带有自定义方法（如 <code>PUT</code>/<code>DELETE</code>）和 <code>Content-Type</code>（如 <code>application/json</code>）的跨域 AJAX 请求（浏览器会先发送 <code>OPTIONS</code> 预检请求，如果服务器不支持跨域则失败）。然而，如果目标服务器 CORS 配置不当（例如允许任意来源），或者攻击者能找到其他绕过方式，这类攻击仍有可能发生。</p>
+                    </div>
+                </section>
+
+                <section id="playground" class="content-section fade-in-section mb-8" style="animation-delay: 0.15s;">
+                    <h2 class="flex items-center head2"><span class="material-icons align-middle mr-2">science</span>CSRF Playground (动手实践)</h2>
+                    <p class="mb-4 text-gray-600">让我们通过一个简化的模拟场景来直观感受 CSRF 攻击。</p>
+                     <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-md mb-6 text-sm">
+                        <p class="text-red-800"><strong class="font-semibold">⚠️ 重要提示：</strong> 这只是一个<strong class="font-semibold">高度简化</strong>的本地模拟，用于教学目的。它<strong class="font-semibold">不涉及真实网络请求或真实安全机制</strong>，并且省略了许多现实世界的复杂性（如 HTTPS、实际的会话管理等）。请在安全的沙盒环境中运行和理解。</p>
+                    </div>
+
+                    <div class="playground-container">
+                        <div class="playground-box">
+                            <h3 class="flex items-center"><i data-lucide="landmark" class="mr-2 text-green-600 h-5 w-5"></i>模拟银行网站 (Bank.com - 受害者)</h3>
+                            <p class="text-sm mb-3 text-gray-600">假设您已登录，这是您的账户信息。</p>
+                            <div class="mb-3 p-3 bg-white rounded border border-gray-200"> 
+                                <strong>用户名:</strong> <span id="victim-username" class="font-mono">Alice</span><br>
+                                <strong>余额:</strong> $<span id="victim-balance" class="font-mono font-semibold text-green-700">5000</span>
+                            </div>
+                            <p class="text-sm mb-3 text-gray-600">网站后台有一个转账接口 <code>/transfer</code> (<code>POST</code>)，仅通过 'session' (模拟) 验证用户。</p>
+                            <div class="mt-4">
+                                <h4 class="font-medium mb-2">操作日志:</h4>
+                                <div id="victim-log" class="playground-output text-green-700">等待操作...</div>
+                            </div>
+                             <div class="mt-4">
+                                <h4 class="font-medium mb-2">模拟 Session & Token (用于防御演示):</h4>
+                                <div id="victim-session" class="playground-output text-xs text-blue-700">未初始化</div>
+                             </div>
+                             <button id="reset-victim-btn" class="mt-6 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition duration-150 text-sm flex items-center justify-center w-full">
+                                 <i data-lucide="refresh-cw" class="mr-1 h-4 w-4"></i>重置模拟银行状态
+                             </button>
+                        </div>
+
+                        <div class="playground-box">
+                            <h3 class="flex items-center"><i data-lucide="skull" class="mr-2 text-red-600 h-5 w-5"></i>模拟恶意网站 (Evil.com - 攻击者)</h3>
+                            <p class="text-sm mb-3 text-gray-600">您偶然访问了这个网站，它看起来人畜无害...</p>
+                            <p class="text-sm mb-4 text-gray-600">“点击这里查看可爱猫咪图片！”</p>
+                            <div class="space-y-3"> 
+                                <button id="attack-btn-no-token" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition duration-150 w-full flex items-center justify-center">
+                                    <i data-lucide="cat" class="inline-block mr-1 h-4 w-4"></i> 查看猫咪 (无 CSRF 防护)
+                                </button>
+                                <button id="attack-btn-bad-token" class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-300 transition duration-150 w-full flex items-center justify-center">
+                                    <i data-lucide="cat" class="inline-block mr-1 h-4 w-4"></i> 查看猫咪 (带错误 Token)
+                                </button>
+                                 <button id="attack-btn-good-token" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-300 transition duration-150 w-full flex items-center justify-center">
+                                    <i data-lucide="cat" class="inline-block mr-1 h-4 w-4"></i> 查看猫咪 (带正确 Token - 模拟合法请求)
+                                </button>
+                            </div>
+
+                            <div class="mt-6"> 
+                                <h4 class="font-medium mb-2">攻击者尝试的操作:</h4>
+                                <div id="attacker-log" class="playground-output text-red-700">等待操作...</div>
+                            </div>
+                            <div class="mt-4 text-xs text-gray-500">
+                                * 点击按钮将模拟向 "Bank.com" 的 <code>/transfer</code> 接口发送 <code>POST</code> 请求，尝试转账 $1000 给 "Mallory"。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 p-4 bg-gray-100 rounded-lg border border-gray-200"> 
+                        <h4 class="font-semibold mb-2 text-lg text-gray-800">实验说明与步骤:</h4> 
+                        <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700"> 
+                             <li>观察<strong class="font-medium">模拟银行网站</strong>的初始状态 (余额 $5000, CSRF 防护默认<strong class="text-red-600">未启用</strong>)。</li>
+                             <li>点击<strong class="font-medium text-red-600">"查看猫咪 (无 CSRF 防护)"</strong> 按钮。观察银行网站的余额和日志变化。由于初始防护未启用，转账应该会<strong class="text-green-600">成功</strong>！这就是 CSRF 攻击。</li>
+                             <li>点击<strong class="font-medium text-gray-600">"重置模拟银行状态"</strong> 按钮。注意日志提示，这次重置会<strong class="text-blue-600">启用</strong> CSRF Token 防护，并生成一个新的 Token。</li>
+                             <li>再次点击<strong class="font-medium text-red-600">"查看猫咪 (无 CSRF 防护)"</strong> 按钮。由于防护已启用，这次转账会<strong class="text-red-600">失败</strong>，因为请求中缺少 <code>Token</code>。</li>
+                             <li>点击<strong class="font-medium text-orange-600">"查看猫咪 (带错误 Token)"</strong> 按钮。转账同样<strong class="text-red-600">失败</strong>，因为 <code>Token</code> 不匹配。</li>
+                             <li>(可选) 点击<strong class="font-medium text-yellow-600">"查看猫咪 (带正确 Token)"</strong> 按钮。这模拟了合法的、带有正确 <code>Token</code> 的请求，转账会<strong class="text-green-600">成功</strong>。</li>
+                             <li>通过这个实验，您可以直观理解 CSRF 攻击如何在缺乏防护时发生，以及 CSRF <code>Token</code> 如何有效阻止这种攻击。</li>
+                             <li><strong class="font-bold">如果按钮仍然无效，请打开浏览器开发者控制台 (F12)，查看 Console (控制台) 是否有错误信息输出。</strong></li>
+                        </ol>
+                    </div>
+                </section>
+
+                <section id="defense-token" class="content-section fade-in-section mb-8" style="animation-delay: 0.2s;">
+                    <h2 class="flex items-center head2"><span class="material-icons align-middle mr-2">token</span>防御：Anti-CSRF Token</h2>
+                     <div class="content-card">
+                        <h3 class="head3">原理：同步器令牌模式 (Synchronizer Token Pattern) - <span class="text-green-600 font-semibold">推荐</span></h3>
+                        <p class="text-gray-700">这是最常用和最有效的 CSRF 防御手段之一。其核心思想是在用户请求的合法页面中嵌入一个由服务器生成的、与用户会话绑定的、不可预测的随机令牌 (Token)，并在处理需要保护的操作（如 POST 请求）时验证该令牌。</p>
+                         <p class="mt-2 text-sm text-gray-600"><strong class="font-medium">背景：</strong> 服务器无法区分合法的跨站请求（用户自愿）和恶意的跨站请求（攻击者诱导），因为它们都可能携带合法的 <code>Cookie</code>。</p>
+                         <p class="mt-2 text-sm text-gray-600"><strong class="font-medium">技术：</strong> 服务器为每个用户会话生成一个唯一的、不可预测的、与会话绑定的随机令牌 (<code>Token</code>)。</p>
+                         <div class="mermaid mt-4">
+                         sequenceDiagram
+                            participant C as Client (Browser)
+                            participant S as Server
+                            participant U as User
+
+                            U->>C: 1. Accesses page with form
+                            C->>S: Request page
+                            S->>S: 2. Generate unique CSRF Token
+                            S->>S: 3. Store Token in Session (linked to User)
+                            S-->>C: 4. Send Page + Token (in hidden field/meta)
+                            Note over C: Page displays form with hidden Token
+
+                            U->>C: 5. Submits form
+                            C->>S: 6. POST Request + Form Data + CSRF Token
+                            S->>S: 7. Retrieve Token from Request
+                            S->>S: 8. Retrieve Token from Session
+                            alt Tokens Match?
+                                S->>S: 9. YES: Process Request (Valid)
+                                S-->>C: Success Response
+                            else Tokens Don't Match or Missing
+                                S->>S: 10. NO: Reject Request (CSRF Attempt)
+                                S-->>C: Error Response
+                            end
+                         </div>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">实现流程</h3>
+                         <ol class="list-decimal list-inside space-y-3 text-sm"> 
+                            <li><strong>服务器生成 Token:</strong> 用户登录或访问包含表单的页面时，服务器为该用户会话生成一个唯一的、随机的、不可预测的 CSRF Token。</li>
+                            <li><strong>服务器存储 Token:</strong> 服务器将生成的 Token 与用户的会话关联起来，通常存储在服务器端的 Session 中。</li>
+                            <li><strong>服务器下发 Token:</strong> 服务器将 Token 嵌入到返回给客户端的 HTML 页面中，通常有两种方式：
+                                <ul class="list-disc list-inside ml-4 mt-2 space-y-2"> 
+                                     <li>放在表单的隐藏字段里：
+                                         <pre><code class="language-html">&lt;form action="/update-profile" method="POST"&gt;
+  &lt;input type="hidden" name="_csrf_token" value="服务器生成的随机令牌"&gt;
+  &lt;!-- 其他表单字段 --&gt;
+  &lt;button type="submit"&gt;更新&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+                                    </li>
+                                     <li>放在 Meta 标签或 JavaScript 变量中 (适用于 SPA)：
+                                         <pre><code class="language-html">&lt;meta name="csrf-token" content="服务器生成的随机令牌"&gt;</code></pre>
+                                         <pre><code class="language-javascript">// 前端 JS 获取 Token
+const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+// 使用 fetch 发送请求时，在请求头中携带 Token
+fetch('/api/data', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-CSRF-Token': csrfToken // 通常放在自定义请求头中
+  },
+  body: JSON.stringify({ /* ... data ... */ })
+});</code></pre>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li><strong>客户端提交 Token:</strong> 当用户提交表单或通过 AJAX/Fetch 发起敏感操作请求时，客户端必须将页面中的 Token 一并发送给服务器（通常在请求体或请求头中）。</li>
+                            <li><strong>服务器验证 Token:</strong> 服务器收到请求后，从请求中提取 Token，并与存储在用户会话中的 Token进行比较。
+                                <ul class="list-disc list-inside ml-4 mt-2">
+                                    <li>如果 Token 匹配，说明请求是合法的，继续处理。</li>
+                                    <li>如果 Token 不匹配或缺失，说明请求可能是伪造的，拒绝处理该请求。</li>
+                                </ul>
+                             </li>
+                        </ol>
+                    </div>
+                     <div class="content-card bg-green-50 border-l-4 border-green-500">
+                        <h4 class="head4 text-green-800">小结：Token 防御</h4>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-green-700">
+                            <li><strong>核心思想:</strong> 要求请求者证明其拥有访问页面的权限（通过提供页面中的 Token），而不仅仅是拥有会话 Cookie。</li>
+                            <li><strong>优点：</strong> 防御效果好，是业界公认最可靠的 CSRF 防御方案之一。</li>
+                            <li><strong>缺点：</strong> 需要服务器端维护 <code>Token</code> 状态（同步令牌模式），实现稍复杂；对于 AJAX 请求，需要前端配合传递 <code>Token</code>。</li>
+                            <li><strong>适用场景:</strong> 适用于所有需要防止 CSRF 的场景，特别是涉及状态变更的操作。</li>
+                        </ul>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="head3">变种：双重提交 Cookie (Double Submit Cookie)</h3>
+                        <p class="text-sm text-gray-700">一种无状态 (Stateless) 的 Token 实现方式，服务器无需存储 Token：</p>
+                         <ol class="list-decimal list-inside space-y-1 text-sm">
+                             <li>服务器生成一个 CSRF Token。</li>
+                             <li>服务器将 Token 同时设置在一个 Cookie 中（非 HttpOnly，以便 JS 读取）和一个请求参数（如隐藏字段或请求头）中下发给客户端。</li>
+                             <li>客户端提交请求时，必须同时携带 Cookie 中的 Token 和请求参数中的 Token。</li>
+                             <li>服务器只需比较这两个 Token 是否一致即可，无需查询 Session。</li>
+                         </ol>
+                         <p class="text-xs text-gray-600 mt-2">优点：无状态，易于扩展。缺点：如果子域名存在 XSS 漏洞，可能被用来设置 Cookie，存在一定风险；需要 JS 读取 Cookie。</p>
+                    </div>
+                </section>
+
+                <section id="defense-samesite" class="content-section fade-in-section mb-8" style="animation-delay: 0.25s;">
+                    <h2 class="flex items-center head2"><span class="material-icons align-middle mr-2">cookie</span>防御：SameSite Cookie 属性 - <span class="text-green-600 font-semibold">推荐</span></h2>
+                    <div class="content-card">
+                        <h3 class="head3">原理</h3>
+                         <p class="mb-2 text-gray-700"><strong class="font-medium">背景：</strong> CSRF 攻击依赖于浏览器在跨站请求中自动发送目标域的 <code>Cookie</code>。</p>
+                         <p class="mb-2 text-gray-700"><strong class="font-medium">技术：</strong> 通过在 <code>Set-Cookie</code> 响应头中添加 <code>SameSite</code> 属性，指示浏览器在何种情况下可以发送此 <code>Cookie</code>。</p>
+                        <p class="text-gray-700">通过设置 HTTP 响应头 <code>Set-Cookie</code> 中的 <code>SameSite</code> 属性来控制：</p>
+                        <pre><code class="language-http">Set-Cookie: sessionid=abcdefg; SameSite=Lax; HttpOnly; Secure
+Set-Cookie: trackingid=12345; SameSite=None; Secure</code></pre>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="head3">属性值及其含义</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full border-collapse border border-gray-300 text-left text-sm">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="border border-gray-300 p-2 font-semibold">SameSite 值</th>
+                                        <th class="border border-gray-300 p-2 font-semibold">描述</th>
+                                        <th class="border border-gray-300 p-2 font-semibold">跨站请求发送 Cookie?</th>
+                                        <th class="border border-gray-300 p-2 font-semibold">CSRF 防护</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="border border-gray-300 p-2"><code>Strict</code></td>
+                                        <td class="border border-gray-300 p-2">最严格。</td>
+                                        <td class="border border-gray-300 p-2 text-red-600"><strong>完全禁止</strong> (包括链接跳转)</td>
+                                        <td class="border border-gray-300 p-2 text-green-600">最强</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="border border-gray-300 p-2"><code>Lax</code></td>
+                                        <td class="border border-gray-300 p-2">平衡模式 (浏览器默认)。</td>
+                                        <td class="border border-gray-300 p-2">禁止 POST/iframe/img 等；<br><strong>允许</strong> 安全顶层 GET 导航 (链接)</td>
+                                        <td class="border border-gray-300 p-2 text-green-600">良好 (主流)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="border border-gray-300 p-2"><code>None</code></td>
+                                        <td class="border border-gray-300 p-2">允许所有跨站请求 (需配合 <code>Secure</code>)。</td>
+                                        <td class="border border-gray-300 p-2 text-blue-600"><strong>允许</strong></td>
+                                        <td class="border border-gray-300 p-2 text-red-600">无</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                         <p class="text-xs text-gray-500 mt-2">* <code>Secure</code> 属性要求 Cookie 仅通过 HTTPS 传输。</p>
+                    </div>
+                     <div class="content-card bg-green-50 border-l-4 border-green-500">
+                        <h4 class="head4 text-green-800">小结：SameSite 防御</h4>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-green-700">
+                            <li><strong>核心思想:</strong> 从浏览器层面限制 Cookie 的发送，阻止攻击者利用自动携带的 Cookie。</li>
+                            <li><strong>优点：</strong> 实现简单（服务器设置 Cookie 时添加属性），浏览器内置支持，<code>Lax</code> 默认值提供了基础防护。</li>
+                            <li><strong>缺点：</strong> 依赖浏览器支持；<code>Strict</code> 可能影响用户体验；<code>None</code> 无 CSRF 防护作用。</li>
+                            <li><strong>适用场景:</strong> 推荐作为所有 Cookie 的基础设置 (<code>Lax</code> 或 <code>Strict</code>)，与 Token 配合提供纵深防御。</li>
+                        </ul>
+                    </div>
+                     <div class="content-card bg-yellow-50 border-l-4 border-yellow-500">
+                        <h4 class="head4 text-yellow-800">注意事项</h4>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-yellow-700">
+                            <li>浏览器兼容性：虽然现代浏览器广泛支持，但旧版浏览器可能不支持或行为不一致。</li>
+                            <li><code>None</code> 必须配合 <code>Secure</code> 属性。</li>
+                            <li>即使设置了 <code>SameSite</code>，对于需要最高安全级别的敏感操作，仍然推荐使用 CSRF Token 作为纵深防御。</li>
+                        </ul>
+                    </div>
+                </section>
+
+                 <section id="other-defenses" class="content-section fade-in-section mb-8" style="animation-delay: 0.3s;">
+                    <h2 class="flex items-center head2"><span class="material-icons align-middle mr-2">add_moderator</span>其他辅助防御手段</h2>
+                     <div class="content-card">
+                        <p class="text-gray-700">除了 Token 和 SameSite Cookie，还有一些可以辅助增强 CSRF 防御的措施：</p>
+                        <ul class="list-disc list-inside space-y-3 text-sm mt-3"> 
+                            <li><strong class="font-medium">检查 HTTP Referer/Origin Header:</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-xs text-gray-600 space-y-1">
+                                     <li><code>Referer</code> 头记录了请求的来源页面 URL，<code>Origin</code> 头记录了请求的来源域。</li>
+                                     <li>服务器可以检查这两个头部，只允许来自本域或信任域的请求。</li>
+                                     <li><strong>缺点:</strong> <code>Referer</code> 可能为空（用户隐私设置、HTTPS 到 HTTP 跳转等），且两者都可能被某些工具或浏览器插件修改或伪造，不能作为唯一的防御手段，但可作为附加检查。</li>
+                                </ul>
+                            </li>
+                             <li><strong class="font-medium">用户二次验证:</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-xs text-gray-600 space-y-1">
+                                     <li>对于极其敏感的操作（如修改密码、大额转账），要求用户再次输入密码、短信验证码或进行其他身份验证。</li>
+                                     <li>这可以有效防止 CSRF，因为攻击者无法替用户完成二次验证。</li>
+                                     <li><strong>缺点:</strong> 影响用户体验，不适用于所有操作。</li>
+                                </ul>
+                            </li>
+                             <li><strong class="font-medium">自定义请求头 (适用于 AJAX):</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-xs text-gray-600 space-y-1">
+                                     <li>要求 AJAX 请求必须携带一个自定义的请求头 (如 <code>X-Requested-With: XMLHttpRequest</code> 或 <code>X-CSRF-Token: xxx</code>)。</li>
+                                     <li>浏览器不允许跨域请求直接添加自定义头（需要 CORS 预检），而 CSRF 攻击通常无法发起带有自定义头的请求。</li>
+                                     <li><strong>缺点:</strong> 主要适用于 AJAX 请求，对传统表单提交无效。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section id="vs-xss" class="content-section fade-in-section mb-8" style="animation-delay: 0.35s;">
+                    <h2 class="flex items-center head2"><span class="material-icons align-middle mr-2">compare_arrows</span>CSRF 与 XSS 对比
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <p class="text-gray-700">CSRF 和 XSS (Cross-Site Scripting, 跨站脚本攻击) 是两种不同的 Web 安全漏洞，面试中经常一起考察：</p>
+                        <div class="overflow-x-auto mt-4">
+                            <table class="w-full border-collapse border border-gray-300 text-left text-sm">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="border border-gray-300 p-3 font-semibold">特性</th> 
+                                        <th class="border border-gray-300 p-3 font-semibold">CSRF (跨站请求伪造)</th>
+                                        <th class="border border-gray-300 p-3 font-semibold">XSS (跨站脚本攻击)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="border border-gray-300 p-3"><strong>攻击目标</strong></td>
+                                        <td class="border border-gray-300 p-3">服务器端的 Web 应用</td>
+                                        <td class="border border-gray-300 p-3">用户的浏览器</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="border border-gray-300 p-3"><strong>攻击方式</strong></td>
+                                        <td class="border border-gray-300 p-3">诱导用户浏览器发送<strong class="font-medium">恶意请求</strong></td>
+                                        <td class="border border-gray-300 p-3">向 Web 页面<strong class="font-medium">注入恶意脚本</strong></td>
+                                    </tr>
+                                     <tr>
+                                        <td class="border border-gray-300 p-3"><strong>信任利用</strong></td>
+                                        <td class="border border-gray-300 p-3">利用服务器对<strong class="font-medium">浏览器 <code>Cookie</code> 的信任</strong></td>
+                                        <td class="border border-gray-300 p-3">利用用户对<strong class="font-medium">网站的信任</strong>（执行网站提供的脚本）</td>
+                                    </tr>
+                                     <tr>
+                                        <td class="border border-gray-300 p-3"><strong>是否需要用户交互</strong></td>
+                                        <td class="border border-gray-300 p-3">需要用户点击链接或访问页面（可能无感知）。</td>
+                                        <td class="border border-gray-300 p-3">需要用户访问被注入脚本的页面（存储型、反射型）或点击恶意链接（DOM 型）。</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="border border-gray-300 p-3"><strong>主要危害</strong></td>
+                                        <td class="border border-gray-300 p-3">以用户身份执行<strong class="font-medium">未授权操作</strong></td>
+                                        <td class="border border-gray-300 p-3"><strong class="font-medium">窃取用户信息</strong> (<code>Cookie</code>, LocalStorage), DOM 操作, 劫持会话</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="border border-gray-300 p-3"><strong>防御核心</strong></td>
+                                        <td class="border border-gray-300 p-3">验证请求来源的<strong class="font-medium">真实意图</strong>（Token, SameSite）。</td>
+                                        <td class="border border-gray-300 p-3">对用户输入进行<strong class="font-medium">严格过滤和转义</strong>，设置 CSP。</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                 <section id="interview" class="content-section fade-in-section mb-8" style="animation-delay: 0.4s;">
+                    <h2 class="flex items-center head2"><span class="material-icons align-middle mr-2">school</span>面试高频问题</h2>
+                    <p class="mb-6 text-gray-600">在全栈开发面试中，CSRF 是常见的安全考点。以下是一些高频问题及回答要点：</p>
+                    <div class="space-y-4">
+                         <details class="bg-white p-4 rounded-lg border border-gray-200 group shadow-sm hover:shadow-md transition-shadow"> 
+                            <summary class="font-medium cursor-pointer list-none flex justify-between items-center group-hover:text-sky-700">
+                                <span>1. 请解释一下什么是 CSRF 攻击？</span>
+                                <i data-lucide="chevron-down" class="h-5 w-5 group-open:rotate-180 transition-transform text-gray-500 group-hover:text-sky-700"></i>
+                            </summary>
+                            <div class="mt-4 text-sm text-gray-700 space-y-2 border-t border-gray-200 pt-3"> 
+                                <p><strong>回答要点：</strong></p>
+                                <ul class="list-disc list-inside pl-4 space-y-1">
+                                    <li><strong>全称：</strong> 跨站请求伪造 (Cross-Site Request Forgery)。</li>
+                                    <li><strong>核心原理：</strong> 攻击者诱导已登录的用户，在用户不知情的情况下，通过用户的浏览器向目标网站发送恶意的、非本意的请求。</li>
+                                    <li><strong>关键利用点：</strong> 利用了浏览器自动携带目标域 <code>Cookie</code> 的特性，以及服务器仅通过 <code>Cookie</code> 验证用户身份的信任机制。</li>
+                                    <li><strong>目的：</strong> 借用用户的身份执行未授权的操作，如修改信息、转账、发帖等。</li>
+                                    <li><strong>与 XSS 的区别：</strong> CSRF 是借用用户身份<strong class="font-medium">执行操作</strong>，不窃取用户信息；XSS (跨站脚本攻击) 是向页面<strong class="font-medium">注入恶意脚本</strong>，目的是窃取用户信息 (如 <code>Cookie</code>) 或控制用户浏览器。</li>
+                                </ul>
+                            </div>
+                        </details>
+
+                         <details class="bg-white p-4 rounded-lg border border-gray-200 group shadow-sm hover:shadow-md transition-shadow">
+                            <summary class="font-medium cursor-pointer list-none flex justify-between items-center group-hover:text-sky-700">
+                                <span>2. CSRF 和 XSS 有什么区别？</span>
+                                 <i data-lucide="chevron-down" class="h-5 w-5 group-open:rotate-180 transition-transform text-gray-500 group-hover:text-sky-700"></i>
+                            </summary>
+                              <div class="mt-4 text-sm text-gray-700 space-y-2 border-t border-gray-200 pt-3">
+                                <p><strong>回答要点：</strong>（可参考 <a href="#vs-xss" class="text-sky-600 hover:underline">上方对比表格</a>）</p>
+                                <ul class="list-disc list-inside pl-4 space-y-1">
+                                    <li><strong>目标不同:</strong> CSRF 目标是服务器应用，XSS 目标是用户浏览器。</li>
+                                    <li><strong>方式不同:</strong> CSRF 发送恶意请求，XSS 注入恶意脚本。</li>
+                                    <li><strong>信任利用不同:</strong> CSRF 利用服务器对 Cookie 的信任，XSS 利用用户对网站的信任。</li>
+                                    <li><strong>危害不同:</strong> CSRF 执行未授权操作，XSS 窃取信息/控制浏览器。</li>
+                                </ul>
+                            </div>
+                        </details>
+
+                         <details class="bg-white p-4 rounded-lg border border-gray-200 group shadow-sm hover:shadow-md transition-shadow">
+                            <summary class="font-medium cursor-pointer list-none flex justify-between items-center group-hover:text-sky-700">
+                                <span>3. 如何防御 CSRF 攻击？请说明几种方法及其优缺点。</span>
+                                 <i data-lucide="chevron-down" class="h-5 w-5 group-open:rotate-180 transition-transform text-gray-500 group-hover:text-sky-700"></i>
+                            </summary>
+                              <div class="mt-4 text-sm text-gray-700 space-y-3 border-t border-gray-200 pt-3">
+                                   <p><strong>回答要点：</strong>（可以结合<a href="#defense-token" class="text-sky-600 hover:underline">防御策略</a>部分的详细内容）</p>
+                                <ul class="list-disc list-inside pl-4 space-y-2">
+                                    <li>
+                                        <strong class="font-medium">Anti-CSRF Token (同步令牌模式):</strong>
+                                        <ul class="list-circle list-inside pl-6 text-xs">
+                                            <li>原理：服务器生成随机 <code>Token</code>，嵌入表单，提交时验证。</li>
+                                            <li>优点：可靠性高，业界标准。</li>
+                                            <li>缺点：需要服务器维护状态，实现稍复杂，需前端配合 AJAX。</li>
+                                        </ul>
+                                    </li>
+                                     <li>
+                                        <strong class="font-medium"><code>SameSite</code> Cookie 属性:</strong>
+                                        <ul class="list-circle list-inside pl-6 text-xs">
+                                            <li>原理：限制浏览器跨站发送 <code>Cookie</code> (<code>Strict</code>/<code>Lax</code>)。</li>
+                                            <li>优点：浏览器层面防御，实现简单，效果好。</li>
+                                            <li>缺点：需浏览器支持，<code>Strict</code> 可能影响体验。</li>
+                                        </ul>
+                                    </li>
+                                     <li>
+                                        <strong class="font-medium">双重提交 Cookie:</strong>
+                                        <ul class="list-circle list-inside pl-6 text-xs">
+                                            <li>原理：<code>Token</code> 同时存在 <code>Cookie</code> 和请求参数中，服务器比较两者。</li>
+                                            <li>优点：无服务器状态。</li>
+                                            <li>缺点：依赖 <code>Cookie</code> 安全性，易受 XSS 影响。</li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <strong class="font-medium">验证 <code>Referer</code>/<code>Origin</code>:</strong> (辅助)
+                                        <ul class="list-circle list-inside pl-6 text-xs">
+                                            <li>原理：检查请求来源域。</li>
+                                            <li>缺点：不可靠，可缺失或伪造。</li>
+                                        </ul>
+                                    </li>
+                                     <li>
+                                        <strong class="font-medium">二次验证:</strong> (辅助)
+                                        <ul class="list-circle list-inside pl-6 text-xs">
+                                            <li>原理：敏感操作要求用户额外确认。</li>
+                                            <li>缺点：影响体验。</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong class="font-medium">推荐策略：</strong> Anti-CSRF <code>Token</code> + <code>SameSite</code> Cookie (<code>Lax</code>) 组合。</li>
+                                </ul>
+                            </div>
+                        </details>
+
+                         <details class="bg-white p-4 rounded-lg border border-gray-200 group shadow-sm hover:shadow-md transition-shadow">
+                            <summary class="font-medium cursor-pointer list-none flex justify-between items-center group-hover:text-sky-700">
+                                <span>4. Anti-CSRF Token (同步令牌模式) 的原理是什么？</span>
+                                 <i data-lucide="chevron-down" class="h-5 w-5 group-open:rotate-180 transition-transform text-gray-500 group-hover:text-sky-700"></i>
+                            </summary>
+                              <div class="mt-4 text-sm text-gray-700 space-y-2 border-t border-gray-200 pt-3">
+                                <p><strong>回答要点：</strong></p>
+                                <ol class="list-decimal list-inside pl-4 space-y-1">
+                                    <li>服务器为用户会话生成一个唯一的、不可预测的随机字符串（<code>Token</code>）。</li>
+                                    <li>服务器将此 <code>Token</code> 与用户会话关联存储（例如存在 <code>Session</code> 中）。</li>
+                                    <li>在返回给用户的 HTML 页面（特别是包含状态变更操作的表单）中，将此 <code>Token</code> 作为一个隐藏字段的值嵌入。</li>
+                                    <li>用户提交表单时，这个 <code>Token</code> 会随表单数据一起发送到服务器。</li>
+                                    <li>服务器接收到请求后，从请求参数中提取 <code>Token</code>，并与存储在用户会话中的 <code>Token</code> 进行比较。</li>
+                                    <li>如果两者匹配，说明请求是用户通过合法页面发起的；如果不匹配或 <code>Token</code> 缺失，则可能是 CSRF 攻击，服务器应拒绝该请求。</li>
+                                    <li><strong class="font-medium">关键：</strong> 攻击者无法获取或预测这个与用户会话绑定的 <code>Token</code>，因此无法构造出带有正确 <code>Token</code> 的恶意请求。</li>
+                                </ol>
+                            </div>
+                        </details>
+
+                         <details class="bg-white p-4 rounded-lg border border-gray-200 group shadow-sm hover:shadow-md transition-shadow">
+                            <summary class="font-medium cursor-pointer list-none flex justify-between items-center group-hover:text-sky-700">
+                                <span>5. <code>SameSite</code> Cookie 如何防御 CSRF？</span>
+                                 <i data-lucide="chevron-down" class="h-5 w-5 group-open:rotate-180 transition-transform text-gray-500 group-hover:text-sky-700"></i>
+                            </summary>
+                              <div class="mt-4 text-sm text-gray-700 space-y-2 border-t border-gray-200 pt-3">
+                                   <p><strong>回答要点：</strong></p>
+                                <ul class="list-disc list-inside pl-4 space-y-1">
+                                    <li>CSRF 攻击依赖浏览器在<strong class="font-medium">跨站 (Cross-Site)</strong> 请求中自动携带目标站点的 <code>Cookie</code>。</li>
+                                    <li><code>SameSite</code> 属性指示浏览器在何种跨站场景下可以发送 <code>Cookie</code>。</li>
+                                    <li><strong class="font-medium"><code>SameSite=Lax</code> (常用):</strong> 禁止在由第三方网站发起的 <code>POST</code> 请求、<code>&lt;img&gt;</code>、<code>&lt;iframe&gt;</code> 等场景下发送 <code>Cookie</code>。由于 CSRF 攻击通常通过这些方式触发，设置 <code>Lax</code> 可以有效阻止浏览器发送认证 <code>Cookie</code>，从而使攻击失效。但允许 <code>GET</code> 请求的顶层导航发送 <code>Cookie</code>。</li>
+                                    <li><strong class="font-medium"><code>SameSite=Strict</code>:</strong> 更严格，即使是 <code>GET</code> 请求的顶层导航也不会发送 <code>Cookie</code>，提供更强的 CSRF 防护，但可能影响某些合法场景的用户体验。</li>
+                                    <li>因此，通过限制 <code>Cookie</code> 在跨站请求中的发送，<code>SameSite</code> 属性直接破坏了 CSRF 攻击成立的关键条件。</li>
+                                </ul>
+                            </div>
+                        </details>
+
+                         <details class="bg-white p-4 rounded-lg border border-gray-200 group shadow-sm hover:shadow-md transition-shadow">
+                            <summary class="font-medium cursor-pointer list-none flex justify-between items-center group-hover:text-sky-700">
+                                <span>6. <code>GET</code> 请求和 <code>POST</code> 请求的 CSRF 有什么不同？防御方式有区别吗？</span>
+                                 <i data-lucide="chevron-down" class="h-5 w-5 group-open:rotate-180 transition-transform text-gray-500 group-hover:text-sky-700"></i>
+                            </summary>
+                              <div class="mt-4 text-sm text-gray-700 space-y-2 border-t border-gray-200 pt-3">
+                                <p><strong>回答要点：</strong></p>
+                                <ul class="list-disc list-inside pl-4 space-y-1">
+                                    <li><strong class="font-medium">触发方式不同：</strong> <code>GET</code> 型 CSRF 更易通过 URL、图片等触发；<code>POST</code> 型通常需要构造表单。</li>
+                                    <li><strong class="font-medium">根本原因：</strong> 问题的根源在于<strong class="font-medium">不应使用 <code>GET</code> 请求执行状态变更操作</strong>。</li>
+                                    <li><strong class="font-medium">防御方式区别：</strong>
+                                        <ul class="list-circle list-inside pl-6 text-xs">
+                                            <li><strong class="font-medium">最佳实践：</strong> 禁止 <code>GET</code> 请求修改数据。</li>
+                                            <li><strong class="font-medium">通用防御：</strong> Anti-CSRF <code>Token</code> 和 <code>SameSite</code> Cookie (<code>Lax</code>/<code>Strict</code>) 对两者都有效。</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </details>
+
+                         <details class="bg-white p-4 rounded-lg border border-gray-200 group shadow-sm hover:shadow-md transition-shadow">
+                            <summary class="font-medium cursor-pointer list-none flex justify-between items-center group-hover:text-sky-700">
+                                <span>7. 如果在请求头中自定义添加一个 Token (e.g., <code>X-Requested-With: XMLHttpRequest</code>)，可以防止 CSRF 吗？为什么？</span>
+                                 <i data-lucide="chevron-down" class="h-5 w-5 group-open:rotate-180 transition-transform text-gray-500 group-hover:text-sky-700"></i>
+                            </summary>
+                              <div class="mt-4 text-sm text-gray-700 space-y-2 border-t border-gray-200 pt-3">
+                                   <p><strong>回答要点：</strong></p>
+                                <ul class="list-disc list-inside pl-4 space-y-1">
+                                    <li><strong class="font-medium">可以，这是一种有效的 CSRF 防御方式，尤其适用于 AJAX 请求。</strong></li>
+                                    <li><strong class="font-medium">原理：</strong>
+                                        <ul class="list-circle list-inside pl-6 text-xs">
+                                            <li>浏览器<strong class="font-medium">不允许</strong>跨域的 JavaScript 请求直接添加<strong class="font-medium">自定义的 HTTP 请求头</strong>（需要 CORS 预检）。</li>
+                                            <li>CSRF 攻击者所在的恶意域通常<strong class="font-medium">无法</strong>通过 CORS 预检。</li>
+                                            <li>如果服务器<strong class="font-medium">强制要求</strong>所有状态变更的 AJAX 请求都必须包含某个自定义请求头，那么只有来自同源页面（或被 CORS 策略明确允许的域）的 JavaScript 才能成功发送。</li>
+                                            <li>通过 HTML 表单或 <code>&lt;img&gt;</code> 等标签发起的 CSRF 攻击<strong class="font-medium">无法</strong>添加自定义请求头。</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong class="font-medium">注意：</strong> 主要适用于 AJAX 请求。对传统表单提交无效。</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+                </section>
+
+                <section id="summary" class="content-section fade-in-section" style="animation-delay: 0.45s;">
+                    <h2 class="flex items-center head2"><span class="material-icons align-middle mr-2">summarize</span>总结与建议</h2>
+                    <div class="content-card">
+                         <p class="mb-4 text-gray-700">CSRF 是一种严重的安全威胁，但通过正确的理解和防御措施可以有效防范。</p>
+                        <h3 class="text-xl font-medium mb-3">关键点回顾</h3>
+                        <ul class="list-disc list-inside space-y-1 pl-4 text-sm">
+                            <li>CSRF 利用浏览器自动发送 <code>Cookie</code> 的机制，借用用户身份执行非预期操作。</li>
+                            <li>核心防御思路是验证请求的<strong class="font-medium">真实意图</strong>，确保其来自用户在本站的自愿操作。</li>
+                            <li><strong class="font-medium">Anti-CSRF <code>Token</code></strong> 和 <strong class="font-medium"><code>SameSite</code> Cookie</strong> 是当前最主流且推荐的防御手段。</li>
+                            <li>严格遵守 HTTP 方法使用规范（<code>GET</code> 不修改数据）是基础。</li>
+                            <li>了解 CSRF 与 XSS 的区别对于选择正确的防御策略很重要。</li>
+                        </ul>
+                         <h3 class="text-xl font-medium mt-6 mb-3">最佳实践</h3>
+                        <ul class="list-disc list-inside space-y-1 pl-4 text-sm">
+                            <li><strong class="font-medium">纵深防御：</strong> 推荐同时使用 Anti-CSRF <code>Token</code> 和 <code>SameSite</code> Cookie (<code>Lax</code> 或 <code>Strict</code>)。</li>
+                            <li><strong class="font-medium">框架/库支持：</strong> 优先使用成熟 Web 框架内置的 CSRF 防护机制。</li>
+                            <li><strong class="font-medium">敏感操作二次验证：</strong> 对关键操作增加额外验证层。</li>
+                            <li><strong class="font-medium">保持更新：</strong> 关注浏览器和框架的安全更新。</li>
+                            <li><strong class="font-medium">安全测试：</strong> 定期进行安全审计和渗透测试。</li>
+                        </ul>
+                         <h3 class="text-xl font-medium mt-6 mb-3">持续学习</h3>
+                        <p class="text-sm text-gray-700">Web 安全是一个不断发展的领域。保持好奇心，持续学习新的攻击技术和防御策略，是成为一名优秀全栈开发者的必经之路。</p>
+                    </div>
+                </section>
+
+            </article>
+             <footer class="text-center mt-12 text-sm text-gray-500">
+                页面内容仅供学习参考 | 构建安全的应用需要系统性的知识和实践
+            </footer>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <script>
+        try { // Add a top-level try...catch for basic error handling
+
+            // --- Initialize Mermaid ---
+            if (typeof mermaid !== 'undefined') {
+                 // Initialize Mermaid and render diagrams added statically or dynamically
+                 mermaid.initialize({ startOnLoad: false, theme: 'neutral' }); // Don't start automatically if we call run() later
+                 console.log('[Debug] Mermaid initialized.');
+                 // Use mermaid.run() after DOM is ready to render all mermaid elements
+            } else {
+                console.error('[Debug] Mermaid library not loaded!');
+            }
+
+
+            document.addEventListener('DOMContentLoaded', () => {
+                 console.log('[Debug] DOMContentLoaded event fired.');
+                 try {
+                    // --- Initialize Lucide Icons ---
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
+                        console.log('[Debug] Lucide icons created.');
+                    } else {
+                        console.error('[Debug] Lucide library not loaded when trying to create icons!');
+                    }
+
+                    // --- Render Mermaid Diagrams ---
+                    if (typeof mermaid !== 'undefined') {
+                        mermaid.run(); // Find and render all elements with class="mermaid"
+                        console.log('[Debug] Mermaid diagrams rendered.');
+                    }
+
+                    // --- TOC Highlighting Logic ---
+                    const sections = document.querySelectorAll('main section[id]');
+                    const tocLinks = document.querySelectorAll('#local-toc a');
+                    let lastActiveTocLink = null;
+                    const tocObserverOptions = { root: null, rootMargin: '-20% 0px -60% 0px', threshold: 0 };
+
+                    const tocObserverCallback = (entries) => {
+                        let bestVisibleEntry = null;
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                if (!bestVisibleEntry || entry.boundingClientRect.top < bestVisibleEntry.boundingClientRect.top) {
+                                    bestVisibleEntry = entry;
+                                }
+                            }
+                        });
+
+                        // Fallback logic: If no section is actively intersecting in the "best" zone,
+                        // find the first one visible on screen.
+                        if (!bestVisibleEntry) {
+                             for (const entry of entries) {
+                                 if (entry.boundingClientRect.top >= 0 && entry.boundingClientRect.top < window.innerHeight) {
+                                     bestVisibleEntry = entry;
+                                     break;
+                                 }
+                             }
+                        }
+                        // If still no best entry, maybe the user scrolled past everything or is at the top
+                         if (!bestVisibleEntry && window.scrollY < sections[0]?.offsetTop) {
+                             bestVisibleEntry = { target: sections[0] }; // Default to first section if scrolled to top
+                         }
+
+
+                        if (bestVisibleEntry && bestVisibleEntry.target) {
+                            const id = bestVisibleEntry.target.getAttribute('id');
+                            const activeLink = document.querySelector(`#local-toc a[href="#${id}"]`);
+                            if (activeLink && activeLink !== lastActiveTocLink) {
+                                if (lastActiveTocLink) lastActiveTocLink.classList.remove('active');
+                                activeLink.classList.add('active');
+                                lastActiveTocLink = activeLink;
+                            }
+                        }
+                     };
+                    const tocObserver = new IntersectionObserver(tocObserverCallback, tocObserverOptions);
+                    sections.forEach(section => tocObserver.observe(section));
+
+                    // Initial active link check
+                    const setActiveLink = () => {
+                        const currentHash = window.location.hash;
+                        let foundActive = false;
+                        if (currentHash) {
+                            const initialActiveLink = document.querySelector(`#local-toc a[href="${currentHash}"]`);
+                            if (initialActiveLink) {
+                                tocLinks.forEach(link => link.classList.remove('active'));
+                                initialActiveLink.classList.add('active');
+                                lastActiveTocLink = initialActiveLink;
+                                foundActive = true;
+                            }
+                        }
+                        if (!foundActive && tocLinks.length > 0) {
+                            // If no hash or hash doesn't match, try activating based on current scroll after slight delay
+                             setTimeout(() => {
+                                 if (!lastActiveTocLink) { // Check if observer already set one
+                                      let firstVisibleSection = null;
+                                      for(const section of sections) {
+                                           const rect = section.getBoundingClientRect();
+                                           // Check if section top is within viewport or slightly above
+                                           if (rect.top >= -100 && rect.top < window.innerHeight / 2) {
+                                                firstVisibleSection = section;
+                                                break;
+                                           }
+                                      }
+                                      if (!firstVisibleSection && sections.length > 0) {
+                                           firstVisibleSection = sections[0]; // Default to first if none are visible
+                                      }
+
+                                      if(firstVisibleSection) {
+                                           const id = firstVisibleSection.getAttribute('id');
+                                           const firstLink = document.querySelector(`#local-toc a[href="#${id}"]`);
+                                           if (firstLink) {
+                                                tocLinks.forEach(link => link.classList.remove('active'));
+                                                firstLink.classList.add('active');
+                                                lastActiveTocLink = firstLink;
+                                           }
+                                      } else if (tocLinks.length > 0) {
+                                           // Final fallback to first link if no sections found/visible
+                                           tocLinks.forEach(link => link.classList.remove('active'));
+                                           tocLinks[0].classList.add('active');
+                                           lastActiveTocLink = tocLinks[0];
+                                      }
+                                 }
+                             }, 100); // Delay to allow layout settling
+                        }
+                    };
+                    setActiveLink(); // Call on load
+                    window.addEventListener('hashchange', setActiveLink); // Update on hash change
+                    console.log('[Debug] TOC highlighting initialized.');
+
+
+                    // --- Fade-in Animation Logic ---
+                    const mainContentSections = document.querySelectorAll('main > article > section.content-section');
+                    const fadeObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+                    const fadeObserverCallback = (entries, observer) => {
+                        entries.forEach((entry) => {
+                            const delayIndex = Array.from(mainContentSections).indexOf(entry.target);
+                            if (entry.isIntersecting) {
+                                entry.target.style.animationDelay = `${delayIndex * 0.05}s`;
+                                entry.target.classList.add('fade-in-section');
+                                observer.unobserve(entry.target);
+                            }
+                        });
+                    };
+                    const fadeObserver = new IntersectionObserver(fadeObserverCallback, fadeObserverOptions);
+                    mainContentSections.forEach(section => fadeObserver.observe(section));
+                     console.log('[Debug] Fade-in animations initialized.');
+
+                    // --- Playground Logic ---
+                    console.log('[Playground Debug] Initializing playground elements...');
+                    const victimBalanceEl = document.getElementById('victim-balance');
+                    const victimLogEl = document.getElementById('victim-log');
+                    const attackerLogEl = document.getElementById('attacker-log');
+                    const victimSessionEl = document.getElementById('victim-session');
+                    const attackBtnNoToken = document.getElementById('attack-btn-no-token');
+                    const attackBtnBadToken = document.getElementById('attack-btn-bad-token');
+                    const attackBtnGoodToken = document.getElementById('attack-btn-good-token');
+                    const resetVictimBtn = document.getElementById('reset-victim-btn');
+
+                    if (!victimBalanceEl || !victimLogEl || !attackerLogEl || !victimSessionEl || !attackBtnNoToken || !attackBtnBadToken || !attackBtnGoodToken || !resetVictimBtn) {
+                        console.error('[Playground Debug] Error: One or more playground DOM elements not found!');
+                        const playgroundSection = document.getElementById('playground');
+                        if (playgroundSection) {
+                             const errorDiv = document.createElement('div');
+                             errorDiv.className = 'p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg';
+                             errorDiv.textContent = 'Playground 初始化失败：无法找到必要的页面元素。请检查 HTML 结构或浏览器控制台。';
+                             playgroundSection.appendChild(errorDiv);
+                        }
+                        return;
+                    } else {
+                         console.log('[Playground Debug] All playground elements found.');
+                    }
+
+                    let victimState = {
+                        balance: 5000,
+                        loggedIn: true,
+                        csrfToken: null,
+                        log: [],
+                        csrfProtectionEnabled: false // Start with protection OFF
+                    };
+                    console.log('[Playground Debug] Initial victimState:', JSON.parse(JSON.stringify(victimState)));
+
+                    function generateSimpleToken() {
+                        const token = Math.random().toString(36).substring(2, 15);
+                        console.log('[Playground Debug] Generated Token:', token);
+                        return token;
+                    }
+
+                    function updateVictimUI() {
+                         console.log('[Playground Debug] Updating Victim UI...');
+                         try {
+                            if (victimBalanceEl) victimBalanceEl.textContent = victimState.balance;
+                            if (victimLogEl) {
+                                victimLogEl.innerHTML = victimState.log.length > 0
+                                    ? victimState.log.map(entry => `<div class="${entry.type === 'success' ? 'text-green-700' : 'text-red-700'} mb-1">${entry.msg}</div>`).join('') // Added mb-1
+                                    : '<span class="text-gray-500">等待操作...</span>'; // Placeholder style
+                                victimLogEl.scrollTop = victimLogEl.scrollHeight;
+                            }
+                            if (victimSessionEl) {
+                                let sessionInfo = `Logged In: ${victimState.loggedIn}<br>Protection Enabled: ${victimState.csrfProtectionEnabled ? '<span class="text-green-600 font-semibold">已启用</span>' : '<span class="text-red-600 font-semibold">未启用</span>'}`;
+                                if (victimState.csrfProtectionEnabled && victimState.csrfToken) {
+                                    sessionInfo += `<br>CSRF Token: <code class="text-xs">${victimState.csrfToken}</code>`; // Wrap token in code
+                                } else if (victimState.csrfProtectionEnabled && !victimState.csrfToken) {
+                                     sessionInfo += `<br>CSRF Token: (Error: Protection enabled but no token!)`;
+                                } else if (!victimState.csrfProtectionEnabled && victimState.csrfToken){
+                                     sessionInfo += `<br>CSRF Token (Inactive): <code class="text-xs">${victimState.csrfToken}</code>`;
+                                }
+                                 victimSessionEl.innerHTML = sessionInfo;
+                            }
+                             console.log('[Playground Debug] Victim UI Update successful.');
+                         } catch (error) {
+                              console.error('[Playground Debug] Error during updateVictimUI:', error);
+                         }
+                    }
+
+                     function victimLog(msg, type = 'info') {
+                         console.log(`[Playground Debug] Victim Log (${type}): ${msg}`);
+                         try {
+                            const maxLogSize = 5;
+                            if (!Array.isArray(victimState.log)) {
+                                victimState.log = [];
+                            }
+                            victimState.log.unshift({ msg: `[${new Date().toLocaleTimeString()}] ${msg}`, type });
+                            if (victimState.log.length > maxLogSize) {
+                                victimState.log.pop();
+                            }
+                            updateVictimUI();
+                         } catch (error) {
+                              console.error('[Playground Debug] Error during victimLog:', error);
+                         }
+                    }
+
+                     function attackerLog(msg) {
+                         console.log(`[Playground Debug] Attacker Log: ${msg}`);
+                         if (attackerLogEl) {
+                            attackerLogEl.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                         } else {
+                              console.error('[Playground Debug] Attacker log element not found!');
+                         }
+                    }
+
+                    function handleTransferRequest(amount, recipient, receivedToken) {
+                         console.log(`[Playground Debug] handleTransferRequest called. Amount: ${amount}, Recipient: ${recipient}, Received Token: ${receivedToken}`);
+                         try {
+                            if (!victimState.loggedIn) {
+                                victimLog('错误：用户未登录', 'error');
+                                console.log('[Playground Debug] Transfer failed: Not logged in.');
+                                return false;
+                            }
+                            console.log(`[Playground Debug] User logged in. Protection enabled: ${victimState.csrfProtectionEnabled}`);
+
+                            if (victimState.csrfProtectionEnabled) {
+                                console.log('[Playground Debug] Checking CSRF Token...');
+                                if (!receivedToken) {
+                                    victimLog('CSRF 错误：请求缺少 Token (防护已启用)', 'error');
+                                    console.log('[Playground Debug] Transfer failed: Missing token.');
+                                    return false;
+                                }
+                                if (receivedToken !== victimState.csrfToken) {
+                                    victimLog(`CSRF 错误：Token 不匹配 (收到: ${receivedToken || 'null'}, 期望: ${victimState.csrfToken})`, 'error');
+                                    console.log(`[Playground Debug] Transfer failed: Token mismatch. Received: ${receivedToken}, Expected: ${victimState.csrfToken}`);
+                                    return false;
+                                }
+                                 victimLog('CSRF Token 验证通过', 'success');
+                                 console.log('[Playground Debug] CSRF Token check passed.');
+                            } else {
+                                 victimLog('警告：CSRF 防护【未】启用!', 'error');
+                                 console.log('[Playground Debug] CSRF Protection is OFF. Skipping token check.');
+                            }
+
+                            console.log(`[Playground Debug] Checking balance. Current: ${victimState.balance}, Amount: ${amount}`);
+                            if (victimState.balance >= amount) {
+                                victimState.balance -= amount;
+                                console.log(`[Playground Debug] Balance updated to: ${victimState.balance}`);
+                                victimLog(`成功：转账 $${amount} 给 ${recipient} (防护状态: ${victimState.csrfProtectionEnabled ? '启用' : '未启用'})`, 'success');
+                                console.log('[Playground Debug] Transfer successful.');
+                                return true;
+                            } else {
+                                victimLog('错误：余额不足', 'error');
+                                console.log('[Playground Debug] Transfer failed: Insufficient balance.');
+                                return false;
+                            }
+                         } catch (error) {
+                              console.error('[Playground Debug] Error during handleTransferRequest:', error);
+                              victimLog('内部错误，请查看控制台。', 'error');
+                              return false;
+                         }
+                    }
+
+                    attackBtnNoToken.addEventListener('click', () => {
+                         console.log('[Playground Debug] "No Token" button clicked.');
+                         try {
+                            const amount = 1000;
+                            const recipient = 'Mallory (No Token)';
+                            attackerLog(`尝试向 Bank.com 发起转账请求 (无 Token)`);
+                            const success = handleTransferRequest(amount, recipient, undefined); // No token sent
+                            if(success) { attackerLog(`攻击成功！转账 $${amount} 给 ${recipient}`); }
+                            else { attackerLog(`攻击失败 (无 Token)。检查银行日志。`); }
+                         } catch (error) {
+                              console.error('[Playground Debug] Error in "No Token" button handler:', error);
+                              attackerLog('按钮处理出错，请查看控制台。');
+                         }
+                    });
+
+                    attackBtnBadToken.addEventListener('click', () => {
+                          console.log('[Playground Debug] "Bad Token" button clicked.');
+                          try {
+                            const amount = 1000;
+                            const recipient = 'Mallory (Bad Token)';
+                            const badToken = 'invalid-token-from-attacker';
+                            attackerLog(`尝试向 Bank.com 发起转账请求 (错误 Token: ${badToken})`);
+                            const success = handleTransferRequest(amount, recipient, badToken);
+                              if(success) { attackerLog(`攻击成功！转账 $${amount} 给 ${recipient}`); }
+                              else { attackerLog(`攻击失败 (错误 Token)。检查银行日志。`); }
+                         } catch (error) {
+                              console.error('[Playground Debug] Error in "Bad Token" button handler:', error);
+                              attackerLog('按钮处理出错，请查看控制台。');
+                         }
+                    });
+
+                     attackBtnGoodToken.addEventListener('click', () => {
+                           console.log('[Playground Debug] "Good Token" button clicked.');
+                           try {
+                            const amount = 100; // Smaller amount for demo
+                            const recipient = 'Alice Friend (Good Token)';
+                            attackerLog(`模拟合法请求 (带正确 Token: ${victimState.csrfToken || 'N/A'})`);
+                            const success = handleTransferRequest(amount, recipient, victimState.csrfToken);
+                              if(success) { attackerLog(`合法请求成功！转账 $${amount} 给 ${recipient}`); }
+                              else { attackerLog(`合法请求失败。检查银行日志。`); }
+                         } catch (error) {
+                              console.error('[Playground Debug] Error in "Good Token" button handler:', error);
+                              attackerLog('按钮处理出错，请查看控制台。');
+                         }
+                    });
+
+                     function initializePlayground() {
+                         console.log('[Playground Debug] Initializing playground...');
+                         try {
+                            victimState.balance = 5000;
+                            victimState.log = [];
+                            victimState.csrfToken = generateSimpleToken();
+                            victimState.csrfProtectionEnabled = false; // Start with protection OFF
+                            victimLog('模拟银行状态已初始化。CSRF 防护【未】启用。请先尝试“无 CSRF 防护”按钮。');
+                            attackerLogEl.textContent = '等待操作...';
+                            updateVictimUI();
+                             console.log('[Playground Debug] Playground initialized successfully.');
+                         } catch (error) {
+                              console.error('[Playground Debug] Error during initializePlayground:', error);
+                         }
+                    }
+
+                    resetVictimBtn.addEventListener('click', () => {
+                         console.log('[Playground Debug] "Reset" button clicked.');
+                         try {
+                            victimState.balance = 5000;
+                            victimState.log = [];
+                            victimState.csrfToken = generateSimpleToken();
+                            victimState.csrfProtectionEnabled = true; // Reset enables protection
+                            victimLog('模拟银行状态已重置。CSRF 防护【已】启用。');
+                            attackerLogEl.textContent = '等待操作...';
+                            updateVictimUI();
+                             console.log('[Playground Debug] Playground reset successfully.');
+                         } catch (error) {
+                              console.error('[Playground Debug] Error in "Reset" button handler:', error);
+                              victimLog('重置出错，请查看控制台。', 'error');
+                         }
+                    });
+
+                    // Initial call to set up the playground state and UI
+                    initializePlayground();
+
+                 } catch (e) {
+                     console.error("[Debug] Error in DOMContentLoaded handler:", e);
+                 }
+
+            }); // End DOMContentLoaded
+
+        } catch (error) {
+             console.error('[Debug] Top-level script error:', error);
+             const mainContent = document.querySelector('.content-main');
+             if (mainContent) {
+                 const errorDiv = document.createElement('div');
+                 errorDiv.className = 'p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg';
+                 errorDiv.textContent = '页面脚本发生严重错误，部分功能可能无法使用。请检查浏览器控制台获取详细信息。';
+                 mainContent.insertBefore(errorDiv, mainContent.firstChild);
+             }
+        }
+
+    </script>
+
+</body>
+
+</html>

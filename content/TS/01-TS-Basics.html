@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript 基础</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../../global.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <style>
+        /* Minimal inline styles - Rely on global.css and Tailwind */
+
+        /* Base & Layout Adjustments */
+        html {
+            scroll-padding-top: 6rem; /* Adjust based on potential sticky header */
+            scroll-behavior: smooth;
+        }
+
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color-lighter);
+            line-height: 1.7; /* Increased default line height for readability */
+        }
+
+        /* Typography Adjustments */
+        h1, h2, h3, h4, h5, h6 {
+            scroll-margin-top: 6rem;
+            color: var(--text-color-dark);
+        }
+
+        h2 {
+            border-bottom: 1px solid var(--border-color-light);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: var(--primary-color-dark);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        /* Paragraph margin */
+        p {
+            margin-bottom: 1rem; /* Add default bottom margin to paragraphs */
+        }
+        .content-card p:last-child {
+             margin-bottom: 0; /* Remove margin from last paragraph in a card */
+        }
+
+
+        /* Level Tags */
+        .level-tag {
+            display: inline-block;
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.1rem 0.5rem;
+            border-radius: 0.25rem;
+            vertical-align: middle;
+            border: 1px solid transparent;
+            transition: background-color 0.2s ease, transform 0.1s ease; /* Added transition */
+        }
+        .level-tag:hover {
+            transform: translateY(-1px); /* Subtle lift on hover */
+        }
+        .level-tag-high { background-color: var(--danger-color-light); color: var(--danger-color); border-color: var(--danger-color); }
+        .level-tag-high:hover { background-color: rgba(239, 68, 68, 0.2); } /* Slightly darker hover */
+        .level-tag-medium { background-color: var(--warning-color-light); color: var(--warning-color); border-color: var(--warning-color); }
+        .level-tag-medium:hover { background-color: rgba(249, 115, 22, 0.2); }
+        .level-tag-low { background-color: var(--secondary-color-light); color: var(--secondary-color); border-color: var(--secondary-color); }
+        .level-tag-low:hover { background-color: rgba(16, 185, 129, 0.2); }
+        .level-tag-base { background-color: var(--bg-color-lighter); color: var(--text-color-light); border-color: var(--border-color-default); }
+        .level-tag-base:hover { background-color: var(--bg-color-light); }
+        .level-tag-advanced { background-color: var(--primary-color-light); color: var(--primary-color-dark); border-color: var(--primary-color); }
+        .level-tag-advanced:hover { background-color: rgba(59, 130, 246, 0.2); }
+
+        /* Fade-in Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-section {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* Content Card Adjustments */
+        .content-card {
+            margin-bottom: 1.5rem;
+            transition: box-shadow 0.2s ease-in-out; /* Add transition for hover effect */
+            /* Inherit base card style from global.css */
+        }
+        .content-card:hover {
+             /* Enhanced shadow on hover - Material Design inspired */
+             box-shadow: 0 3px 6px rgba(0,0,0,0.1), 0 3px 6px rgba(0,0,0,0.15);
+        }
+        .content-card:last-child { margin-bottom: 0; }
+        .content-section > .content-card + .content-card { margin-top: 1.5rem; }
+
+        /* Code Block Styling */
+        pre code {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9em; /* Slightly larger code font size */
+            line-height: 1.6; /* Adjusted line height */
+            display: block;
+        }
+        *:not(pre)>code {
+            background-color: rgba(17, 24, 39, 0.05);
+            color: #DC2626;
+            padding: 0.1em 0.3em;
+            border-radius: 0.25rem;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9em;
+        }
+
+        /* Tooltip Styling (Copied from example.html) */
+        .tooltip-term {
+            border-bottom: 1px dotted var(--primary-color);
+            cursor: help;
+            position: relative;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        .tooltip-term::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 0.4rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            z-index: 10;
+        }
+        .tooltip-term::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(0px);
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            z-index: 10;
+        }
+        .tooltip-term:hover::before,
+        .tooltip-term:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Mermaid Diagram Styling */
+        .mermaid {
+            margin: 1.5rem 0;
+            text-align: center;
+            background-color: var(--bg-color-light);
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color-light);
+            overflow-x: auto; /* Ensure horizontal scroll if diagram is too wide */
+        }
+        .mermaid svg { max-width: 100%; height: auto; display: block; margin: auto; }
+
+        /* Quiz Card Styling (Copied & adapted from example.html & global.css) */
+        .quiz-card {
+            /* Uses styles from global.css */
+            margin-top: 1.5rem; /* Add top margin when used after content */
+        }
+        .quiz-toggle .material-icons {
+            font-size: 1.1rem;
+            transition: transform 0.3s ease-in-out;
+            vertical-align: bottom; /* Align icon better with text */
+        }
+        .quiz-toggle .icon-arrow.rotated {
+            transform: rotate(180deg);
+        }
+        .quiz-answer {
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, padding-top 0.5s ease-in-out, padding-bottom 0.5s ease-in-out, margin-top 0.5s ease-in-out;
+            overflow: hidden;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            border: 1px solid var(--border-color-default);
+            background-color: var(--bg-color-lighter);
+            border-radius: 0.375rem;
+            color: var(--text-color-default);
+        }
+        .quiz-answer.visible {
+            max-height: 1000px;
+            opacity: 1;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            margin-top: 1rem;
+            overflow: auto;
+        }
+         /* Ripple effect for buttons */
+        .button {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.4); /* Use RGB for opacity */
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            pointer-events: none;
+        }
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+         /* Sidebar link touch target */
+         .local-side-nav li a {
+            padding: 0.6rem 0.75rem; /* Increased padding for better touch */
+         }
+
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <div class="page-container">
+
+        <aside class="local-side-nav">
+            <h4 class="head4">TypeScript 基础</h4>
+            <ul id="local-toc">
+                <li><a href="#intro" class="active"><span class="material-icons nav-icon">info</span>简介</a></li>
+                <li><a href="#what-is-ts"><span class="material-icons nav-icon">help_outline</span>什么是 TypeScript?</a></li>
+                <li><a href="#basic-types"><span class="material-icons nav-icon">category</span>基本类型</a></li>
+                <li><a href="#arrays-tuples"><span class="material-icons nav-icon">data_array</span>数组与元组</a></li>
+                <li><a href="#interface-vs-type"><span class="material-icons nav-icon">compare_arrows</span>接口与类型别名</a></li>
+                <li><a href="#function-types"><span class="material-icons nav-icon">functions</span>函数类型</a></li>
+                <li><a href="#enums"><span class="material-icons nav-icon">pin</span>枚举 (Enum)</a></li>
+            </ul>
+            <a href="../../index.html" class="back-link">
+                &larr; 返回大纲目录
+            </a>
+        </aside>
+
+        <main class="content-main">
+            <article>
+                <section id="intro" class="content-section fade-in-section" style="animation-delay: 0s;">
+                    <h1 class="head1 flex items-center gap-2">
+                        <span class="material-icons text-3xl text-blue-600">integration_instructions</span>(二) TypeScript 基础
+                    </h1>
+                    <p>TypeScript 是 JavaScript 的一个<span class="tooltip-term" data-tooltip="意味着任何有效的 JavaScript 代码也是有效的 TypeScript 代码，但 TypeScript 增加了额外的特性（如类型）。">超集</span>，它通过添加<span class="tooltip-term" data-tooltip="在编译阶段（代码运行前）进行类型检查，而不是在运行时。">静态类型</span>系统来增强 JavaScript。本节将介绍 TypeScript 的核心基础概念，这些是构建大型、可维护应用程序的基础，也是前端和全栈面试中的常见考点。</p>
+                    <p class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md text-sm">💡
+                        <strong>提示:</strong> 点击左侧导航可以快速跳转到相应主题。括号内标注了知识点的重要程度和难度级别。将鼠标悬停在<span class="tooltip-term" data-tooltip="像这样!">带下划线</span>的术语上可查看简要解释。通过章节末尾的测验巩固知识！
+                    </p>
+                </section>
+
+                <section id="what-is-ts" class="content-section fade-in-section" style="animation-delay: 0.05s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-icons">help_outline</span>什么是 TypeScript？为什么使用它？
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">定义</h3>
+                        <p>TypeScript (简称 TS) 是由微软开发和维护的一种开源编程语言。它是 JavaScript 的一个<strong>严格语法<span class="tooltip-term" data-tooltip="TypeScript 包含了所有 JavaScript 的语法，并增加了新的语法（如类型注解）。">超集</span></strong>，意味着任何有效的 JavaScript 代码也是有效的 TypeScript 代码。</p>
+                        <p>TypeScript 的核心在于它为 JavaScript 添加了<strong>可选的<span class="tooltip-term" data-tooltip="在代码编写和编译阶段就确定变量、函数参数和返回值的类型。">静态类型</span></strong>、基于类的面向对象编程以及对最新 ECMAScript 特性的支持。</p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">为什么使用 TypeScript？</h3>
+                        <p>使用 TypeScript 主要有以下优势，尤其在构建复杂或大型项目时：</p>
+                        <ul class="list-disc list-inside space-y-2 text-sm text-gray-700 mt-2">
+                            <li><strong>类型安全 (Type Safety):</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-xs text-gray-600">
+                                    <li>在编译时捕获错误：许多常见的 JavaScript 错误（如拼写错误、函数调用参数错误、类型不匹配）可以在代码运行前就被 TypeScript 编译器发现，减少了运行时 Bug。</li>
+                                    <li>明确代码意图：类型注解清晰地说明了变量、函数参数和返回值应该是什么类型，提高了代码的可读性。</li>
+                                </ul>
+                            </li>
+                            <li><strong>可维护性 (Maintainability):</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-xs text-gray-600">
+                                    <li>重构更安全：有了类型系统的保障，重构代码（如修改函数签名、重命名属性）时更加自信，不易引入新的错误。</li>
+                                    <li>代码自文档化：类型本身就是一种文档形式，有助于团队成员理解代码结构和数据流。</li>
+                                </ul>
+                            </li>
+                            <li><strong>更好的开发工具支持 (Tooling):</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-xs text-gray-600">
+                                    <li>智能代码补全：编辑器（如 VS Code）可以根据类型信息提供更精确的代码提示和自动补全。</li>
+                                    <li>接口提示和导航：可以轻松查看对象有哪些属性和方法，以及跳转到类型定义。</li>
+                                </ul>
+                            </li>
+                            <li><strong>支持最新 JavaScript 特性:</strong> TypeScript 编译器可以将使用了最新 ECMAScript 标准（如 ES2020, ESNext）的代码转换为兼容旧版浏览器环境的 JavaScript 代码。</li>
+                            <li><strong>面向大型项目和团队协作:</strong> 在多人协作的大型项目中，类型系统提供了一个共同的契约，减少了因误解或沟通不畅导致的错误。</li>
+                        </ul>
+                        <p class="mt-4 text-sm font-medium text-gray-800">🎯 核心：TypeScript 通过引入静态类型，提高了代码的健壮性、可读性和可维护性，特别适用于需要长期维护和多人协作的项目。</p>
+                    </div>
+                     <div class="quiz-card" id="quiz-what-is-ts">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>基础测验： TypeScript 相对于 JavaScript 最核心的增强是什么？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"><input type="radio" name="q_what_is_ts" value="a"><span>更快的运行速度</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_what_is_ts" value="b"><span>可选的静态类型系统</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_what_is_ts" value="c"><span>内置的 HTTP 客户端</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_what_is_ts" value="d"><span>原生支持移动应用开发</span></label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_what_is_ts"></div>
+                        <button class="quiz-toggle button button-secondary mt-4" onclick="checkAnswer('q_what_is_ts', 'b')">
+                             <span class="material-icons icon-arrow">expand_more</span><span class="button-text">检查答案</span>
+                        </button>
+                         <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> B. 可选的静态类型系统</p>
+                            <p><strong>解析:</strong> TypeScript 最核心的特性就是在 JavaScript 的基础上增加了可选的静态类型检查，这带来了类型安全、更好的工具支持和更高的可维护性等诸多好处。它本身不直接提升运行速度（编译后还是 JS），也没有内置 HTTP 客户端或原生移动开发支持。</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="basic-types" class="content-section fade-in-section" style="animation-delay: 0.1s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-icons">category</span>基本类型
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <p class="mb-4">TypeScript 支持 JavaScript 中的所有基本数据类型，并提供了一些额外的类型。</p>
+
+                    <div class="content-card">
+                        <h3 class="head3">常用基本类型</h3>
+                        <pre><code class="language-typescript">// 布尔值 (Boolean)
+let isDone: boolean = false;
+
+// 数字 (Number) - 支持整数、浮点数、二进制、八进制、十六进制
+let decimal: number = 6;
+let hex: number = 0xf00d;
+let binary: number = 0b1010;
+let octal: number = 0o744;
+let bigIntValue: bigint = 100n; // 大整数类型
+
+// 字符串 (String) - 支持单引号、双引号、模板字符串
+let color: string = "blue";
+color = 'red';
+let fullName: string = `Bob Bobbington`;
+let age: number = 37;
+let sentence: string = `Hello, my name is ${fullName}.
+
+I'll be ${age + 1} years old next month.`;
+
+// 空值 (Void) - 通常用于表示函数没有返回值
+function warnUser(): void {
+    console.log("This is my warning message");
+    // return undefined; // 可以返回 undefined
+    // return null; // 编译选项 strictNullChecks=false 时可以返回 null
+}
+let unusable: void = undefined; // 声明 void 类型的变量用处不大，只能赋值 undefined 或 null (strictNullChecks=false)
+
+// Null 和 Undefined - 它们各自有自己的类型 null 和 undefined
+let u: undefined = undefined;
+let n: null = null;
+// 默认情况下 null 和 undefined 是所有其他类型的子类型。
+// 如果启用 --strictNullChecks 编译选项，null 和 undefined 只能赋值给 void 和它们各自的类型。
+let num: number = 10;
+// num = null; // 在 strictNullChecks=true 时会报错
+// num = undefined; // 在 strictNullChecks=true 时会报错
+let nullableNum: number | null = null; // 使用联合类型显式允许 null
+let undefinableNum: number | undefined = undefined; // 使用联合类型显式允许 undefined
+</code></pre>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3">特殊类型：any, unknown, never</h3>
+                        <p>这三种类型在处理不确定或特殊情况时非常重要。</p>
+                        <ul class="list-disc list-inside space-y-2 text-sm text-gray-700 mb-4">
+                            <li><strong><code>any</code> (<span class="tooltip-term" data-tooltip="表示可以是任何类型，放弃类型检查。">任意类型</span>):</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-xs text-gray-600">
+                                    <li>表示可以是任何类型。使用 <code>any</code> 会<strong>失去 TypeScript 的类型检查优势</strong>。</li>
+                                    <li>可以对 <code>any</code> 类型的值进行任何操作（访问属性、调用方法），编译器不会检查。</li>
+                                    <li>应尽量避免使用 <code>any</code>，除非确实无法确定类型或在从 JavaScript 迁移时作为临时方案。</li>
+                                </ul>
+                            </li>
+                            <li><strong><code>unknown</code> (<span class="tooltip-term" data-tooltip="表示类型未知，是 any 的安全版本。">未知类型</span>):</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-xs text-gray-600">
+                                    <li>表示一个类型未知的值。它是 <code>any</code> 的<strong>类型安全</strong>版本。</li>
+                                    <li>可以将任何类型的值赋给 <code>unknown</code>，但不能将 <code>unknown</code> 类型的值赋给除了 <code>any</code> 和 <code>unknown</code> 之外的其他类型。</li>
+                                    <li><strong>不能</strong>直接对 <code>unknown</code> 类型的值进行操作（如访问属性、调用方法）。必须先进行<span class="tooltip-term" data-tooltip="如 typeof, instanceof 或自定义类型守卫函数，用于缩小类型范围。">类型检查</span>或<span class="tooltip-term" data-tooltip="开发者明确告诉编译器值的类型，如 value as string 或 <string>value。">类型断言</span>来缩小范围。</li>
+                                </ul>
+                            </li>
+                             <li><strong><code>never</code> (<span class="tooltip-term" data-tooltip="表示永远不会出现的值的类型。">永不存在的值的类型</span>):</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-xs text-gray-600">
+                                    <li>表示那些永不存在的值的类型。例如，总是抛出异常或永远不会返回的函数的返回值类型。</li>
+                                    <li><code>never</code> 类型是任何类型的子类型，可以赋值给任何类型；但没有类型是 <code>never</code> 的子类型（除了 <code>never</code> 自身）。</li>
+                                    <li>通常在高级类型编程或确保代码路径完整性时使用。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                         <div class="mermaid" id="mermaid-any-unknown">
+                            graph LR
+                            subgraph "Any 类型 (不安全)"
+                                direction LR
+                                A["值: any"] --> B{操作?}
+                                B -- "访问 .foo" --> C["编译通过，运行时可能错误"]
+                                B -- "调用 .bar()" --> D["编译通过，运行时可能错误"]
+                                B -- "赋值给 number" --> E["编译通过，运行时可能错误"]
+                            end
+                        
+                            subgraph "Unknown 类型 (安全)"
+                                direction LR
+                                F["值: unknown"] --> G{操作?}
+                                G -- "访问 .foo" --> H["需要类型检查/断言"]
+                                G -- "调用 .bar()" --> I["需要类型检查/断言"]
+                                G -- "赋值给 number" --> J["编译错误!"]
+                                H -- "if (typeof val === '...')" --> K["安全操作"]
+                                I -- "if (val instanceof ...)" --> L["安全操作"]
+                                J -- "let num = val as number" --> M["赋值成功 (需开发者保证)"]
+                            end
+                        
+                            style C fill:#fee2e2,stroke:#ef4444
+                            style D fill:#fee2e2,stroke:#ef4444
+                            style E fill:#fee2e2,stroke:#ef4444
+                            style H fill:#fffbeb,stroke:#f59e0b
+                            style I fill:#fffbeb,stroke:#f59e0b
+                            style J fill:#fee2e2,stroke:#ef4444
+                            style K fill:#dcfce7,stroke:#22c55e
+                            style L fill:#dcfce7,stroke:#22c55e
+                            style M fill:#dcfce7,stroke:#22c55e
+                        
+                        </div>
+                        <pre><code class="language-typescript">// any vs unknown vs never (代码示例同前)
+
+let notSure: any = 4;
+notSure.toFixed(); // 编译 OK, 运行时 OK (因为此时是 number)
+notSure = "hello";
+// notSure.toFixed(); // 编译 OK, 运行时 Error!
+
+let maybe: unknown = 4;
+// maybe.toFixed(); // Error! 不能直接操作 unknown
+
+if (typeof maybe === 'number') {
+    maybe.toFixed(); // OK
+}
+
+function error(message: string): never { throw new Error(message); }
+</code></pre>
+                        <p class="mt-4 text-sm font-medium text-gray-800">🎯 核心：掌握基本类型是基础。理解 <code>any</code> 的风险，优先使用 <code>unknown</code> 进行类型安全处理。<code>void</code> 表示无返回值，<code>never</code> 表示永不返回。</p>
+                    </div>
+                     <div class="quiz-card" id="quiz-basic-types">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>类型测验： 如果一个变量的类型不确定，但你想确保类型安全，应该使用哪个类型？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"><input type="radio" name="q_basic_types" value="a"><span><code>any</code></span></label>
+                            <label class="quiz-option"><input type="radio" name="q_basic_types" value="b"><span><code>unknown</code></span></label>
+                            <label class="quiz-option"><input type="radio" name="q_basic_types" value="c"><span><code>void</code></span></label>
+                            <label class="quiz-option"><input type="radio" name="q_basic_types" value="d"><span><code>never</code></span></label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_basic_types"></div>
+                        <button class="quiz-toggle button button-secondary mt-4" onclick="checkAnswer('q_basic_types', 'b')">
+                             <span class="material-icons icon-arrow">expand_more</span><span class="button-text">检查答案</span>
+                        </button>
+                         <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> B. <code>unknown</code></p>
+                            <p><strong>解析:</strong> <code>unknown</code> 是 <code>any</code> 的类型安全替代品。它同样可以接受任何类型的值，但在对其进行操作（如访问属性、调用方法或赋值给其他确定类型）之前，必须进行类型检查或类型断言，从而保证了类型安全。<code>any</code> 则完全放弃了类型检查。</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="arrays-tuples" class="content-section fade-in-section" style="animation-delay: 0.15s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-icons">data_array</span>数组 (Array) 与元组 (Tuple)
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+
+                    <div class="content-card">
+                        <h3 class="head3">数组 (Array)</h3>
+                        <p>TypeScript 中定义数组（存储<span class="tooltip-term" data-tooltip="通常指同一类型，但也可以是联合类型。">同类</span>元素的有序集合）有两种主要方式：</p>
+                        <ol class="list-decimal list-inside space-y-1 text-sm mb-4">
+                            <li>在元素类型后加上 <code>[]</code></li>
+                            <li>使用数组泛型 <code>Array&lt;元素类型&gt;</code></li>
+                        </ol>
+                        <pre><code class="language-typescript">// 数组定义方式
+
+// 方式一: type[]
+let list1: number[] = [1, 2, 3];
+let names1: string[] = ["Alice", "Bob"];
+
+// 方式二: Array<type> (泛型语法)
+let list2: Array<number> = [4, 5, 6];
+let names2: Array<string> = ["Charlie", "David"];
+
+// 数组元素类型必须匹配
+// list1.push("hello"); // Error: Argument of type 'string' is not assignable to parameter of type 'number'.
+
+// 可以使用联合类型定义包含多种类型的数组
+let mixedList: (number | string)[] = [1, "two", 3, "four"];
+let mixedList2: Array<number | boolean> = [10, true, 20, false];
+</code></pre>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3">元组 (Tuple)</h3>
+                        <p>元组类型允许你表示一个<strong>已知元素数量和类型</strong>的数组。元组中各个元素不必是相同类型，顺序很重要。</p>
+                        <pre><code class="language-typescript">// 元组定义
+let person: [string, number]; // 定义一个包含 string 和 number 的元组
+
+// 初始化
+person = ["Alice", 30]; // OK
+
+// person = [30, "Alice"]; // Error: 类型不匹配
+// person = ["Alice"]; // Error: 缺少元素
+// person = ["Alice", 30, true]; // Error: 元素数量过多
+
+// 访问元素 (类型是确定的)
+console.log(person[0].toUpperCase()); // OK, person[0] 是 string
+console.log(person[1].toFixed(2)); // OK, person[1] 是 number
+
+// 越界访问 (默认配置下，越界写入会报错；越界读取类型是元组元素类型的联合类型)
+// person[2] = "extra"; // Error
+
+// 可以定义只读元组
+const readOnlyPair: readonly [boolean, string] = [true, "yes"];
+// readOnlyPair[0] = false; // Error: 只读属性
+</code></pre>
+                        <p class="mt-4 text-sm font-medium text-gray-800">🎯 核心：数组用于存储同类型（或联合类型）元素的集合，长度可变。元组用于存储固定数量且类型可能不同的元素，顺序和类型都固定。</p>
+                    </div>
+                </section>
+
+                <section id="interface-vs-type" class="content-section fade-in-section" style="animation-delay: 0.2s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-icons">compare_arrows</span>接口 (Interface) 与 类型别名 (Type Alias)
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <p class="mb-4"><code>Interface</code> 和 <code>Type Alias</code> 都可以用来定义对象的形状或命名一个类型，但在某些方面存在差异，理解这些差异有助于在合适的场景选择合适的工具。</p>
+
+                    <div class="content-card">
+                        <h3 class="head3">定义方式</h3>
+                        <pre><code class="language-typescript">// 使用 Interface 定义对象形状
+interface Point {
+  x: number;
+  y: number;
+  label?: string; // 可选属性
+  readonly id: string; // 只读属性
+}
+
+// 使用 Type Alias 定义对象形状
+type Coordinate = {
+  x: number;
+  y: number;
+  label?: string; // 可选属性
+  readonly id: string; // 只读属性
+};
+
+// Type Alias 还可以用于定义其他类型，如联合类型、元组、基本类型别名等
+type StringOrNumber = string | number;
+type PointTuple = [number, number];
+type UserID = string;
+
+// Interface 主要用于描述对象或类的结构
+interface User {
+    name: string;
+    age: number;
+    greet(): void; // 方法
+}
+</code></pre>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3">主要区别</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm border border-gray-300">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="p-2 border border-gray-300 text-left">特性</th>
+                                        <th class="p-2 border border-gray-300 text-left">Interface</th>
+                                        <th class="p-2 border border-gray-300 text-left">Type Alias</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="p-2 border border-gray-300">主要用途</td>
+                                        <td class="p-2 border border-gray-300">描述对象或类的形状 (蓝图)</td>
+                                        <td class="p-2 border border-gray-300">为任何类型提供别名 (更通用)</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200 bg-gray-50">
+                                        <td class="p-2 border border-gray-300"><span class="tooltip-term" data-tooltip="多次声明同名接口，其属性会合并。">声明合并</span></td>
+                                        <td class="p-2 border border-gray-300"><strong>支持</strong></td>
+                                        <td class="p-2 border border-gray-300"><strong>不支持</strong></td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="p-2 border border-gray-300">扩展方式</td>
+                                        <td class="p-2 border border-gray-300"><code>extends</code></td>
+                                        <td class="p-2 border border-gray-300"><span class="tooltip-term" data-tooltip="使用 & 符号组合多个类型。">交叉类型</span> <code>&</code></td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200 bg-gray-50">
+                                        <td class="p-2 border border-gray-300">类实现</td>
+                                        <td class="p-2 border border-gray-300"><code>implements</code></td>
+                                        <td class="p-2 border border-gray-300"><code>implements</code> (用于对象形状)</td>
+                                    </tr>
+                                     <tr class="border-b border-gray-200">
+                                        <td class="p-2 border border-gray-300">定义非对象类型</td>
+                                        <td class="p-2 border border-gray-300">不支持</td>
+                                        <td class="p-2 border border-gray-300"><strong>支持</strong> (联合, 元组, 映射等)</td>
+                                    </tr>
+                                     <tr class="bg-gray-50">
+                                        <td class="p-2 border border-gray-300">错误提示</td>
+                                        <td class="p-2 border border-gray-300">通常更直接</td>
+                                        <td class="p-2 border border-gray-300">可能较复杂</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mermaid" id="mermaid-interface-merge">
+                        graph TD
+                            subgraph "Interface Box"
+                                A[width: number]
+                            end
+                            subgraph "Interface Box (再次声明)"
+                                B[height: number]
+                            end
+                            subgraph "合并后的 Box"
+                                C[width: number<br>height: number]
+                            end
+                            A -- 合并 --> C;
+                            B -- 合并 --> C;
+
+                            style A fill:#dbeafe,stroke:#60a5fa
+                            style B fill:#dbeafe,stroke:#60a5fa
+                            style C fill:#bfdbfe,stroke:#3b82f6,stroke-width:2px
+                        </div>
+                        <pre class="mt-4"><code class="language-typescript">// 区别示例
+
+// 1. 声明合并 (Interface 支持)
+interface Box { width: number; }
+interface Box { height: number; } // OK, Box 现在有 width 和 height
+let box: Box = { width: 10, height: 20 };
+
+// type Shape = { color: string; };
+// type Shape = { area: number; }; // Error: Duplicate identifier 'Shape'.
+
+// 2. 扩展
+interface Animal { name: string; }
+interface Dog extends Animal { bark(): void; } // Interface extends Interface
+
+type Bird = { wingspan: number; };
+type FlyingBird = Bird & { fly(): void; }; // Type uses intersection (&)
+
+interface Cat extends Bird { meow(): void; } // Interface can extend Type
+type Fish = Animal & { swim(): void; }; // Type can use intersection with Interface
+
+// 3. 实现 (两者皆可用于对象形状)
+class Labrador implements Dog { /* ... */ }
+type CarShape = { wheels: number; drive(): void; };
+class Sedan implements CarShape { /* ... */ }
+</code></pre>
+                        <p class="mt-4 text-sm text-gray-700"><b>总结:</b> Interface 的声明合并特性使其在为第三方库或原生对象（如 `window`）添加属性时特别有用。Type Alias 在定义联合类型、交叉类型或为复杂类型提供易读名称时更灵活。</p>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3">如何选择？</h3>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-gray-700">
+                            <li><strong>优先使用 <code>interface</code></strong>：当你定义对象的形状或类的结构时，特别是希望利用声明合并或面向对象的继承特性时。这是 TypeScript 社区中描述对象结构的更常见方式。</li>
+                            <li><strong>使用 <code>type</code></strong>：当你需要定义联合类型、交叉类型、元组、映射类型，或者仅仅是为基本类型或其他复杂类型提供一个更简洁的别名时。</li>
+                            <li><strong>一致性：</strong> 在项目中保持一致性也很重要。如果团队或代码库已经倾向于使用其中一种，遵循现有约定。</li>
+                        </ul>
+                        <p class="mt-4 text-sm font-medium text-gray-800">🎯 核心：两者都能描述对象形状。<code>Interface</code> 支持声明合并，常用于对象/类结构；<code>Type</code> 更通用，可用于联合、交叉、元组等，不支持合并。根据场景和团队约定选择。</p>
+                    </div>
+                     <div class="quiz-card" id="quiz-interface-type">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>对比测验： 哪个特性是 <code>Interface</code> 独有而 <code>Type Alias</code> 不支持的？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"><input type="radio" name="q_interface_type" value="a"><span>定义对象形状</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_interface_type" value="b"><span>定义联合类型</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_interface_type" value="c"><span>声明合并 (Declaration Merging)</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_interface_type" value="d"><span>使用交叉类型进行扩展</span></label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_interface_type"></div>
+                        <button class="quiz-toggle button button-secondary mt-4" onclick="checkAnswer('q_interface_type', 'c')">
+                             <span class="material-icons icon-arrow">expand_more</span><span class="button-text">检查答案</span>
+                        </button>
+                         <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> C. 声明合并 (Declaration Merging)</p>
+                            <p><strong>解析:</strong> 声明合并是 Interface 的一个独特特性，允许你多次声明同名的接口，它们的成员会自动合并。Type Alias 不支持声明合并，重复声明同名 Type Alias 会导致编译错误。两者都可以定义对象形状，但 Type Alias 更擅长定义联合类型，而扩展方式不同（Interface 用 `extends`，Type 用 `&`）。</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="function-types" class="content-section fade-in-section" style="animation-delay: 0.25s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-icons">functions</span>函数类型
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <p class="mb-4">TypeScript 允许我们为函数定义类型，包括参数的类型和返回值的类型，增强了函数调用的安全性和可预测性。</p>
+
+                    <div class="content-card">
+                        <h3 class="head3">为函数添加类型</h3>
+                        <pre><code class="language-typescript">// 1. 命名函数
+function add(x: number, y: number): number {
+  return x + y;
+}
+
+// 2. 匿名函数 (函数表达式)
+let multiply = function(x: number, y: number): number {
+  return x * y;
+};
+
+// 3. 箭头函数
+let subtract = (x: number, y: number): number => {
+  return x - y;
+};
+
+// 4. 类型推断 (如果函数体能明确推断出返回类型，可以省略显式注解)
+let divide = (x: number, y: number) => { // TypeScript 推断返回类型为 number
+  if (y === 0) throw new Error("Cannot divide by zero");
+  return x / y;
+};
+
+// 5. void 返回类型 (函数不返回任何有意义的值)
+function logMessage(message: string): void {
+  console.log(message);
+  // 没有 return 语句，或 return; 或 return undefined;
+}
+</code></pre>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3">定义函数类型</h3>
+                        <p>我们可以像定义其他类型一样，定义一个函数的<span class="tooltip-term" data-tooltip="描述函数的参数类型和返回值类型的结构。">类型签名</span>。</p>
+                        <pre><code class="language-typescript">// 使用类型别名定义函数类型
+type MathOperation = (a: number, b: number) => number;
+
+let performOp: MathOperation;
+
+performOp = add; // OK
+performOp = multiply; // OK
+// performOp = logMessage; // Error: Type '(message: string) => void' is not assignable to type 'MathOperation'.
+
+console.log(performOp(5, 3)); // 调用
+
+// 使用接口定义函数类型 (较少见，但可行)
+interface StringFormatter {
+  (input: string, uppercase: boolean): string; // 注意：这是调用签名
+}
+
+let format: StringFormatter;
+format = (str, upper) => {
+  return upper ? str.toUpperCase() : str.toLowerCase();
+};
+
+console.log(format("Hello World", true)); // HELLO WORLD
+</code></pre>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="head3">可选参数和默认参数</h3>
+                        <p>TypeScript 支持可选参数和默认参数，语法与 JavaScript 类似，但带有类型。</p>
+                         <pre><code class="language-typescript">// 可选参数 (使用 ?) - 必须放在必需参数后面
+function buildName(firstName: string, lastName?: string): string {
+    if (lastName) {
+        return firstName + " " + lastName;
+    } else {
+        return firstName;
+    }
+}
+let result1 = buildName("Bob"); // OK, lastName is optional
+let result2 = buildName("Bob", "Adams"); // OK
+
+// 默认参数 - 如果调用者未提供或提供了 undefined，则使用默认值
+// 带有默认值的参数会自动变为可选参数，可以放在必需参数前面或中间
+function calculatePower(base: number, exponent: number = 2): number {
+    return Math.pow(base, exponent);
+}
+let power1 = calculatePower(10); // 100 (10^2)
+let power2 = calculatePower(10, 3); // 1000 (10^3)
+let power3 = calculatePower(10, undefined); // 100 (使用默认值 2)
+</code></pre>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="head3">剩余参数 (Rest Parameters)</h3>
+                        <p>用于处理传递给函数的不定数量的参数。剩余参数必须是最后一个参数，并且类型是数组。</p>
+                         <pre><code class="language-typescript">function sumAll(...numbers: number[]): number {
+    let total = 0;
+    for (const num of numbers) {
+        total += num;
+    }
+    return total;
+}
+
+console.log(sumAll(1, 2, 3)); // 6
+console.log(sumAll(10, 20)); // 30
+console.log(sumAll()); // 0
+
+function buildMessage(greeting: string, ...names: string[]): string {
+    return greeting + " " + names.join(", ") + "!";
+}
+console.log(buildMessage("Hello", "Alice", "Bob")); // "Hello Alice, Bob!"
+</code></pre>
+                    </div>
+                </section>
+
+                <section id="enums" class="content-section fade-in-section" style="animation-delay: 0.3s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-icons">pin</span>枚举 (Enum)
+                        <span class="level-tag level-tag-low">低频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <p class="mb-4">枚举（Enum）是 TypeScript 添加的特性（JavaScript 原生没有），允许我们定义一组命名的常量。使用枚举可以增加代码的可读性和可维护性，避免使用<span class="tooltip-term" data-tooltip="直接在代码中使用难以理解的数字或字符串字面量，如用 0, 1, 2 代表状态。">魔法数字/字符串</span>。</p>
+
+                    <div class="content-card">
+                        <h3 class="head3">数字枚举 (Numeric Enums)</h3>
+                        <p>默认情况下，枚举成员会从 0 开始自动递增编号。它们具有<span class="tooltip-term" data-tooltip="可以通过成员名获取值，也可以通过值获取成员名。">反向映射</span>的特性。</p>
+                        <pre><code class="language-typescript">enum Direction {
+  Up,    // 0
+  Down,  // 1
+  Left,  // 2
+  Right  // 3
+}
+
+let move: Direction = Direction.Left;
+console.log(move); // 输出: 2
+
+// 可以手动设置初始值
+enum ResponseStatus {
+  No = 0,
+  Yes = 1,
+}
+
+// 也可以只设置部分值
+enum StatusCodes {
+  OK = 200,
+  BadRequest = 400,
+  Unauthorized, // 401 (自动递增)
+  NotFound      // 402 (自动递增)
+}
+console.log(StatusCodes.Unauthorized); // 输出: 401
+
+// 反向映射: 通过值获取名称
+console.log(Direction[0]); // 输出: "Up"
+console.log(StatusCodes[200]); // 输出: "OK"
+// console.log(StatusCodes[401]); // 输出: "Unauthorized"
+</code></pre>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 class="head3">字符串枚举 (String Enums)</h3>
+                        <p>枚举成员可以使用字符串值初始化。字符串枚举没有反向映射，通常更易于调试（日志中直接显示字符串）。</p>
+                        <pre><code class="language-typescript">enum LogLevel {
+  Info = "INFO",
+  Warning = "WARN",
+  Error = "ERROR"
+}
+
+let level: LogLevel = LogLevel.Warning;
+console.log(level); // 输出: "WARN"
+
+// 字符串枚举没有反向映射
+// console.log(LogLevel["WARN"]); // Error or undefined
+</code></pre>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">常量枚举 (Const Enums)</h3>
+                        <p>使用 <code>const</code> 关键字定义的枚举。它们在编译后会被<strong>完全移除</strong>，成员的值会直接<span class="tooltip-term" data-tooltip="在编译时将枚举成员的引用替换为其具体的值。">内联</span>到使用处，可以提高性能，减少生成的 JavaScript 代码量。</p>
+                         <pre><code class="language-typescript">const enum FileAccess {
+    Read = 1,
+    Write = 2,
+    ReadWrite = Read | Write // 可以包含计算成员
+}
+
+let accessMode = FileAccess.ReadWrite;
+console.log(accessMode); // 在使用处，FileAccess.ReadWrite 会被替换为 3
+
+// 编译后的 JavaScript (大致):
+// let accessMode = 3; // FileAccess.ReadWrite 的值 (1 | 2 = 3) 被内联
+// console.log(accessMode);
+// 枚举 FileAccess 本身在编译结果中不存在
+</code></pre>
+                         <p class="mt-4 text-sm font-medium text-gray-800">🎯 核心：枚举提供了一种为一组数值或字符串常量赋予友好名称的方式。数字枚举有反向映射，字符串枚举更直观。常量枚举在编译时被移除以优化性能。</p>
+                    </div>
+                     <div class="quiz-card" id="quiz-enum">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>枚举测验： 下面关于 TypeScript 枚举的说法哪个是<b>错误</b>的？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"><input type="radio" name="q_enum" value="a"><span>数字枚举默认从 0 开始递增。</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_enum" value="b"><span>字符串枚举具有反向映射特性。</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_enum" value="c"><span>可以使用 <code>const enum</code> 来优化编译后的代码。</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_enum" value="d"><span>枚举有助于提高代码可读性，避免魔法数字。</span></label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_enum"></div>
+                        <button class="quiz-toggle button button-secondary mt-4" onclick="checkAnswer('q_enum', 'b')">
+                             <span class="material-icons icon-arrow">expand_more</span><span class="button-text">检查答案</span>
+                        </button>
+                         <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> B. 字符串枚举具有反向映射特性。</p>
+                            <p><strong>解析:</strong> 只有数字枚举才具有反向映射（可以通过值获取成员名）。字符串枚举不具备这个特性。其他选项都是正确的：数字枚举默认从 0 递增，`const enum` 会在编译时内联值并移除枚举本身，枚举的主要目的之一就是提高可读性。</p>
+                        </div>
+                    </div>
+                </section>
+
+            </article>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        // Initialize Mermaid - explicitly tell it NOT to start on load
+        // We will call mermaid.run() manually after the DOM is ready
+        mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+
+        // Function to render Mermaid diagrams
+        async function renderMermaidDiagrams() {
+            try {
+                console.log("Attempting to render Mermaid diagrams...");
+                // *** FIX: Explicitly provide the querySelector for mermaid elements ***
+                await mermaid.run({
+                    querySelector: '.mermaid'
+                });
+                console.log("Mermaid diagrams rendered successfully.");
+            } catch (error) {
+                console.error("Error rendering Mermaid diagrams:", error);
+                // Optionally display an error message to the user on the page
+                const mermaidElements = document.querySelectorAll('.mermaid');
+                mermaidElements.forEach(el => {
+                    // Check if the element doesn't contain an SVG (indicating rendering failed)
+                    if (!el.querySelector('svg')) {
+                         el.innerHTML = `<div class="text-red-500 p-2 border border-red-300 rounded bg-red-50 text-xs">Error rendering diagram. Check console for details. Original code:<pre>${el.textContent || ''}</pre></div>`;
+                    }
+                });
+            }
+        }
+
+        // --- General Page Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- TOC Highlighting Logic ---
+            const sections = document.querySelectorAll('main section[id]');
+            const tocLinks = document.querySelectorAll('#local-toc a');
+            let lastActiveTocLink = null;
+
+            const deactivateTocLinks = () => {
+                tocLinks.forEach(link => link.classList.remove('active'));
+            };
+
+            // Adjust rootMargin: top margin should be negative and slightly less than scroll-padding-top
+            // bottom margin should be negative to trigger earlier when scrolling up
+            // e.g., '-100px 0px -40% 0px' means active when top 100px of section is visible or bottom 40% is visible
+            const tocObserverOptions = {
+                root: null, // viewport
+                rootMargin: '-100px 0px -50% 0px', // Adjust based on your sticky header height and desired trigger points
+                threshold: 0 // Trigger as soon as any part enters/leaves the margin
+            };
+
+            const tocObserverCallback = (entries) => {
+                 let visibleSections = [];
+                 entries.forEach(entry => {
+                     if (entry.isIntersecting) {
+                         visibleSections.push(entry);
+                     }
+                 });
+
+                 // Sort visible sections by their top position
+                 visibleSections.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+                 // The "best" section to highlight is usually the topmost visible one
+                 const bestVisibleEntry = visibleSections.length > 0 ? visibleSections[0] : null;
+
+                 if (bestVisibleEntry) {
+                     const id = bestVisibleEntry.target.getAttribute('id');
+                     const activeLink = document.querySelector(`#local-toc a[href="#${id}"]`);
+                     if (activeLink && activeLink !== lastActiveTocLink) {
+                         deactivateTocLinks();
+                         activeLink.classList.add('active');
+                         lastActiveTocLink = activeLink;
+                         // Optional: Scroll sidebar if needed
+                         // activeLink.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                     }
+                 } else if (!entries.some(e => e.isIntersecting) && lastActiveTocLink && window.scrollY === 0) {
+                     // If scrolled to the very top and no sections are intersecting, activate the first link
+                     deactivateTocLinks();
+                     if(tocLinks.length > 0) {
+                        tocLinks[0].classList.add('active');
+                        lastActiveTocLink = tocLinks[0];
+                     }
+                 }
+            };
+
+            const tocObserver = new IntersectionObserver(tocObserverCallback, tocObserverOptions);
+            sections.forEach(section => tocObserver.observe(section));
+
+            // Set initial active link based on hash or first item
+            const currentHash = window.location.hash;
+            let initialLinkFound = false;
+            if (currentHash) {
+                const initialActiveLink = document.querySelector(`#local-toc a[href="${currentHash}"]`);
+                if (initialActiveLink) {
+                    deactivateTocLinks();
+                    initialActiveLink.classList.add('active');
+                    lastActiveTocLink = initialActiveLink;
+                    initialLinkFound = true;
+                }
+            }
+            // If no hash or hash link not found, activate the first link
+            if (!initialLinkFound && tocLinks.length > 0) {
+                 deactivateTocLinks();
+                 tocLinks[0].classList.add('active');
+                 lastActiveTocLink = tocLinks[0];
+            }
+
+            // --- Fade-in Animation Logic ---
+            const mainContentSections = document.querySelectorAll('main > article > section.content-section');
+            const fadeObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 }; // Trigger when 10% visible
+            const fadeObserverCallback = (entries, observer) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        // Calculate delay based on the actual index in the observed collection
+                        const delayIndex = Array.from(mainContentSections).indexOf(entry.target);
+                        entry.target.style.animation = `fadeIn 0.5s ease-out ${delayIndex * 0.08}s forwards`; // Apply animation with delay
+                        observer.unobserve(entry.target); // Stop observing once animated
+                    }
+                });
+            };
+            const fadeObserver = new IntersectionObserver(fadeObserverCallback, fadeObserverOptions);
+            mainContentSections.forEach(section => {
+                section.style.opacity = '0'; // Ensure sections start hidden before animation
+                fadeObserver.observe(section)
+            });
+
+
+            // --- Ripple Effect Logic ---
+            function createRipple(event) {
+                const button = event.currentTarget;
+                // Ensure it's a button or element with getBoundingClientRect
+                if (!button || typeof button.getBoundingClientRect !== 'function') return;
+
+                const circle = document.createElement("span");
+                const diameter = Math.max(button.clientWidth, button.clientHeight);
+                const radius = diameter / 2;
+
+                 // Get primary color RGB from CSS variable, provide fallback
+                 let primaryColorRgb = getComputedStyle(document.documentElement).getPropertyValue('--primary-color-rgb').trim() || '59, 130, 246'; // Default blue
+
+                circle.style.width = circle.style.height = `${diameter}px`;
+                const rect = button.getBoundingClientRect();
+                // Calculate click position relative to the button
+                circle.style.left = `${event.clientX - rect.left - radius}px`;
+                circle.style.top = `${event.clientY - rect.top - radius}px`;
+                circle.style.backgroundColor = `rgba(${primaryColorRgb}, 0.4)`;
+                circle.classList.add("ripple");
+
+                // Remove any previous ripple to prevent buildup
+                const existingRipple = button.querySelector(".ripple");
+                if (existingRipple) existingRipple.remove();
+
+                button.appendChild(circle);
+
+                // Remove the ripple span after the animation completes
+                setTimeout(() => circle.remove(), 600); // Match animation duration
+            }
+
+            // Attach ripple effect to all elements with class 'button' or 'quiz-option'
+            document.querySelectorAll('.button, .quiz-option').forEach(element => {
+                 element.addEventListener('click', (e) => {
+                     // For quiz options, prevent ripple if clicking directly on the radio button itself
+                     if (element.classList.contains('quiz-option') && e.target.tagName === 'INPUT') {
+                         return;
+                     }
+                     createRipple(e);
+                 });
+            });
+
+
+            // --- Quiz Toggle Logic ---
+            window.toggleAnswer = function(quizId, buttonElement) { // Make global for onclick
+                const quizCard = document.getElementById(quizId);
+                if (!quizCard) return;
+                const answer = quizCard.querySelector('.quiz-answer');
+                const icon = buttonElement.querySelector('.icon-arrow');
+                const buttonTextSpan = buttonElement.querySelector('.button-text');
+                if (!answer || !icon || !buttonTextSpan) return;
+
+                const isVisible = answer.classList.contains('visible');
+                if (isVisible) {
+                    // Start hiding animation
+                    answer.style.maxHeight = '0';
+                    answer.style.opacity = '0';
+                    answer.style.marginTop = '0';
+                    answer.style.paddingTop = '0';
+                    answer.style.paddingBottom = '0';
+                    answer.classList.remove('visible');
+                    icon.classList.remove('rotated');
+                    buttonTextSpan.textContent = '检查答案'; // Reset text
+
+                    // Set display to none after transition ends for accessibility and layout
+                    setTimeout(() => {
+                        if (!answer.classList.contains('visible')) { // Check again in case it was quickly reopened
+                            answer.style.display = 'none';
+                        }
+                    }, 500); // Match transition duration
+                } else {
+                    // Prepare to show
+                    answer.style.display = 'block'; // Make it visible for height calculation
+
+                    // Use requestAnimationFrame to ensure 'display: block' is applied before setting maxHeight
+                    requestAnimationFrame(() => {
+                        answer.style.paddingTop = '1rem';
+                        answer.style.paddingBottom = '1rem';
+                        answer.style.marginTop = '1rem';
+                        answer.style.maxHeight = answer.scrollHeight + 'px'; // Set max-height to content height
+                        answer.style.opacity = '1';
+                        answer.classList.add('visible');
+                        icon.classList.add('rotated');
+                        buttonTextSpan.textContent = '隐藏答案';
+                    });
+                }
+            }
+
+            // --- Quiz Check Answer Logic ---
+            window.checkAnswer = function(questionName, correctAnswerValue) { // Make global for onclick
+                const options = document.querySelectorAll(`input[name="${questionName}"]`);
+                const feedbackElement = document.getElementById(`feedback-${questionName}`);
+                const quizCard = feedbackElement ? feedbackElement.closest('.quiz-card') : null;
+                const toggleButton = quizCard?.querySelector('.quiz-toggle');
+                let selectedValue = null;
+                let selectedLabel = null;
+
+                if (!feedbackElement || !quizCard || !toggleButton) {
+                    console.error("Quiz elements not found for:", questionName);
+                    return;
+                }
+
+                // Reset previous feedback and styles
+                quizCard.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+                feedbackElement.textContent = "";
+                feedbackElement.style.display = 'none'; // Hide feedback initially
+
+                options.forEach(option => {
+                    if (option.checked) {
+                        selectedValue = option.value;
+                        selectedLabel = option.closest('.quiz-option');
+                        if (selectedLabel) selectedLabel.classList.add('selected');
+                    }
+                });
+
+                if (!selectedValue) {
+                    feedbackElement.textContent = "请选择一个选项！";
+                    feedbackElement.className = 'quiz-feedback warning'; // Use a distinct style for warnings
+                    feedbackElement.style.display = 'block';
+                    return; // Don't proceed further or toggle answer if nothing selected
+                }
+
+                let correctAnswerLabel = null;
+                options.forEach(opt => { if (opt.value === correctAnswerValue) correctAnswerLabel = opt.closest('.quiz-option'); });
+
+                if (selectedValue === correctAnswerValue) {
+                    feedbackElement.textContent = "回答正确！🎉";
+                    feedbackElement.className = 'quiz-feedback correct';
+                    if(selectedLabel) selectedLabel.classList.add('correct');
+                } else {
+                    let correctAnswerText = '';
+                    if (correctAnswerLabel) {
+                        correctAnswerText = correctAnswerLabel.querySelector('span')?.textContent || `选项 ${correctAnswerValue}`;
+                        correctAnswerLabel.classList.add('correct'); // Highlight the correct answer as well
+                    } else {
+                         correctAnswerText = `选项 ${correctAnswerValue}`; // Fallback if label not found
+                    }
+                    feedbackElement.textContent = `回答错误。🤔 正确答案是: "${correctAnswerText}"`;
+                    feedbackElement.className = 'quiz-feedback incorrect';
+                    if(selectedLabel) selectedLabel.classList.add('incorrect');
+                }
+                feedbackElement.style.display = 'block'; // Show feedback
+
+                // Automatically toggle the answer section visibility *after* checking
+                // Ensure the answer is not already visible before toggling
+                const answerSection = quizCard.querySelector('.quiz-answer');
+                if (answerSection && !answerSection.classList.contains('visible')) {
+                    toggleAnswer(quizCard.id, toggleButton);
+                } else if (answerSection && answerSection.classList.contains('visible')) {
+                     // Optional: If answer is already visible, maybe just update button text?
+                     const buttonTextSpan = toggleButton.querySelector('.button-text');
+                     if (buttonTextSpan) buttonTextSpan.textContent = '隐藏答案';
+                }
+            }
+
+
+            // --- Render Mermaid Diagrams ---
+            // Call the function to render diagrams now that the DOM is ready
+            renderMermaidDiagrams();
+
+            // --- Prism.js Initialization ---
+            // Autoloader should handle highlighting automatically
+            // If you find code blocks aren't highlighted, uncommenting this might help,
+            // but it's usually not needed with the autoloader.
+            // Prism.highlightAll();
+
+            console.log("Page loaded and scripts initialized.");
+        });
+    </script>
+</body>
+
+</html>

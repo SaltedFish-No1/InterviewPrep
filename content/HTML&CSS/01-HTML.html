@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML 面试知识点 (改进版 v2)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../../global.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.min.js"></script>
+
+    <style>
+        /* Minimal inline styles - Primarily rely on global.css and Tailwind */
+
+        /* --- Base & Layout Adjustments --- */
+        html {
+            scroll-padding-top: 6rem;
+            /* Adjust based on potential sticky nav height */
+            font-family: 'Inter', sans-serif;
+            /* Ensure Inter font is applied */
+        }
+
+        body {
+            /* Base font, bg, color assumed from global.css */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            scroll-behavior: smooth;
+            background-color: var(--bg-color-lighter, #f3f4f6);
+            /* Fallback color */
+        }
+
+        /* --- Typography & Content --- */
+        /* Use heading classes from global.css */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            scroll-margin-top: 6rem;
+            /* Offset for sticky nav */
+        }
+
+        /* Ensure consistent spacing and borders for H2, similar to 01-Network-Basics.html */
+        h2.head2 {
+            border-bottom: 1px solid var(--border-color-light, #e5e7eb);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        h2.head2 .material-icons {
+            font-size: 1.75rem;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+            color: var(--primary-color, #3b82f6);
+        }
+
+        /* Ensure consistent card title styling */
+        .content-card h3.head3 {
+            margin-top: 0;
+            /* Reset top margin as card handles spacing */
+            margin-bottom: 1rem;
+            color: var(--primary-color-dark, #2563eb);
+            /* Use a distinct color for card titles */
+            font-size: 1.25rem;
+            /* Ensure size consistency */
+            font-weight: 600;
+            /* font-semibold */
+        }
+
+        /* Style for frequency/level tags (copied from 01-Network-Basics.html) */
+        .level-tag {
+            display: inline-block;
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            /* text-xs */
+            font-weight: 500;
+            /* font-medium */
+            padding: 0.1rem 0.5rem;
+            border-radius: 0.25rem;
+            /* rounded-sm */
+            vertical-align: middle;
+            border: 1px solid transparent;
+        }
+
+        .level-tag-high {
+            background-color: var(--danger-color-light, #fee2e2);
+            color: var(--danger-color, #ef4444);
+            border-color: var(--danger-color, #ef4444);
+        }
+
+        .level-tag-medium {
+            background-color: var(--warning-color-light, #fff7ed);
+            color: var(--warning-color, #f97316);
+            border-color: var(--warning-color, #f97316);
+        }
+
+        .level-tag-low {
+            background-color: var(--secondary-color-light, #ecfdf5);
+            color: var(--secondary-color, #10b981);
+            border-color: var(--secondary-color, #10b981);
+        }
+
+        .level-tag-base {
+            background-color: var(--bg-color-lighter, #f3f4f6);
+            color: var(--text-color-light, #6b7280);
+            border-color: var(--border-color-default, #d1d5db);
+        }
+
+        .level-tag-advanced {
+            background-color: var(--primary-color-light, #eff6ff);
+            color: var(--primary-color-dark, #2563eb);
+            border-color: var(--primary-color, #3b82f6);
+        }
+
+        /* --- Fade-in Animation --- */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-section {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* --- Content Card Adjustments --- */
+        /* Use .content-card from global.css, ensure shadow is sufficient */
+        .content-card {
+            box-shadow: var(--card-shadow-default, 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1));
+            /* Ensure default shadow is applied */
+        }
+
+        .content-section>.content-card+.content-card {
+            margin-top: 1.5rem;
+            /* Space between cards within the same section */
+        }
+
+        /* Remove bottom margin from last element inside a card */
+        .content-card>*:last-child {
+            margin-bottom: 0 !important;
+            /* Use !important if needed */
+        }
+
+        /* --- List Styling within Content --- */
+        /* Use .prose or .content-main styles from global.css */
+
+        /* --- Code Block Styling --- */
+        /* Use pre and code styles from global.css and Prism theme */
+        pre[class*="language-"] {
+            margin: 1em 0;
+            border-radius: 0.375rem;
+            /* rounded-md */
+            border: 1px solid var(--border-color-dark, #9ca3af);
+            /* Add subtle border */
+        }
+
+        *:not(pre)>code {
+            background-color: rgba(17, 24, 39, 0.05);
+            /* Light gray background */
+            color: #DC2626;
+            /* Reddish text color */
+            padding: 0.1em 0.3em;
+            border-radius: 0.25rem;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9em;
+            /* Slightly smaller */
+        }
+
+        /* --- Table Styling --- */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color-default, #d1d5db);
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border-color-default, #d1d5db);
+            padding: 0.5rem 0.75rem;
+            /* Use p-2 px-3 */
+            text-align: left;
+            vertical-align: top;
+            /* Align content to top */
+        }
+
+        th {
+            background-color: var(--bg-color-lighter, #f3f4f6);
+            font-weight: 600;
+            /* font-semibold */
+        }
+
+        tbody tr:nth-child(odd) {
+            background-color: var(--bg-color-light, #f9fafb);
+        }
+
+        tbody tr:hover {
+            background-color: #eff6ff;
+            /* Tailwind blue-50 */
+        }
+
+        caption {
+            caption-side: bottom;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            /* text-sm */
+            color: var(--text-color-light, #6b7280);
+        }
+
+        /* --- Tooltips (Copied from example.html) --- */
+        .tooltip-term {
+            border-bottom: 1px dotted var(--primary-color, #3b82f6);
+            cursor: help;
+            position: relative;
+            color: var(--primary-color-dark, #2563eb);
+            font-weight: 500;
+        }
+
+        .tooltip-term::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 0.4rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            z-index: 10;
+            pointer-events: none;
+            /* Prevent tooltip from interfering with hover */
+        }
+
+        .tooltip-term::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(0px);
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .tooltip-term:hover::before,
+        .tooltip-term:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* --- Quiz Card Styling (Copied & adapted from example.html & global.css) --- */
+        .quiz-toggle {
+            position: relative;
+            overflow: hidden;
+            min-width: 120px;
+            justify-content: space-between;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.4);
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .quiz-toggle .material-icons {
+            font-size: 1.1rem;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .quiz-toggle .icon-arrow.rotated {
+            transform: rotate(180deg);
+        }
+
+        .quiz-answer {
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, padding-top 0.5s ease-in-out, padding-bottom 0.5s ease-in-out, margin-top 0.5s ease-in-out;
+            overflow: hidden;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            border-top: 1px solid var(--border-color-light, #e5e7eb);
+        }
+
+        .quiz-answer.visible {
+            max-height: 1000px;
+            opacity: 1;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            margin-top: 1rem;
+            overflow: auto;
+        }
+
+        .quiz-card {
+            background-color: var(--quiz-bg, var(--primary-color-light));
+            border-left: 4px solid var(--quiz-border-color, var(--primary-color));
+        }
+
+        .quiz-question {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-color-dark);
+            margin-bottom: 1.25rem;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .quiz-option {
+            display: block;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color-default);
+            border-radius: 0.375rem;
+            background-color: white;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .quiz-option:hover {
+            background-color: var(--quiz-option-hover-bg, rgba(59, 130, 246, 0.1));
+            border-color: var(--primary-color);
+        }
+
+        .quiz-option input[type="radio"] {
+            margin-right: 0.75rem;
+            width: 1rem;
+            height: 1rem;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .quiz-option span {
+            flex-grow: 1;
+            cursor: pointer;
+            color: var(--text-color-default);
+        }
+
+        .quiz-option.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(59, 130, 246, 0.15);
+        }
+
+        .quiz-option.selected span {
+            font-weight: 500;
+        }
+
+        .quiz-option.correct {
+            border-color: var(--success-color, #10b981);
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+
+        .quiz-option.incorrect {
+            border-color: var(--danger-color, #ef4444);
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        .quiz-feedback {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: none;
+        }
+
+        .quiz-feedback.correct {
+            background-color: var(--quiz-feedback-correct-bg, var(--secondary-color-light));
+            color: var(--quiz-feedback-correct-text, var(--secondary-color));
+            border: 1px solid var(--success-color, #10b981);
+        }
+
+        .quiz-feedback.incorrect {
+            background-color: var(--quiz-feedback-incorrect-bg, var(--danger-color-light));
+            color: var(--quiz-feedback-incorrect-text, var(--danger-color));
+            border: 1px solid var(--danger-color, #ef4444);
+        }
+
+        .quiz-feedback.warning {
+            background-color: var(--warning-color-light, #fff7ed);
+            color: var(--warning-color, #f97316);
+            border: 1px solid var(--warning-color, #f97316);
+        }
+
+        /* --- Interview Point Emphasis --- */
+        .interview-point {
+            border-left: 3px solid var(--primary-color, #3b82f6);
+            padding-left: 0.75rem;
+            /* pl-3 */
+            margin-top: 1rem;
+            /* mt-4 */
+            font-size: 0.95em;
+            color: var(--text-color-default, #374151);
+            background-color: var(--primary-color-light, #eff6ff);
+            /* Light blue background */
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            padding-right: 0.75rem;
+            border-radius: 0 0.25rem 0.25rem 0;
+            /* Slight rounding */
+        }
+
+        .interview-point strong {
+            color: var(--primary-color-dark, #2563eb);
+            font-weight: 600;
+            /* font-semibold */
+        }
+
+        /* --- Mermaid Diagram Styling --- */
+        .mermaid {
+            margin: 1.5rem 0;
+            /* Add some vertical spacing */
+            text-align: center;
+            /* Center the diagram */
+            background-color: var(--bg-color-light, #f9fafb);
+            /* Light background for contrast */
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color-light, #e5e7eb);
+            overflow-x: auto;
+            /* Ensure horizontal scroll if needed */
+        }
+
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <div class="page-container">
+
+        <aside class="local-side-nav">
+            <h4 class="head4">HTML 面试核心</h4>
+            <ul id="local-toc">
+                <li><a href="#intro" class="active"><span class="material-icons nav-icon">code</span>简介</a></li>
+                <li><a href="#semantic"><span class="material-icons nav-icon">bookmark</span>语义化标签</a></li>
+                <li><a href="#doctype-viewport-a11y"><span class="material-icons nav-icon">checklist</span>文档基础与可访问性</a>
+                </li>
+                <li><a href="#forms"><span class="material-icons nav-icon">list_alt</span>表单</a></li>
+                <li><a href="#images"><span class="material-icons nav-icon">image</span>图像</a></li>
+                <li><a href="#links-lists"><span class="material-icons nav-icon">link</span>链接与列表</a></li>
+                <li><a href="#tables"><span class="material-icons nav-icon">table_chart</span>表格</a></li>
+                <li><a href="#block-inline"><span class="material-icons nav-icon">space_bar</span>块级/内联/盒模型</a></li>
+                <li><a href="#important-others"><span class="material-icons nav-icon">extension</span>其他重要特性</a></li>
+            </ul>
+            <a href="../../index.html" class="back-link">
+                &larr; 返回大纲目录
+            </a>
+        </aside>
+
+        <main class="content-main">
+            <article>
+                <section id="intro" class="content-section fade-in-section" style="animation-delay: 0s;">
+                    <h1 class="head1 flex items-center gap-2">
+                        <span class="material-icons text-3xl text-blue-600">code</span>(一) HTML 面试核心知识点
+                    </h1>
+                    <p>HTML (HyperText Markup Language) 是构建 Web 页面的骨架。掌握其核心概念和最佳实践对于前端和全栈开发至关重要。本节梳理了面试中常见且重要的 HTML
+                        基础知识。</p>
+                    <p class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md text-sm">💡
+                        <strong>提示:</strong> 点击左侧导航可以快速跳转。括号内标注了知识点的重要程度。悬停在 <span class="tooltip-term"
+                            data-tooltip="像这样! 点击带下划线的术语可以查看解释。">关键术语</span> 上可查看解释。尝试章节末尾的测验巩固知识。
+                    </p>
+                </section>
+
+                <section id="semantic" class="content-section fade-in-section" style="animation-delay: 0.05s;">
+                    <h2 class="head2 flex items-center">
+                        <span class="material-icons">bookmark</span>HTML 语义化
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">什么是语义化标签？</h3>
+                        <p>语义化标签是指那些自身就带有明确含义的 HTML 标签。它们清晰地描述了其内容的角色或结构，例如 <code>&lt;header&gt;</code>
+                            表示页眉，<code>&lt;nav&gt;</code> 表示导航链接，<code>&lt;article&gt;</code> 表示独立的文章内容。</p>
+                        <p>使用语义化标签的主要目的是为了让机器（如<span class="tooltip-term"
+                                data-tooltip="搜索引擎爬虫，用于索引网页内容">搜索引擎</span>、<span class="tooltip-term"
+                                data-tooltip="为视障用户朗读屏幕内容的软件">屏幕阅读器</span>）和人（开发者）都能更好地理解网页的结构和内容。</p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">为什么要使用语义化标签？</h3>
+                        <ul>
+                            <li><strong><span class="tooltip-term"
+                                        data-tooltip="Search Engine Optimization: 优化网站以提高在搜索引擎结果中的排名">SEO</span>
+                                    (搜索引擎优化):</strong> 搜索引擎更容易理解页面结构，有助于提升排名。</li>
+                            <li><strong><span class="tooltip-term"
+                                        data-tooltip="Accessibility: 确保网站对所有用户，包括残障人士，都可用">可访问性 (a11y)</span>:</strong>
+                                屏幕阅读器等辅助技术可以更好地解析页面，为残障人士提供更好的体验。</li>
+                            <li><strong>代码可读性与可维护性:</strong> 结构清晰，方便开发者理解和协作。</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">常用语义化标签及区别</h3>
+                        <p>以下是一些 HTML5 中引入的常用语义化标签：</p>
+                        <pre><code class="language-html">&lt;body&gt;
+    &lt;header&gt;... 页眉 (Logo, 标题, 主导航) ...&lt;/header&gt;
+    &lt;nav&gt;... 主要导航链接 ...&lt;/nav&gt;
+    &lt;main&gt;... 页面的主要内容 ...
+        &lt;article&gt;... 独立的、完整的内容块 (博客文章, 新闻) ...
+            &lt;h2&gt;文章标题&lt;/h2&gt;
+            &lt;section&gt;... 文章内的一个章节 ...&lt;/section&gt;
+            &lt;section&gt;... 另一个章节 ...&lt;/section&gt;
+        &lt;/article&gt;
+        &lt;aside&gt;... 侧边栏 (相关链接, 广告) ...&lt;/aside&gt;
+    &lt;/main&gt;
+    &lt;footer&gt;... 页脚 (版权, 联系方式) ...&lt;/footer&gt;
+&lt;/body&gt;</code></pre>
+                        <p class="mt-4"><strong><code>&lt;article&gt;</code> vs <code>&lt;section&gt;</code> 的区别
+                                (重要):</strong></p>
+                        <ul>
+                            <li><code>&lt;article&gt;</code>: 代表一个<b>独立的、自包含的</b>内容单元。理论上，它可以被单独提取出来发布或重用（如 RSS feed
+                                中的一项）。例如：一篇完整的博客文章、一个论坛帖子、一条用户评论。</li>
+                            <li><code>&lt;section&gt;</code>: 代表文档或应用程序中的一个<b>通用章节或主题性内容分组</b>。它通常包含一个标题
+                                (<code>&lt;h2&gt;</code>-<code>&lt;h6&gt;</code>)。它不像 <code>&lt;article&gt;</code>
+                                那样具有独立的意义，而是构成更大整体的一部分。例如：文章中的“介绍”、“方法”、“结论”部分；网页上的“最新产品”、“联系我们”区域。</li>
+                            <li><b>判断方法：</b> 问问自己，这块内容单独拿出来是否有意义？如果是，用 <code>&lt;article&gt;</code>
+                                可能更合适。如果只是文档结构的一个部分，用 <code>&lt;section&gt;</code>。它们可以互相嵌套。</li>
+                        </ul>
+                        <p class="interview-point"><strong>面试要点：</strong>理解语义化的<b>目的</b> (SEO, a11y, 可读性)
+                            比单纯记住标签更重要。能清晰解释 <code>&lt;article&gt;</code> 和 <code>&lt;section&gt;</code> 的区别是常见考点。</p>
+                    </div>
+                    <div class="quiz-card mt-6" id="quiz-semantic">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>语义化测验：
+                            在一个博客页面中，包含作者信息、发布日期和相关标签的侧边栏区域，最适合使用哪个语义化标签？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"> <input type="radio" name="q_semantic" value="a">
+                                <span>&lt;article&gt;</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_semantic" value="b">
+                                <span>&lt;section&gt;</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_semantic" value="c">
+                                <span>&lt;aside&gt;</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_semantic" value="d">
+                                <span>&lt;footer&gt;</span> </label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_semantic"></div>
+                        <button class="quiz-toggle button button-secondary mt-4"
+                            onclick="checkAnswer('q_semantic', 'c', this)">
+                            <span class="button-text">检查答案</span><span
+                                class="material-icons icon-arrow ml-2">expand_more</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> C. &lt;aside&gt;</p>
+                            <p><strong>解析:</strong> <code>&lt;aside&gt;</code>
+                                标签用于表示与页面主要内容（博客文章本身）相关，但可以独立存在的内容。作者信息、标签云、相关文章链接等放在侧边栏，正是 <code>&lt;aside&gt;</code>
+                                的典型应用场景。</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="doctype-viewport-a11y" class="content-section fade-in-section"
+                    style="animation-delay: 0.1s;">
+                    <h2 class="head2 flex items-center">
+                        <span class="material-icons">checklist</span>文档基础与可访问性
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">&lt;!DOCTYPE html&gt;</h3>
+                        <p><strong>作用：</strong>位于 HTML 文档最顶部，用于告知浏览器文档类型，<b>触发浏览器的 <span class="tooltip-term"
+                                    data-tooltip="浏览器按照最新的 W3C 标准解析渲染页面">标准模式 (Standards Mode)</span></b>。</p>
+                        <p><strong>重要性：</strong><b>必须</b> 声明，否则浏览器可能进入 <span class="tooltip-term"
+                                data-tooltip="浏览器模拟旧版行为，可能导致渲染不一致">怪异模式 (Quirks Mode)</span>，导致兼容性问题。</p>
+                        <pre><code class="language-html">&lt;!DOCTYPE html&gt; &lt;!-- HTML5 的声明非常简洁 --&gt;</code></pre>
+                        <p class="interview-point"><strong>面试要点：</strong>知道其作用是触发标准模式。</p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">&lt;meta name="viewport"&gt;</h3>
+                        <p><strong>作用：</strong>控制浏览器<span class="tooltip-term" data-tooltip="浏览器中用于显示网页内容的区域">视口
+                                (viewport)</span> 的大小和缩放，是实现<span class="tooltip-term"
+                                data-tooltip="网页布局能适应不同屏幕尺寸">响应式设计</span>的关键。</p>
+                        <pre><code class="language-html">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</code></pre>
+                        <ul>
+                            <li><code>width=device-width</code>: 视口宽度等于设备宽度。</li>
+                            <li><code>initial-scale=1.0</code>: 初始缩放比例为 1。</li>
+                        </ul>
+                        <p class="interview-point"><strong>面试要点：</strong>理解其对响应式布局的基础作用。</p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">Web 可访问性 (a11y) 基础</h3>
+                        <p><strong>目标：</strong>让网站对所有人可用，包括残障人士和使用辅助技术的用户。</p>
+                        <p><strong>HTML 实践：</strong></p>
+                        <ul>
+                            <li><b>使用语义化标签：</b>提供结构和含义。</li>
+                            <li><b>图像 <code>alt</code> 属性：</b>为 <code>&lt;img&gt;</code> 提供<b>必须的、描述性的</b>替代文本。装饰性图片使用
+                                <code>alt=""</code>。
+                            </li>
+                            <li><b>表单标签 (<code>&lt;label&gt;</code>):</b> 使用 <code>for</code> 属性关联控件 <code>id</code>。
+                            </li>
+                            <li><b>语言声明 (<code>lang</code>):</b> 在 <code>&lt;html&gt;</code> 标签上设置，如
+                                <code>lang="zh-CN"</code>。
+                            </li>
+                            <li><b>(进阶) <span class="tooltip-term"
+                                        data-tooltip="Accessible Rich Internet Applications: 一套属性，用于增强动态内容和复杂 UI 的可访问性">ARIA</span>
+                                    属性:</b> 使用 <code>role</code>, <code>aria-*</code> 为复杂组件提供额外语义。</li>
+                        </ul>
+                        <p class="interview-point"><strong>面试要点：</strong>理解 a11y 的重要性，知道如何通过 HTML 基础（语义化,
+                            <code>alt</code>, <code>label</code>）改进可访问性。了解 ARIA 是加分项。
+                        </p>
+                    </div>
+                    <div class="quiz-card mt-6" id="quiz-basics-a11y">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>基础测验：
+                            为了确保网页在移动设备上正确显示并启用响应式布局，通常需要在 <code>&lt;head&gt;</code> 中添加哪个 <code>&lt;meta&gt;</code> 标签？
+                        </div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"> <input type="radio" name="q_basics_a11y" value="a">
+                                <span>&lt;meta charset="UTF-8"&gt;</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_basics_a11y" value="b">
+                                <span>&lt;meta name="description" content="..."&gt;</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_basics_a11y" value="c">
+                                <span>&lt;meta name="viewport" content="width=device-width,
+                                    initial-scale=1.0"&gt;</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_basics_a11y" value="d">
+                                <span>&lt;meta http-equiv="X-UA-Compatible" content="ie=edge"&gt;</span> </label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_basics_a11y"></div>
+                        <button class="quiz-toggle button button-secondary mt-4"
+                            onclick="checkAnswer('q_basics_a11y', 'c', this)">
+                            <span class="button-text">检查答案</span><span
+                                class="material-icons icon-arrow ml-2">expand_more</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> C. &lt;meta name="viewport" content="width=device-width,
+                                initial-scale=1.0"&gt;</p>
+                            <p><strong>解析:</strong> <code>viewport</code> meta 标签用于控制视口的宽度和初始缩放比例，是移动端网页适配和响应式设计的关键设置。
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="forms" class="content-section fade-in-section" style="animation-delay: 0.15s;">
+                    <h2 class="head2 flex items-center">
+                        <span class="material-icons">list_alt</span>表单 (Forms)
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">表单基础与提交</h3>
+                        <p><code>&lt;form&gt;</code> 用于收集用户输入。关键属性：</p>
+                        <ul>
+                            <li><code>action</code>: 数据提交的 URL。</li>
+                            <li><code>method</code>: HTTP 方法 (<code>GET</code> 或 <code>POST</code>)。
+                                <ul>
+                                    <li><code>GET</code>: 数据附加到 URL (查询字符串)，用于搜索、非敏感数据，长度受限。</li>
+                                    <li><code>POST</code>: 数据在请求体中，更安全，无长度限制，用于提交敏感/大量数据。</li>
+                                </ul>
+                            </li>
+                            <li><code>enctype</code>: 当 <code>method="post"</code> 时的数据编码类型。
+                                <ul>
+                                    <li><code>application/x-www-form-urlencoded</code> (默认): 空格转为 <code>+</code>,
+                                        特殊字符编码。</li>
+                                    <li><code>multipart/form-data</code>: <b>文件上传时必须使用</b>，不对字符编码。</li>
+                                    <li><code>text/plain</code>: 空格转为 <code>+</code>, 但不对特殊字符编码 (较少使用)。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">常用表单控件与可访问性</h3>
+                        <p>核心控件包括 <code>&lt;input&gt;</code> (多种 <code>type</code>), <code>&lt;textarea&gt;</code>,
+                            <code>&lt;select&gt;</code>, <code>&lt;button&gt;</code>。
+                        </p>
+                        <p><strong>可访问性关键：<code>&lt;label&gt;</code></strong></p>
+                        <ul>
+                            <li><b>必须</b> 为每个表单控件提供关联的 <code>&lt;label&gt;</code>。</li>
+                            <li>使用 <code>for</code> 属性指向控件的 <code>id</code>。</li>
+                            <li>好处：点击标签可聚焦控件；屏幕阅读器可以读出标签与控件的关联。</li>
+                        </ul>
+                        <pre><code class="language-html">&lt;div class="mb-4"&gt;
+  &lt;label for="emailInput"&gt;邮箱地址:&lt;/label&gt;
+  &lt;input type="email" id="emailInput" name="email" required placeholder="例如: user@example.com"&gt;
+&lt;/div&gt;
+
+&lt;div class="mb-4"&gt;
+  &lt;label&gt;
+    &lt;input type="checkbox" name="subscribe" value="yes" checked&gt;
+    订阅邮件通知
+  &lt;/label&gt; &lt;!-- 也可以将 input 包裹在 label 内 --&gt;
+&lt;/div&gt;</code></pre>
+                        <p class="interview-point"><strong>面试要点：</strong>理解 <code>GET</code> vs <code>POST</code>
+                            区别；知道文件上传需要 <code>method="post"</code> 和 <code>enctype="multipart/form-data"</code>；强调
+                            <code>&lt;label&gt;</code> 对可访问性的重要性。
+                        </p>
+                    </div>
+                    <div class="quiz-card mt-6" id="quiz-forms">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>表单测验：
+                            当表单需要上传文件时，<code>&lt;form&gt;</code> 标签必须设置哪两个属性？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"> <input type="radio" name="q_forms" value="a">
+                                <span>method="get", enctype="application/x-www-form-urlencoded"</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_forms" value="b">
+                                <span>method="post", enctype="text/plain"</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_forms" value="c">
+                                <span>method="post", enctype="multipart/form-data"</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_forms" value="d">
+                                <span>method="get", enctype="multipart/form-data"</span> </label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_forms"></div>
+                        <button class="quiz-toggle button button-secondary mt-4"
+                            onclick="checkAnswer('q_forms', 'c', this)">
+                            <span class="button-text">检查答案</span><span
+                                class="material-icons icon-arrow ml-2">expand_more</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> C. method="post", enctype="multipart/form-data"</p>
+                            <p><strong>解析:</strong> 文件上传必须使用 POST 方法，因为 GET 方法有长度限制且不适合传输二进制数据。同时，必须将
+                                <code>enctype</code> 设置为
+                                <code>multipart/form-data</code>，这样浏览器才不会对文件内容进行编码，而是将其作为独立部分发送。
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="images" class="content-section fade-in-section" style="animation-delay: 0.2s;">
+                    <h2 class="head2 flex items-center">
+                        <span class="material-icons">image</span>图像 (Images)
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3"><code>&lt;img&gt;</code> 标签核心属性</h3>
+                        <ul>
+                            <li><code>src</code> (必需): 图像路径。</li>
+                            <li><code>alt</code> (必需): <b>极其重要</b> 的替代文本。
+                                <ul>
+                                    <li>为无法看到图像的用户（如使用屏幕阅读器）提供描述。</li>
+                                    <li>图像加载失败时显示。</li>
+                                    <li>有助于 SEO。</li>
+                                    <li><b>面试官非常看重 <code>alt</code> 的正确使用。</b> 装饰性图片应使用 <code>alt=""</code>。</li>
+                                </ul>
+                            </li>
+                            <li><code>width</code> / <code>height</code>: 图像尺寸。
+                                <ul>
+                                    <li><b>推荐设置：</b> 即使使用 CSS 控制，设置这两个属性也能帮助浏览器预留空间，防止<span class="tooltip-term"
+                                            data-tooltip="Cumulative Layout Shift: 累积布局偏移，衡量页面加载期间视觉稳定性的指标">CLS</span>。
+                                    </li>
+                                </ul>
+                            </li>
+                            <li><code>loading="lazy"</code>: 浏览器原生懒加载，提升性能。</li>
+                        </ul>
+                        <pre><code class="language-html">&lt;img src="product.jpg" alt="红色运动鞋侧面视图" width="400" height="300" loading="lazy"&gt;</code></pre>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">响应式图像 (<code>srcset</code> & <code>&lt;picture&gt;</code>)</h3>
+                        <p><strong>目的：</strong>根据设备特性（分辨率、视口宽度、网络状况、格式支持）提供最优图像。</p>
+                        <ul>
+                            <li><code>srcset</code>: 提供基于<b>分辨率 (<code>x</code> 描述符)</b> 或 <b>视口宽度 (<code>w</code> 描述符 +
+                                    <code>sizes</code> 属性)</b> 的备选图像源。</li>
+                            <li><code>&lt;picture&gt;</code>: 提供更精细的控制（<b>艺术指导</b>、<b>格式选择</b>），允许根据媒体查询或
+                                <code>type</code> 属性选择不同的 <code>&lt;source&gt;</code>。
+                            </li>
+                        </ul>
+                        <pre><code class="language-html">&lt;!-- srcset 示例 (宽度描述符) --&gt;
+&lt;img src="cat-small.jpg"
+     srcset="cat-small.jpg 480w, cat-medium.jpg 800w, cat-large.jpg 1200w"
+     sizes="(max-width: 600px) 90vw, (max-width: 900px) 50vw, 33vw"
+     alt="一只可爱的猫"&gt;
+
+&lt;!-- picture 示例 (格式选择) --&gt;
+&lt;picture&gt;
+   &lt;source srcset="logo.avif" type="image/avif"&gt; &lt;!-- 优先 AVIF --&gt;
+   &lt;source srcset="logo.webp" type="image/webp"&gt; &lt;!-- 其次 WebP --&gt;
+   &lt;img src="logo.png" alt="公司 Logo"&gt; &lt;!-- 最后 PNG --&gt;
+&lt;/picture&gt;</code></pre>
+                        <p class="interview-point"><strong>面试要点：</strong>强调 <code>alt</code> 的重要性和正确用法；解释设置
+                            <code>width</code>/<code>height</code> 对防止 CLS 的作用；理解 <code>srcset</code> 和
+                            <code>picture</code> 的基本用途和区别。
+                        </p>
+                    </div>
+                    <div class="quiz-card mt-6" id="quiz-images">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>图像测验：
+                            对于一张纯粹用于页面装饰、没有实际信息内容的背景图片，<code>&lt;img&gt;</code> 标签的 <code>alt</code> 属性应该如何设置？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"> <input type="radio" name="q_images" value="a"> <span>省略 alt
+                                    属性</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_images" value="b">
+                                <span>alt="装饰图片"</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_images" value="c">
+                                <span>alt=""</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_images" value="d">
+                                <span>alt="background"</span> </label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_images"></div>
+                        <button class="quiz-toggle button button-secondary mt-4"
+                            onclick="checkAnswer('q_images', 'c', this)">
+                            <span class="button-text">检查答案</span><span
+                                class="material-icons icon-arrow ml-2">expand_more</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> C. alt=""</p>
+                            <p><strong>解析:</strong> 对于纯装饰性、不传达内容的图片，应提供一个空的 <code>alt</code> 属性
+                                (<code>alt=""</code>)。这会告诉屏幕阅读器等辅助技术忽略该图像，避免读出无意义的文件名或造成干扰。省略 <code>alt</code>
+                                属性是不符合规范的，而提供 "装饰图片" 或 "background" 这样的文本则会给用户带来不必要的干扰信息。</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="links-lists" class="content-section fade-in-section" style="animation-delay: 0.25s;">
+                    <h2 class="head2 flex items-center">
+                        <span class="material-icons">link</span>链接与列表
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">链接 <code>&lt;a&gt;</code></h3>
+                        <ul>
+                            <li><code>href</code>: 目标 URL。</li>
+                            <li><code>target="_blank"</code>: 在新标签页打开。</li>
+                            <li><code>rel="noopener noreferrer"</code>: <b>与 <code>target="_blank"</code>
+                                    配合使用以提高安全性</b>。
+                                <ul>
+                                    <li><code>noopener</code>: 防止新页面通过 <code>window.opener</code> 访问来源页面。</li>
+                                    <li><code>noreferrer</code>: 防止发送 Referer 头。</li>
+                                </ul>
+                            </li>
+                            <li><code>download</code>: 提示浏览器下载文件。</li>
+                        </ul>
+                        <pre><code class="language-html">&lt;a href="https://example.com" target="_blank" rel="noopener noreferrer"&gt;安全地在新标签页打开&lt;/a&gt;</code></pre>
+                        <p class="interview-point"><strong>面试要点：</strong>理解 <code>target="_blank"</code> 的安全隐患及
+                            <code>rel="noopener noreferrer"</code> 的作用。
+                        </p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">列表 (<code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;li&gt;</code>)
+                        </h3>
+                        <ul>
+                            <li><code>&lt;ul&gt;</code> (Unordered List): 无序列表 (项目符号)。</li>
+                            <li><code>&lt;ol&gt;</code> (Ordered List): 有序列表 (编号)。</li>
+                            <li><code>&lt;li&gt;</code> (List Item): 列表项。</li>
+                            <li><code>&lt;dl&gt;</code>, <code>&lt;dt&gt;</code>, <code>&lt;dd&gt;</code> (Definition
+                                List): 定义列表（术语/描述），相对少用但特定场景有用。</li>
+                        </ul>
+                        <p>列表常用于导航菜单、功能列表、步骤说明等。</p>
+                    </div>
+                    <div class="quiz-card mt-6" id="quiz-links-lists">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>链接测验： 当使用
+                            <code>&lt;a target="_blank" href="..."&gt;</code> 打开一个新标签页时，为了防止潜在的安全风险，应该添加哪个
+                            <code>rel</code> 属性值？
+                        </div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"> <input type="radio" name="q_links_lists" value="a">
+                                <span>rel="nofollow"</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_links_lists" value="b">
+                                <span>rel="noopener"</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_links_lists" value="c">
+                                <span>rel="external"</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_links_lists" value="d">
+                                <span>rel="opener"</span> </label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_links_lists"></div>
+                        <button class="quiz-toggle button button-secondary mt-4"
+                            onclick="checkAnswer('q_links_lists', 'b', this)">
+                            <span class="button-text">检查答案</span><span
+                                class="material-icons icon-arrow ml-2">expand_more</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> B. rel="noopener"</p>
+                            <p><strong>解析:</strong> <code>rel="noopener"</code> 可以阻止新打开的页面通过 <code>window.opener</code>
+                                属性访问和操作原始页面，从而防止一种称为 "tabnabbing" 的钓鱼攻击。通常会同时添加 <code>noreferrer</code>
+                                (<code>rel="noopener noreferrer"</code>) 来阻止发送 Referer 头，进一步增强隐私和安全。</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="tables" class="content-section fade-in-section" style="animation-delay: 0.3s;">
+                    <h2 class="head2 flex items-center">
+                        <span class="material-icons">table_chart</span>表格 (Tables)
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">表格结构与语义</h3>
+                        <p>用于展示二维数据。正确的结构有助于可访问性和样式化。</p>
+                        <ul>
+                            <li>结构标签: <code>&lt;table&gt;</code>, <code>&lt;caption&gt;</code>,
+                                <code>&lt;thead&gt;</code>, <code>&lt;tbody&gt;</code>, <code>&lt;tfoot&gt;</code>,
+                                <code>&lt;tr&gt;</code>, <code>&lt;th&gt;</code>, <code>&lt;td&gt;</code>.
+                            </li>
+                            <li><code>&lt;th&gt;</code> 的 <code>scope</code> 属性: <b>重要</b>，用于明确表头是作用于行
+                                (<code>row</code>) 还是列 (<code>col</code>)，增强可访问性。</li>
+                            <li><code>colspan</code> / <code>rowspan</code>: 用于合并单元格。</li>
+                        </ul>
+                        <p class="interview-point"><strong>面试要点：</strong>理解表格的语义化结构；知道 <code>scope</code>
+                            属性的作用；<b>强调表格不应用于布局</b>。</p>
+                    </div>
+                </section>
+
+                <section id="block-inline" class="content-section fade-in-section" style="animation-delay: 0.35s;">
+                    <h2 class="head2 flex items-center">
+                        <span class="material-icons">space_bar</span>块级/内联/盒模型
+                        <span class="level-tag level-tag-high">高频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">块级 (Block) vs 内联 (Inline)</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>特性</th>
+                                    <th>块级 (Block)</th>
+                                    <th>内联 (Inline)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>换行</td>
+                                    <td>独占一行</td>
+                                    <td>同行显示</td>
+                                </tr>
+                                <tr>
+                                    <td>宽高</td>
+                                    <td>可设置 width/height</td>
+                                    <td>通常不可设置 width/height</td>
+                                </tr>
+                                <tr>
+                                    <td>外边距</td>
+                                    <td>上下左右 margin 有效</td>
+                                    <td>左右 margin 有效，上下通常无效</td>
+                                </tr>
+                                <tr>
+                                    <td>内边距</td>
+                                    <td>上下左右 padding 有效</td>
+                                    <td>上下 padding 可能影响行高，左右有效</td>
+                                </tr>
+                                <tr>
+                                    <td>示例</td>
+                                    <td><code>&lt;div&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;h1&gt;</code>,
+                                        <code>&lt;ul&gt;</code>, <code>&lt;section&gt;</code>
+                                    </td>
+                                    <td><code>&lt;span&gt;</code>, <code>&lt;a&gt;</code>, <code>&lt;strong&gt;</code>,
+                                        <code>&lt;em&gt;</code>, <code>&lt;img&gt;</code>*
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <caption>* <code>&lt;img&gt;</code> 等<span class="tooltip-term"
+                                    data-tooltip="尺寸由外部资源（如图像文件）或浏览器默认行为决定的元素，如 img, input, textarea, select">可替换元素</span>表现类似
+                                inline-block</caption>
+                        </table>
+                        <p class="mt-4"><strong>内联块 (Inline-block):</strong> 通过 <code>display: inline-block;</code>
+                            设置，结合两者特性：同行显示，但可设置宽高内外边距。</p>
+                        <div class="content-card">
+                            <img src="内联块.svg" alt="内联块示意图" class="inline-block-image">
+                        </div>
+
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">CSS 盒模型 (Box Model)</h3>
+                        <p>虽然是 CSS 概念，但与 HTML 元素布局紧密相关。</p>
+                        <p>每个 HTML 元素都可以看作一个矩形盒子，由内到外包含：</p>
+                        <ul>
+                            <li><strong>Content:</strong> 元素的实际内容（文本、图像等）。</li>
+                            <li><strong>Padding:</strong> 内容区域与边框之间的空白区域（内边距）。</li>
+                            <li><strong>Border:</strong> 包围内边距和内容的边框。</li>
+                            <li><strong>Margin:</strong> 边框与其他元素之间的空白区域（外边距）。</li>
+                        </ul>
+                        <div class="mermaid">
+                            graph LR
+                            subgraph Margin["外边距 (Margin)"]
+                            direction TB
+                            subgraph Border["边框 (Border)"]
+                            direction TB
+                            subgraph Padding["内边距 (Padding)"]
+                            direction TB
+                            Content[内容 Content]
+                            end
+                            end
+                            end
+
+                            style Content fill:#e0f2fe,stroke:#3b82f6
+                            style Padding fill:#a7f3d0,stroke:#10b981
+                            style Border fill:#fde68a,stroke:#f59e0b
+                            style Margin fill:#e5e7eb,stroke:#6b7280
+
+                        </div>
+                        <p><strong><code>box-sizing</code> 属性 (重要):</strong></p>
+                        <ul>
+                            <li><code>content-box</code> (默认): <code>width</code> 和 <code>height</code> 只包含 Content
+                                的尺寸。Padding 和 Border 会额外增加元素的总尺寸。</li>
+                            <li><code>border-box</code>: <code>width</code> 和 <code>height</code> 包含 Content、Padding 和
+                                Border 的总尺寸。这是<b>现代 Web 开发中更常用、更直观</b>的设置，通常在全局设置：</li>
+                        </ul>
+                        <pre><code class="language-css">/* 通常放在 CSS 重置或全局样式中 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}</code></pre>
+                        <p class="interview-point"><strong>面试要点：</strong>清晰描述块级/内联区别；理解标准盒模型和 <code>border-box</code>
+                            盒模型的区别及其影响，知道 <code>box-sizing: border-box;</code> 的作用和常用实践。</p>
+                    </div>
+                    <div class="quiz-card mt-6" id="quiz-box-model">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>盒模型测验： 如果一个元素的 CSS 设置为
+                            <code>width: 100px; padding: 10px; border: 1px solid black;</code> 并且
+                            <code>box-sizing: border-box;</code>，那么该元素在页面上占据的总宽度是多少？
+                        </div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"> <input type="radio" name="q_box_model" value="a">
+                                <span>100px</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_box_model" value="b">
+                                <span>120px</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_box_model" value="c">
+                                <span>122px</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_box_model" value="d">
+                                <span>101px</span> </label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_box_model"></div>
+                        <button class="quiz-toggle button button-secondary mt-4"
+                            onclick="checkAnswer('q_box_model', 'a', this)">
+                            <span class="button-text">检查答案</span><span
+                                class="material-icons icon-arrow ml-2">expand_more</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> A. 100px</p>
+                            <p><strong>解析:</strong> 当 <code>box-sizing</code> 设置为 <code>border-box</code>
+                                时，<code>width</code> 属性定义的宽度包含了内容（content）、内边距（padding）和边框（border）。因此，即使有 padding 和
+                                border，元素占据的总宽度仍然是 <code>width</code> 属性指定的值，即 100px。内边距和边框会向内挤压内容区域的空间。</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="important-others" class="content-section fade-in-section" style="animation-delay: 0.4s;">
+                    <h2 class="head2 flex items-center">
+                        <span class="material-icons">extension</span>其他重要特性
+                        <span class="level-tag level-tag-medium">中频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3"><code>&lt;iframe&gt;</code> 内联框架</h3>
+                        <p>用于在当前页面嵌入另一个 HTML 页面。</p>
+                        <ul>
+                            <li><strong>优点:</strong> 可以嵌入第三方内容、实现无刷新更新部分页面（旧技术）。</li>
+                            <li><strong>缺点:</strong>
+                                <ul>
+                                    <li>阻塞父页面的 <code>onload</code> 事件。</li>
+                                    <li>可能带来安全风险（需要注意跨域限制）。</li>
+                                    <li>SEO 不友好，搜索引擎可能难以索引 iframe 内容。</li>
+                                    <li>性能开销，每个 iframe 都相当于一个独立的浏览上下文。</li>
+                                </ul>
+                            </li>
+                            <li><strong><code>sandbox</code> 属性 (重要):</strong> 用于限制 iframe 的行为，提高安全性。可以设置允许的操作，如
+                                <code>allow-scripts</code>, <code>allow-same-origin</code>, <code>allow-forms</code>
+                                等。如果只设置 <code>sandbox</code> 而不指定值，则禁用所有权限。
+                            </li>
+                        </ul>
+                        <pre><code class="language-html">&lt;!-- 嵌入一个页面，并限制其行为 --&gt;
+&lt;iframe src="https://example.com"
+        sandbox="allow-scripts allow-same-origin"
+        width="600"
+        height="400"
+        title="嵌入的示例页面"&gt;
+&lt;/iframe&gt;</code></pre>
+                        <p class="interview-point"><strong>面试要点：</strong>了解 iframe 的基本用途、主要缺点（阻塞 onload、安全、SEO、性能）以及
+                            <code>sandbox</code> 属性的作用。
+                        </p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3"><code>data-*</code> 自定义数据属性</h3>
+                        <p>允许在 HTML 元素上存储自定义数据，这些数据可以被 CSS 或 JavaScript 访问。</p>
+                        <ul>
+                            <li>属性名必须以 <code>data-</code> 开头，后面至少跟一个字符。</li>
+                            <li>属性名不应包含大写字母，单词间用短横线 (<code>-</code>) 分隔。</li>
+                            <li>属性值可以是任何字符串。</li>
+                        </ul>
+                        <p><strong>访问方式：</strong></p>
+                        <ul>
+                            <li><strong>CSS:</strong> 使用 <code>attr()</code> 函数，如
+                                <code>content: attr(data-tooltip);</code>。
+                            </li>
+                            <li><strong>JavaScript:</strong> 通过元素的 <code>dataset</code> 属性访问。属性名会自动转换为驼峰式命名 (camelCase)。
+                            </li>
+                        </ul>
+                        <pre><code class="language-html">&lt;div id="user-card" data-user-id="123" data-user-role="admin"&gt;
+  用户卡片
+&lt;/div&gt;
+
+&lt;script&gt;
+  const card = document.getElementById('user-card');
+  console.log(card.dataset.userId); // 输出: "123"
+  console.log(card.dataset.userRole); // 输出: "admin"
+
+  // 修改
+  card.dataset.userRole = 'editor';
+  console.log(card.getAttribute('data-user-role')); // 输出: "editor"
+&lt;/script&gt;</code></pre>
+                        <p class="interview-point"><strong>面试要点：</strong>知道 <code>data-*</code> 属性的用途（存储自定义数据）和如何在
+                            JavaScript 中通过 <code>dataset</code> 访问（注意命名转换）。</p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">通用容器 (<code>&lt;div&gt;</code> & <code>&lt;span&gt;</code>)</h3>
+                        <p><code>&lt;div&gt;</code> (块级) 和 <code>&lt;span&gt;</code> (内联) 是无具体语义的通用容器，主要用于：</p>
+                        <ul>
+                            <li><b>布局:</b> 配合 CSS (Flexbox, Grid) 构建页面结构。</li>
+                            <li><b>样式化:</b> 包裹元素以应用特定 CSS 样式。</li>
+                            <li><b>JavaScript 操作:</b> 作为通过 ID 或 Class 选择和操作的目标。</li>
+                        </ul>
+                        <p><strong>注意：</strong>应优先使用语义化标签。只有在没有更合适的语义化标签时，才使用 <code>&lt;div&gt;</code> 或
+                            <code>&lt;span&gt;</code>。
+                        </p>
+                    </div>
+                    <div class="quiz-card mt-6" id="quiz-others">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>其他特性测验： 在 JavaScript
+                            中，如何访问 HTML 元素 <code>&lt;article data-post-id="987"&gt;...&lt;/article&gt;</code> 的
+                            <code>data-post-id</code> 属性值？
+                        </div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"> <input type="radio" name="q_others" value="a">
+                                <span>element.data.postId</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_others" value="b">
+                                <span>element.dataset.postId</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_others" value="c">
+                                <span>element.getAttribute('postId')</span> </label>
+                            <label class="quiz-option"> <input type="radio" name="q_others" value="d">
+                                <span>element.postId</span> </label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_others"></div>
+                        <button class="quiz-toggle button button-secondary mt-4"
+                            onclick="checkAnswer('q_others', 'b', this)">
+                            <span class="button-text">检查答案</span><span
+                                class="material-icons icon-arrow ml-2">expand_more</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                            <p><strong>答案:</strong> B. element.dataset.postId</p>
+                            <p><strong>解析:</strong> HTML5 提供了 <code>dataset</code> 属性来方便地访问元素的 <code>data-*</code>
+                                自定义属性。访问时，<code>data-</code> 后面的属性名会从短横线命名 (kebab-case) 转换为驼峰式命名
+                                (camelCase)。因此，<code>data-post-id</code> 对应 <code>element.dataset.postId</code>。</p>
+                        </div>
+                    </div>
+                </section>
+
+            </article>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+        // Initialize Mermaid.js
+        mermaid.initialize({
+            startOnLoad: true,
+            securityLevel: 'loose',
+            flowchart: { htmlLabels: true }
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- TOC Highlighting Logic ---
+            const sections = document.querySelectorAll('main section[id]');
+            const tocLinks = document.querySelectorAll('#local-toc a');
+            let lastActiveTocLink = null;
+            const tocObserverOptions = { root: null, rootMargin: '-20% 0px -60% 0px', threshold: 0 };
+
+            const tocObserverCallback = (entries) => {
+                let bestVisibleEntry = null;
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (!bestVisibleEntry || entry.boundingClientRect.top < bestVisibleEntry.boundingClientRect.top) {
+                            bestVisibleEntry = entry;
+                        }
+                    }
+                });
+
+                if (bestVisibleEntry) {
+                    const id = bestVisibleEntry.target.getAttribute('id');
+                    const activeLink = document.querySelector(`#local-toc a[href="#${id}"]`);
+
+                    if (activeLink && activeLink !== lastActiveTocLink) {
+                        if (lastActiveTocLink) {
+                            lastActiveTocLink.classList.remove('active');
+                        }
+                        activeLink.classList.add('active');
+                        lastActiveTocLink = activeLink;
+                    }
+                }
+            };
+
+            const tocObserver = new IntersectionObserver(tocObserverCallback, tocObserverOptions);
+            sections.forEach(section => tocObserver.observe(section));
+
+            // Initial active link check
+            const currentHash = window.location.hash;
+            if (currentHash) {
+                const initialActiveLink = document.querySelector(`#local-toc a[href="${currentHash}"]`);
+                if (initialActiveLink) {
+                    tocLinks.forEach(link => link.classList.remove('active'));
+                    initialActiveLink.classList.add('active');
+                    lastActiveTocLink = initialActiveLink;
+                }
+            } else if (tocLinks.length > 0 && !lastActiveTocLink) {
+                tocLinks.forEach(link => link.classList.remove('active'));
+                tocLinks[0].classList.add('active');
+                lastActiveTocLink = tocLinks[0];
+            }
+
+            // --- Fade-in Animation Logic for Sections ---
+            const mainContentSections = document.querySelectorAll('main > article > section.content-section');
+            const fadeObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+            const fadeObserverCallback = (entries, observer) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        const delayIndex = Array.from(mainContentSections).indexOf(entry.target);
+                        entry.target.style.animationDelay = `${delayIndex * 0.05}s`;
+                        entry.target.classList.add('fade-in-section');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            };
+            const fadeObserver = new IntersectionObserver(fadeObserverCallback, fadeObserverOptions);
+            mainContentSections.forEach(section => fadeObserver.observe(section));
+
+            // --- Ripple Effect Logic ---
+            function createRipple(event) {
+                const button = event.currentTarget;
+                if (!button || typeof button.getBoundingClientRect !== 'function') return;
+                const circle = document.createElement("span");
+                const diameter = Math.max(button.clientWidth, button.clientHeight);
+                const radius = diameter / 2;
+                // Attempt to get primary color RGB from CSS variable, fallback if needed
+                let primaryColorRgb = getComputedStyle(document.documentElement).getPropertyValue('--primary-color-rgb').trim();
+                if (!primaryColorRgb) primaryColorRgb = '59, 130, 246'; // Fallback blue-500 RGB
+
+                circle.style.width = circle.style.height = `${diameter}px`;
+                const rect = button.getBoundingClientRect();
+                circle.style.left = `${event.clientX - rect.left - radius}px`;
+                circle.style.top = `${event.clientY - rect.top - radius}px`;
+                circle.style.backgroundColor = `rgba(${primaryColorRgb}, 0.4)`;
+                circle.classList.add("ripple");
+                const existingRipple = button.querySelector(".ripple");
+                if (existingRipple) existingRipple.remove();
+                button.appendChild(circle);
+                setTimeout(() => circle.remove(), 600); // Match animation duration
+            }
+
+            // --- Quiz Toggle Logic ---
+            function toggleAnswer(quizId, buttonElement) {
+                const quizCard = document.getElementById(quizId);
+                if (!quizCard) return;
+                const answer = quizCard.querySelector('.quiz-answer');
+                const icon = buttonElement.querySelector('.icon-arrow');
+                const buttonTextSpan = buttonElement.querySelector('.button-text');
+                if (!answer || !icon || !buttonTextSpan) return;
+
+                const isVisible = answer.classList.contains('visible');
+
+                if (isVisible) {
+                    answer.style.maxHeight = '0';
+                    answer.style.opacity = '0';
+                    answer.style.marginTop = '0';
+                    answer.style.paddingTop = '0';
+                    answer.style.paddingBottom = '0';
+                    answer.classList.remove('visible');
+                    icon.classList.remove('rotated');
+                    buttonTextSpan.textContent = '检查答案'; // Or '查看答案' if separate buttons
+                    // Use timeout to set display: none after transition ends
+                    setTimeout(() => {
+                        // Check again in case it was quickly reopened
+                        if (!answer.classList.contains('visible')) {
+                            answer.style.display = 'none';
+                            // Clean up inline styles to allow CSS to take over if needed
+                            answer.style.removeProperty('max-height');
+                            answer.style.removeProperty('opacity');
+                            answer.style.removeProperty('margin-top');
+                            answer.style.removeProperty('padding-top');
+                            answer.style.removeProperty('padding-bottom');
+                        }
+                    }, 500); // Match transition duration
+                } else {
+                    answer.style.display = 'block'; // Make it visible to measure scrollHeight
+                    // Set styles needed for transition *before* calculating scrollHeight
+                    answer.style.paddingTop = '1rem';
+                    answer.style.paddingBottom = '1rem';
+                    answer.style.marginTop = '1rem';
+
+                    // Force reflow to ensure display: block is applied before measuring
+                    requestAnimationFrame(() => {
+                        answer.style.maxHeight = answer.scrollHeight + 'px';
+                        answer.style.opacity = '1';
+                        answer.classList.add('visible');
+                        icon.classList.add('rotated');
+                        buttonTextSpan.textContent = '隐藏答案';
+                    });
+                }
+            }
+
+            // --- Quiz Check Answer Logic (Global Function) ---
+            // Make it global so inline onclick can call it
+            window.checkAnswer = function (questionName, correctAnswerValue, buttonElement) {
+                const options = document.querySelectorAll(`input[name="${questionName}"]`);
+                const feedbackElement = document.getElementById(`feedback-${questionName}`);
+                const quizCard = buttonElement.closest('.quiz-card'); // Use buttonElement to find card
+                let selectedValue = null;
+                let selectedLabel = null;
+
+                if (!feedbackElement || !quizCard) {
+                    console.error("Quiz elements not found for", questionName);
+                    return;
+                }
+
+                // Reset previous feedback and styles
+                quizCard.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+                feedbackElement.style.display = 'none';
+                feedbackElement.textContent = '';
+
+                options.forEach(option => {
+                    if (option.checked) {
+                        selectedValue = option.value;
+                        selectedLabel = option.closest('.quiz-option');
+                        if (selectedLabel) selectedLabel.classList.add('selected');
+                    }
+                });
+
+                if (!selectedValue) {
+                    feedbackElement.textContent = "请选择一个选项！";
+                    feedbackElement.className = 'quiz-feedback warning';
+                    feedbackElement.style.display = 'block';
+                    return;
+                }
+
+                let correctAnswerLabel = null;
+                options.forEach(opt => { if (opt.value === correctAnswerValue) correctAnswerLabel = opt.closest('.quiz-option'); });
+
+                if (selectedValue === correctAnswerValue) {
+                    feedbackElement.textContent = "回答正确！";
+                    feedbackElement.className = 'quiz-feedback correct';
+                    if (selectedLabel) selectedLabel.classList.add('correct');
+                } else {
+                    let correctAnswerText = '';
+                    if (correctAnswerLabel) {
+                        correctAnswerText = correctAnswerLabel.querySelector('span')?.textContent || `选项 ${correctAnswerValue}`;
+                        correctAnswerLabel.classList.add('correct'); // Highlight correct answer
+                    }
+                    feedbackElement.textContent = `回答错误。正确答案是: "${correctAnswerText}"`;
+                    feedbackElement.className = 'quiz-feedback incorrect';
+                    if (selectedLabel) selectedLabel.classList.add('incorrect');
+                }
+                feedbackElement.style.display = 'block';
+
+                // Automatically toggle the answer section visibility
+                toggleAnswer(quizCard.id, buttonElement);
+            }
+
+            // Add ripple effect listeners to quiz toggle buttons
+            document.querySelectorAll('.quiz-toggle').forEach(button => {
+                button.addEventListener('click', createRipple);
+            });
+
+        }); // End of DOMContentLoaded listener
+    </script>
+</body>
+
+</html>

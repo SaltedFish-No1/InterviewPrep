@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前端性能优化基础 (改进版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../../global.css">
+
+    <style>
+        /* --- Minimal Inline Styles - Prioritize global.css --- */
+        /* Add styles ONLY for components not covered by global.css or Tailwind, using global.css variables */
+
+        /* --- Material Symbols Base Style (Consistent) --- */
+        .material-symbols-outlined {
+            font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24;
+            vertical-align: middle;
+            font-size: 1.25em;
+            line-height: 1;
+        }
+        .local-side-nav .material-symbols-outlined,
+        .content-section h2 .material-symbols-outlined {
+            font-size: 1.3em; /* Consistent icon size */
+        }
+
+        /* --- Typography & Spacing Improvements --- */
+        .content-main h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1.25rem; /* Increased bottom margin */
+            color: var(--text-color-dark);
+            padding-bottom: 0.6rem; /* Increased padding */
+            border-bottom: 1px solid var(--border-color-light);
+        }
+        .content-card > h3:first-of-type {
+            margin-top: 0;
+        }
+
+        .content-main p,
+        .content-main ul,
+        .content-main ol {
+            margin-bottom: 1.3rem; /* Slightly increased spacing */
+            line-height: 1.75; /* Increased line height */
+        }
+        /* Adjust last element margin inside card */
+        .content-card > *:last-child {
+             margin-bottom: 0 !important; /* Ensure no extra space at card bottom */
+        }
+        /* Add more space between list items */
+        .content-main ul li,
+        .content-main ol li {
+            margin-bottom: 0.8rem; /* More space between list items */
+        }
+
+        /* Section Introduction Style (Consistent) */
+        .section-intro {
+            font-size: 1.05rem;
+            color: var(--text-color-secondary, var(--text-color-light));
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color-light);
+            padding-left: 1.25rem;
+            line-height: 1.8;
+        }
+
+        /* Custom List Styles (Consistent) */
+        .content-main ul:not([class]) { list-style: none; padding-left: 0.5rem; }
+        .content-main ul:not([class]) li { position: relative; padding-left: 2rem; }
+        .content-main ul:not([class]) li::before { content: "\e5ca"; font-family: 'Material Symbols Outlined'; position: absolute; left: 0; top: 5px; color: var(--primary-color); font-size: 1.3em; font-variation-settings: 'FILL' 1, 'wght' 300; }
+        .content-main ol:not([class]) { list-style: none; padding-left: 0.5rem; counter-reset: list-counter; }
+        .content-main ol:not([class]) li { position: relative; padding-left: 2rem; counter-increment: list-counter; }
+        .content-main ol:not([class]) li::before { content: counter(list-counter); position: absolute; left: 0; top: 3px; background-color: var(--primary-color); color: var(--bg-color-white); font-size: 0.75em; font-weight: 600; width: 1.5rem; height: 1.5rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; line-height: 1; text-align: center; }
+
+        /* Code Blocks (Consistent) */
+        .content-main *:not(pre)>code { background-color: var(--primary-color-light); color: var(--primary-color-dark); padding: 0.1rem 0.4rem; border-radius: 0.25rem; font-family: var(--font-family-mono); font-size: 0.875em; }
+        .content-main pre { margin-top: 1.25rem; margin-bottom: 1.75rem; } /* Increased margin */
+
+        /* Frequency/Level Tags (Consistent) */
+        .level-tag { display: inline-block; margin-left: 0.75rem; font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.6rem; border-radius: 9999px; vertical-align: middle; border: 1px solid transparent; text-transform: uppercase; letter-spacing: 0.05em; }
+        .level-tag-high { background-color: var(--danger-color-light); color: var(--danger-color); border-color: var(--danger-color); }
+        .level-tag-medium { background-color: var(--warning-color-light); color: var(--warning-color); border-color: var(--warning-color); }
+        .level-tag-base { background-color: var(--bg-color-lighter); color: var(--text-color-light); border-color: var(--border-color-default); }
+
+        /* --- Card Interaction (Elevation on Hover) --- */
+        .content-card {
+            transition: box-shadow 0.25s ease-in-out; /* Smooth transition */
+        }
+        .content-card:hover {
+            /* Use Tailwind's shadow-lg or a slightly deeper custom shadow */
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        /* --- Ripple Effect Styles --- */
+        .ripple-container {
+            position: relative; /* Needed for absolute positioning of ripple */
+            overflow: hidden; /* Clip the ripple effect */
+        }
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.3); /* Use RGB for opacity */
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            pointer-events: none; /* Prevent interference */
+        }
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* --- Footer (Consistent) --- */
+        .page-footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color-default); text-align: center; color: var(--text-color-light); font-size: 0.85rem; }
+
+        /* --- Responsive Adjustments (Consistent) --- */
+        @media (max-width: 1024px) { /* Below lg */
+            .page-container { flex-direction: column; }
+            .local-side-nav { width: 100%; height: auto; position: relative; border-right: none; border-bottom: 1px solid var(--border-color-default); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); margin-bottom: 1.5rem; top: auto; overflow-y: visible; padding-right: 0; }
+            .local-side-nav h4 { padding: 1rem 1.25rem; }
+            .local-side-nav ul { padding: 0 0.75rem 1rem 0.75rem; }
+            .local-side-nav .back-link { padding: 0.75rem; }
+            .content-main { padding: 1.5rem 1rem; }
+        }
+
+        /* --- Fade-in Animation (Consistent) --- */
+        .fade-in { animation: fadeInAnimation 0.5s ease-in-out forwards; opacity: 0; }
+        @keyframes fadeInAnimation { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <div class="page-container">
+
+        <aside class="local-side-nav">
+            <h4 class="head4">性能优化基础</h4>
+            <ul id="local-toc">
+                <li><a href="#resource-optimization" class="sidebar-link ripple-container active"><span class="material-symbols-outlined">compress</span>资源优化</a></li>
+                <li><a href="#load-optimization" class="sidebar-link ripple-container"><span class="material-symbols-outlined">hourglass_bottom</span>加载优化</a></li>
+                <li><a href="#render-optimization" class="sidebar-link ripple-container"><span class="material-symbols-outlined">draw</span>渲染优化</a></li>
+                <li><a href="#debounce-throttle" class="sidebar-link ripple-container"><span class="material-symbols-outlined">timer</span>防抖与节流</a></li>
+                <li><a href="#image-optimization" class="sidebar-link ripple-container"><span class="material-symbols-outlined">image</span>图片优化</a></li>
+                <li><a href="#font-optimization" class="sidebar-link ripple-container"><span class="material-symbols-outlined">font_download</span>字体优化</a></li>
+                <li><a href="#core-web-vitals" class="sidebar-link ripple-container"><span class="material-symbols-outlined">monitoring</span>核心Web指标</a></li> 
+            </ul>
+            <a href="../../index.html" class="back-link ripple-container">
+                &larr; 返回大纲目录
+            </a>
+        </aside>
+
+        <main class="content-main">
+            <article>
+                <section id="intro" class="content-section fade-in">
+                    <h1 class="head1 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-3xl text-blue-600">speed</span> 前端性能优化基础
+                    </h1>
+                    <p class="section-intro">
+                        前端性能优化是提升用户体验、降低跳出率、甚至影响 SEO 排名的关键环节。本节将介绍前端性能优化的核心基础知识点，涵盖资源、加载、渲染等多个方面，并介绍衡量性能的核心指标，帮助你构建更快、更流畅的 Web 应用。
+                    </p>
+                </section>
+
+                <section id="resource-optimization" class="content-section fade-in">
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">compress</span>1. 资源优化
+                        <span class="level-tag level-tag-high">高频基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">减少 HTTP 请求</h3>
+                        <p>每次 HTTP 请求都需要建立连接、发送请求、等待响应，这个过程耗时。浏览器对同域名的并发请求数也有限制。减少请求次数是重要的优化手段。</p>
+                        <ul>
+                            <li><strong>合并文件:</strong> 将多个 CSS 或 JS 文件合并。现代构建工具 (Webpack, Vite) 通过打包实现。</li>
+                            <li><strong>CSS Sprites:</strong> 将多个小图标合并到一张图中，用 <code>background-position</code> 定位。</li>
+                            <li><strong>Inline Images (Base64):</strong> 嵌入极小的图片到 HTML/CSS，减少请求但增加文件大小，不利于缓存。</li>
+                            <li><strong>字体图标/SVG:</strong> 优先使用矢量图标，减少图片请求。</li>
+                        </ul>
+                        <pre><code class="language-css">/* CSS Sprite Example - 通过背景定位显示不同图标 */
+.icon {
+  background-image: url('sprite.png'); /* 合并后的雪碧图 */
+  background-repeat: no-repeat;
+  display: inline-block;
+  width: 16px; /* 图标宽度 */
+  height: 16px; /* 图标高度 */
+}
+
+.icon-save { background-position: 0 0; } /* 保存图标在 (0, 0) 位置 */
+.icon-edit { background-position: -20px 0; } /* 编辑图标在 (-20px, 0) 位置 */
+.icon-delete { background-position: -40px 0; } /* 删除图标在 (-40px, 0) 位置 */</code></pre>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">资源压缩 (JS/CSS/图片)</h3>
+                        <p>减小文件体积，就像把行李压缩打包，能更快地通过网络传输。</p>
+                        <ul>
+                            <li><strong>JS/CSS 压缩/混淆(Minification/Uglification):</strong> 使用 Terser, cssnano 等工具移除不必要的字符（空格、注释），缩短变量名。</li>
+                            <li><strong>HTML 压缩:</strong> 移除 HTML 中的空格和注释。</li>
+                            <li><strong>启用 Gzip/Brotli 传输压缩:</strong> 服务器端配置，对文本资源进行高效压缩。Brotli 通常优于 Gzip。</li>
+                            <li><strong>图片压缩:</strong> 见 <a href="#image-optimization" class="text-blue-600 hover:underline">图片优化</a> 部分。</li>
+                        </ul>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="head3">使用 CDN (内容分发网络)</h3>
+                        <p>CDN 就像在全球各地开设的“资源仓库”。用户访问时，会自动从最近的仓库取货，速度更快，也减轻了“总仓库”（源服务器）的压力。</p>
+                        <ul>
+                            <li><strong>加速访问:</strong> 减少物理距离带来的网络延迟。</li>
+                            <li><strong>分担源站压力:</strong> CDN 处理大量静态资源请求。</li>
+                            <li><strong>提高可用性:</strong> CDN 节点分布广泛，不易单点故障。</li>
+                            <li><strong>常见应用:</strong> 公共库 (React, Vue), 网站图片、脚本、样式表。</li>
+                        </ul>
+                        <pre><code class="language-html">&lt;!-- Example: Loading React from a CDN --&gt;
+&lt;!-- crossorigin 属性用于支持 CORS 的资源请求 --&gt;
+&lt;script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"&gt;&lt;/script&gt;
+&lt;script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"&gt;&lt;/script&gt;</code></pre>
+                    </div>
+                </section>
+
+
+                <section id="load-optimization" class="content-section fade-in">
+                    
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">hourglass_bottom</span>2. 加载优化
+                        <span class="level-tag level-tag-medium">中频基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">懒加载 (Lazy Loading)</h3>
+                        <p>就像餐厅上菜，优先上主菜（首屏内容），配菜（非关键资源）等客人需要时再上。这样可以更快地“开饭”（页面可用）。</p>
+                        <ul>
+                            <li><strong>图片懒加载:</strong>
+                                <ul>
+                                    <li>原生: <code>&lt;img loading="lazy"&gt;</code> (简单推荐)。</li>
+                                    <li>JS 实现: 使用 <code>IntersectionObserver</code> API 检测图片是否进入视口再加载。</li>
+                                </ul>
+                            </li>
+                            <li><strong>组件/模块懒加载 (含代码分割):</strong>
+                                <ul>
+                                    <li>**代码分割 (Code Splitting):** 构建工具 (Webpack/Vite) 将代码拆分成多个小包 (chunks)，而不是一个巨大的文件。</li>
+                                    <li>框架支持: React (<code>React.lazy</code>), Vue (异步组件), Angular (路由懒加载) 利用代码分割实现按需加载。</li>
+                                    <li>动态 <code>import()</code>: 标准 JS 语法，允许在需要时才加载某个 JS 模块。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                         <pre><code class="language-html">&lt;!-- Native Image Lazy Loading --&gt;
+&lt;!-- loading="lazy" 告诉浏览器可以延迟加载此图片 --&gt;
+&lt;img src="placeholder.jpg" loading="lazy" data-src="real-image.jpg" alt="懒加载图片"&gt;
+
+&lt;!-- JS IntersectionObserver Example Concept --&gt;
+&lt;script&gt;
+  // 获取所有需要懒加载的图片
+  const lazyImages = document.querySelectorAll('img[loading="lazy"][data-src]');
+  // 创建一个观察器实例
+  const observer = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      // 当图片进入视口时
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        // 将真实的图片地址赋给 src
+        img.src = img.dataset.src;
+        // 移除 data-src 属性（可选）
+        img.removeAttribute('data-src');
+        // 停止观察该图片
+        observer.unobserve(img);
+      }
+    });
+  });
+  // 开始观察所有懒加载图片
+  lazyImages.forEach(img => observer.observe(img));
+&lt;/script&gt;</code></pre>
+                        <pre><code class="language-javascript">// Dynamic Import Example - 按需加载模块
+// 获取按钮元素
+const loadButton = document.getElementById('loadModuleBtn');
+
+loadButton.addEventListener('click', async () => {
+  try {
+    // 当按钮被点击时，才去加载 'heavy-module.js'
+    console.log('开始加载模块...');
+    const module = await import('./heavy-module.js');
+    console.log('模块加载完成!');
+    // 调用模块导出的方法
+    module.doSomething();
+  } catch (error) {
+    // 处理加载失败的情况
+    console.error("模块加载失败:", error);
+  }
+});</code></pre>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">defer / async 脚本加载</h3>
+                        <p>控制 <code>&lt;script&gt;</code> 标签的加载和执行时机，避免它们像“路障”一样挡住页面的渲染。</p>
+                        <ul>
+                            <li><strong>默认:</strong> 下载和执行都会阻塞 HTML 解析。</li>
+                            <li><strong><code>async</code>:</strong> 并行下载，下载完立刻执行（执行时可能阻塞，顺序不定）。适合无依赖的独立脚本。</li>
+                            <li><strong><code>defer</code>:</strong> 并行下载，HTML 解析完后按顺序执行。适合大多数脚本。<strong>推荐！</strong></li>
+                        </ul>
+                        <div class="mermaid-diagram-container">
+                         <pre class="mermaid">
+gantt
+    dateFormat  X
+    title Script Loading Comparison
+    axisFormat  %s
+
+    section Default (Blocking)
+    Parse HTML      :p1, 0, 5
+    Download Script :ds1, after p1, 4
+    Execute Script  :es1, after ds1, 3
+    Parse Rest HTML :p2, after es1, 5
+
+    section Async
+    Parse HTML      :p3, 0, 12
+    Download Script :ds2, 1, 4
+    Execute Script  :es2, after ds2, 3
+
+    section Defer
+    Parse HTML      :p4, 0, 12
+    Download Script :ds3, 1, 4
+    Execute Script  :es3, after p4, 3
+                         </pre>
+                         <div class="mermaid-fallback text-xs text-gray-500 mt-2">
+                            [图示: Default 阻塞解析；Async 并行下载，下载完执行；Defer 并行下载，解析完按顺序执行]
+                         </div>
+                        </div>
+                        <pre><code class="language-html">&lt;!-- 不推荐: 阻塞 HTML 解析 --&gt;
+&lt;script src="blocking.js"&gt;&lt;/script&gt;
+
+&lt;!-- 适合独立脚本，如统计代码 --&gt;
+&lt;script async src="analytics.js"&gt;&lt;/script&gt;
+
+&lt;!-- 推荐用于大多数脚本，保证执行顺序 --&gt;
+&lt;script defer src="library.js"&gt;&lt;/script&gt;
+&lt;script defer src="main.js"&gt;&lt;/script&gt;</code></pre>
+                    </div>
+                </section>
+
+                <section id="render-optimization" class="content-section fade-in">
+                    
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">draw</span>3. 渲染优化
+                        <span class="level-tag level-tag-medium">中频基础</span>
+                    </h2>
+                     <div class="content-card">
+                        <h3 class="head3">减少 DOM 操作</h3>
+                        <p>频繁操作页面的“骨架”（DOM）是很耗费资源的，尽量一次性完成修改。</p>
+                        <ul>
+                            <li><strong>缓存查询:</strong> 将重复使用的 DOM 查询结果存到变量中。</li>
+                            <li><strong>批量修改:</strong> 使用 <code>DocumentFragment</code> 在内存中构建好节点，然后一次性插入 DOM。</li>
+                            <li><strong>CSS class 切换:</strong> 通过增删 class 来改变样式，比直接改 <code>style</code> 更高效。</li>
+                            <li><strong>框架优化:</strong> React/Vue 等框架的虚拟 DOM 机制就是为了减少不必要的真实 DOM 操作。</li>
+                        </ul>
+                         <pre><code class="language-javascript">// 不好的做法: 循环中频繁操作 DOM
+const listBad = document.getElementById('myListBad'); // 假设存在
+if (listBad) {
+    for (let i = 0; i < 100; i++) {
+      const listItem = document.createElement('li');
+      listItem.textContent = `Item ${i}`;
+      // 每次 appendChild 都可能触发浏览器重新布局和绘制
+      listBad.appendChild(listItem);
+    }
+}
+
+// 好的做法: 使用 DocumentFragment 批量操作
+const listGood = document.getElementById('myListGood'); // 假设存在
+if (listGood) {
+    // 创建一个文档片段，它存在于内存中，不是真实 DOM 的一部分
+    const fragment = document.createDocumentFragment();
+    for (let i = 0; i < 100; i++) {
+      const listItem = document.createElement('li');
+      listItem.textContent = `Item ${i}`;
+      // 先将所有新 li 添加到 fragment 中
+      fragment.appendChild(listItem);
+    }
+    // 所有 li 都准备好后，一次性将 fragment 添加到真实 DOM
+    listGood.appendChild(fragment); // 通常只会触发一次布局和绘制
+}</code></pre>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">避免频繁重排 (Reflow) / 重绘 (Repaint)</h3>
+                        <p>想象一下修改建筑蓝图（重排）比重新刷墙（重绘）要麻烦得多。我们要尽量避免大的改动。</p>
+                        <ul>
+                            <li><strong>读写分离:</strong> 先读取布局信息，再进行修改，不要交错进行。</li>
+                            <li><strong>批量样式修改:</strong> 使用 class 或 <code>cssText</code>。</li>
+                            <li><strong>脱离文档流:</strong> 对动画元素使用 <code>position: absolute/fixed</code>。</li>
+                            <li><strong>优先使用 <code>transform</code> 和 <code>opacity</code>:</strong> 这两个属性的动画通常只触发合成，性能最好。</li>
+                        </ul>
+                         <pre><code class="language-javascript">// 不好的做法: 读写交错，可能强制同步布局
+const elementBad = document.getElementById('myElementBad'); // 假设存在
+if (elementBad) {
+    elementBad.style.width = '100px'; // 写
+    console.log(elementBad.offsetWidth); // 读 - 浏览器必须立刻计算布局
+    elementBad.style.height = '50px'; // 写
+    console.log(elementBad.offsetHeight); // 读 - 再次强制布局
+}
+
+// 好的做法: 先读后写
+const elementGood = document.getElementById('myElementGood'); // 假设存在
+if (elementGood) {
+    // 先读取所有需要的信息
+    const currentWidth = elementGood.offsetWidth;
+    const currentHeight = elementGood.offsetHeight;
+    // 然后一次性写入所有修改
+    elementGood.style.width = '100px';
+    elementGood.style.height = '50px';
+}</code></pre>
+                        <p class="text-sm text-gray-600 mt-4">更多关于重排重绘的细节，请参考“浏览器工作原理”章节。</p>
+                    </div>
+                </section>
+
+                <section id="debounce-throttle" class="content-section fade-in">
+                    
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">timer</span>4. 防抖 (Debounce) 与 节流 (Throttle)
+                        <span class="level-tag level-tag-base">低频基础 (但实用)</span>
+                    </h2>
+                     <div class="content-card">
+                        <p>这两个技术就像给事件处理函数加了“冷静期”或“限流阀”，防止它们在高频事件中被过度触发。</p>
+                        <ul>
+                            <li><strong>防抖 (Debounce):</strong> 等用户停止操作一段时间后再执行。像电梯关门，有人进来就重新计时。</li>
+                            <li><strong>节流 (Throttle):</strong> 固定时间间隔内最多执行一次。像技能冷却，放一次技能后要等 CD。</li>
+                        </ul>
+                        <div class="mermaid-diagram-container">
+                         <pre class="mermaid">
+gantt
+    dateFormat X
+    title Debounce vs Throttle (事件触发与函数执行)
+    axisFormat %s
+
+    section Event Triggers
+    Trigger 1 :crit, e1, 0, 1
+    Trigger 2 :crit, e2, 2, 1
+    Trigger 3 :crit, e3, 3, 1
+    Trigger 4 :crit, e4, 7, 1
+    Trigger 5 :crit, e5, 8, 1
+
+    section Debounce (Wait 2s)
+    Execute   :done, d1, after e3, 2
+
+    section Throttle (Interval 3s)
+    Execute   :done, t1, 0, 1
+    Execute   :done, t2, 3, 1
+    Execute   :done, t3, 7, 1
+                         </pre>
+                         <div class="mermaid-fallback text-xs text-gray-500 mt-2">
+                            [图示: Debounce 在连续触发停止后执行一次；Throttle 按固定间隔执行]
+                         </div>
+                        </div>
+                        <h3 class="head3">应用场景</h3>
+                        <ul>
+                            <li><strong>防抖:</strong> 搜索建议 (input), 窗口调整 (resize)。</li>
+                            <li><strong>节流:</strong> 滚动加载 (scroll), 按钮防重复点击。</li>
+                        </ul>
+                         <pre><code class="language-javascript">// 简化的防抖函数实现 (概念)
+function debounce(func, wait) {
+  let timeoutId = null; // 用于存储定时器 ID
+  // 返回一个新的函数
+  return function executedFunction(...args) {
+    // 'this' 指向调用时所在的上下文
+    const context = this;
+    // 定义真正要执行的函数
+    const later = () => {
+      timeoutId = null; // 清除定时器 ID
+      func.apply(context, args); // 执行原始函数
+    };
+    // 如果已有定时器，则清除它
+    clearTimeout(timeoutId);
+    // 设置新的定时器，延迟 wait 毫秒后执行 later 函数
+    timeoutId = setTimeout(later, wait);
+  };
+}
+
+// 简化的节流函数实现 (概念 - 使用定时器)
+function throttle(func, limit) {
+  let inThrottle = false; // 标记是否在节流冷却中
+  // 返回一个新的函数
+  return function executedFunction(...args) {
+    const context = this;
+    // 如果不在冷却中
+    if (!inThrottle) {
+      // 立刻执行原始函数
+      func.apply(context, args);
+      // 进入冷却状态
+      inThrottle = true;
+      // limit 毫秒后解除冷却状态
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+}
+
+// 使用示例
+// 对窗口 resize 事件应用防抖，延迟 250ms 执行
+window.addEventListener('resize', debounce(() => {
+  console.log('Window resized (debounced)');
+}, 250));
+
+// 对文档 scroll 事件应用节流，每 100ms 最多执行一次
+document.addEventListener('scroll', throttle(() => {
+  console.log('Scrolled (throttled)');
+}, 100));</code></pre>
+                        <p class="text-sm text-gray-600 mt-4">实际项目中通常使用 Lodash 等库提供的成熟实现。</p>
+                    </div>
+                </section>
+
+                <section id="image-optimization" class="content-section fade-in">
+                    
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">image</span>5. 图片优化基础
+                        <span class="level-tag level-tag-base">低频基础</span>
+                    </h2>
+                     <div class="content-card">
+                        <h3 class="head3">选择合适的格式</h3>
+                        <p>就像选工具，不同的图片格式适合不同的场景。</p>
+                        <ul>
+                            <li><strong>JPG/JPEG:</strong> 适合照片等色彩丰富的图，有损压缩可调。</li>
+                            <li><strong>PNG:</strong> 适合需要透明背景或无损质量的图（Logo, 图标）。</li>
+                            <li><strong>GIF:</strong> 适合简单动画。</li>
+                            <li><strong>WebP:</strong> 现代格式，压缩好，支持多种特性。**推荐！**</li>
+                            <li><strong>AVIF:</strong> 更新的格式，压缩更好，兼容性稍差。</li>
+                            <li><strong>SVG:</strong> 矢量图，无限缩放，适合图标、简单图形。</li>
+                        </ul>
+                        <p>使用 <code>&lt;picture&gt;</code> 实现优雅降级:</p>
+                        <pre><code class="language-html">&lt;picture&gt;
+  &lt;!-- 浏览器如果支持 AVIF，则加载 AVIF --&gt;
+  &lt;source srcset="image.avif" type="image/avif"&gt;
+  &lt;!-- 否则，如果支持 WebP，则加载 WebP --&gt;
+  &lt;source srcset="image.webp" type="image/webp"&gt;
+  &lt;!-- 如果都不支持，则加载 JPG 作为默认 --&gt;
+  &lt;img src="image.jpg" alt="描述性文字"&gt;
+&lt;/picture&gt;</code></pre>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="head3">图片懒加载</h3>
+                        <p>见 <a href="#load-optimization" class="text-blue-600 hover:underline">加载优化</a> 部分。</p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">其他图片优化技巧</h3>
+                        <ul>
+                            <li><strong>响应式图片:</strong> 使用 <code>srcset</code> 和 <code>sizes</code> 或 <code>&lt;picture&gt;</code> 为不同设备提供合适尺寸的图片。</li>
+                            <li><strong>图片压缩工具:</strong> 使用 TinyPNG, Squoosh 等工具进一步压缩。</li>
+                            <li><strong>避免图片传输文本:</strong> 尽量用 CSS 实现视觉效果。</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section id="font-optimization" class="content-section fade-in">
+                    
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">font_download</span>6. 字体优化基础
+                        <span class="level-tag level-tag-base">低频基础</span>
+                    </h2>
+                     <div class="content-card">
+                        <h3 class="head3">了解 FOIT / FOUT</h3>
+                        <p>网络字体加载时的“闪烁”问题：</p>
+                        <ul>
+                            <li><strong>FOIT (无字天书):</strong> 字体加载完成前，文字看不见。</li>
+                            <li><strong>FOUT (样式突变):</strong> 先显示后备字体，加载完再变，引起闪烁。</li>
+                        </ul>
+                        <p>使用 CSS <code>font-display</code> 控制:</p>
+                         <pre><code class="language-css">@font-face {
+  font-family: 'MyCustomFont';
+  src: url('myfont.woff2') format('woff2'); /* 加载字体文件 */
+  /* font-display 控制字体加载期间的显示策略 */
+  /* swap: 推荐！短暂FOIT后显示后备字体，加载完立即切换。平衡性能和体验。 */
+  font-display: swap;
+  /* block: 阻塞渲染直到字体加载完成或超时（通常3s），可能导致长时间FOIT。 */
+  /* font-display: block; */
+  /* fallback: 极短FOIT(约100ms)，然后显示后备字体。若超时未加载完则永久使用后备。 */
+  /* font-display: fallback; */
+  /* optional: 极短FOIT(约100ms)，然后显示后备字体。优先使用缓存，若无缓存或加载慢则永久使用后备。 */
+  /* font-display: optional; */
+}</code></pre>
+                    </div>
+                     <div class="content-card">
+                        <h3 class="head3">优化策略</h3>
+                        <ul>
+                            <li><strong>系统字体优先:</strong> 最快，无需加载。</li>
+                            <li><strong>WOFF2 格式:</strong> 压缩率最高。</li>
+                            <li><strong>字体子集化:</strong> 只包含需要的字符，大幅减小体积。</li>
+                            <li><strong>预加载 (Preload):</strong> 对关键字体使用 <code>&lt;link rel="preload"&gt;</code>。</li>
+                            <li><strong>CDN 加载。</strong></li>
+                            <li><strong>控制字体数量和字重。</strong></li>
+                        </ul>
+                        <pre><code class="language-html">&lt;!-- 预加载关键字体文件，提高加载优先级 --&gt;
+&lt;!-- href: 字体文件路径 --&gt;
+&lt;!-- as="font": 指定资源类型为字体 --&gt;
+&lt;!-- type="font/woff2": 指定字体 MIME 类型 (可选但推荐) --&gt;
+&lt;!-- crossorigin: 字体通常跨域加载，需要此属性 --&gt;
+&lt;link rel="preload" href="/fonts/myfont.woff2" as="font" type="font/woff2" crossorigin&gt;</code></pre>
+                    </div>
+                </section>
+
+                
+                <section id="core-web-vitals" class="content-section fade-in">
+                     
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">monitoring</span>7. 核心 Web 指标 (Core Web Vitals)
+                        <span class="level-tag level-tag-medium">中频基础</span>
+                    </h2>
+                     <div class="content-card">
+                        <p>Google 提出的衡量用户体验的关键指标，直接影响搜索排名。关注这些指标有助于指导性能优化方向。</p>
+                        <ul>
+                            <li><strong>LCP (Largest Contentful Paint - 最大内容绘制):</strong> 衡量**加载性能**。指视口中最大可见图片或文本块完成渲染的时间点。目标：**2.5 秒**以内。</li>
+                            <li><strong>FID (First Input Delay - 首次输入延迟) / INP (Interaction to Next Paint - 下次绘制交互):</strong> 衡量**交互性**。
+                                <ul>
+                                   <li>FID: 用户首次交互（点击、输入等）到浏览器能够响应该交互的时间。目标：**100 毫秒**以内。</li>
+                                   <li>INP: 衡量页面对所有用户交互的整体响应能力（从交互开始到下一帧绘制的时间）。目标：**200 毫秒**以内。（INP 将逐渐取代 FID）</li>
+                                </ul>
+                            </li>
+                            <li><strong>CLS (Cumulative Layout Shift - 累积布局偏移):</strong> 衡量**视觉稳定性**。指页面加载过程中，可见元素发生非预期布局偏移的累积分数。目标：**0.1** 以下。</li>
+                        </ul>
+                        <p>优化这些指标通常需要综合运用前面提到的各种性能优化技术。</p>
+                    </div>
+                </section>
+
+                <footer class="page-footer">
+                    前端性能优化基础知识点 (改进版)
+                </footer>
+            </article>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Initialize Mermaid ---
+            try {
+                if (typeof mermaid !== 'undefined') {
+                    mermaid.initialize({
+                        startOnLoad: false, theme: 'neutral',
+                        flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+                        gantt: { useMaxWidth: true }, securityLevel: 'loose'
+                    });
+                    mermaid.run({ nodes: document.querySelectorAll('.mermaid') });
+                    document.querySelectorAll('.mermaid-diagram-container').forEach(container => {
+                        const mermaidEl = container.querySelector('.mermaid');
+                        const fallbackEl = container.querySelector('.mermaid-fallback');
+                        if (mermaidEl && fallbackEl && !mermaidEl.hasAttribute('data-processed')) {
+                            if (mermaidEl.innerHTML.trim().startsWith('<svg') || mermaidEl.querySelector('svg')) {
+                                if (fallbackEl) fallbackEl.style.display = 'none';
+                            } else {
+                                if (fallbackEl) fallbackEl.style.display = 'block';
+                            }
+                        } else if (fallbackEl) {
+                            fallbackEl.style.display = 'none';
+                        }
+                    });
+                } else {
+                    console.warn("Mermaid library not loaded.");
+                    document.querySelectorAll('.mermaid-fallback').forEach(el => el.style.display = 'block');
+                }
+            } catch (e) {
+                console.error("Mermaid initialization or rendering failed:", e);
+                 document.querySelectorAll('.mermaid-fallback').forEach(el => el.style.display = 'block');
+            }
+
+            // --- Initialize Prism ---
+            try {
+                if (window.Prism) { Prism.highlightAll(); }
+                else { console.warn("Prism library not loaded."); }
+            } catch (e) { console.error("Prism highlighting failed:", e); }
+
+            // --- Ripple Effect Logic ---
+            function createRipple(event) {
+                const container = event.currentTarget; // The element with the listener
+                // Ensure it's the container and not a child triggering
+                if (!container.classList.contains('ripple-container')) return;
+
+                const circle = document.createElement("span");
+                const diameter = Math.max(container.clientWidth, container.clientHeight);
+                const radius = diameter / 2;
+
+                // Calculate offset relative to the container
+                const rect = container.getBoundingClientRect();
+                const offsetX = event.clientX - rect.left;
+                const offsetY = event.clientY - rect.top;
+
+                circle.style.width = circle.style.height = `${diameter}px`;
+                // Position the ripple center at the click point
+                circle.style.left = `${offsetX - radius}px`;
+                circle.style.top = `${offsetY - radius}px`;
+                circle.classList.add("ripple");
+
+                // Optional: Get primary color dynamically for theming
+                // const primaryColorRgb = getComputedStyle(document.documentElement).getPropertyValue('--primary-color-rgb') || '59, 130, 246';
+                // circle.style.backgroundColor = `rgba(${primaryColorRgb}, 0.3)`;
+
+                const existingRipple = container.querySelector(".ripple");
+                if (existingRipple) { existingRipple.remove(); } // Remove previous ripple immediately
+
+                container.appendChild(circle);
+
+                // Remove the ripple element after the animation completes
+                setTimeout(() => {
+                    circle.remove();
+                }, 600); // Match animation duration
+            }
+
+            // Attach ripple effect to sidebar links and back link
+            document.querySelectorAll('.local-side-nav .sidebar-link, .local-side-nav .back-link').forEach(link => {
+                link.addEventListener('click', createRipple);
+            });
+
+
+            // --- Sidebar Active Link Highlighting (Updated for new sections) ---
+            const sections = document.querySelectorAll('main section[id]'); // Re-query sections
+            const sidebarLinks = document.querySelectorAll('.local-side-nav .sidebar-link'); // Re-query links
+            const sidebarNav = document.querySelector('.local-side-nav');
+            let lastActiveLink = null;
+
+            const observerOptions = { root: null, rootMargin: '0px 0px -60% 0px', threshold: 0 };
+
+            const observer = new IntersectionObserver((entries) => {
+                let topmostVisibleSectionId = null;
+                let minOffsetTop = Infinity;
+
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (entry.target.offsetTop < minOffsetTop) {
+                            minOffsetTop = entry.target.offsetTop;
+                            topmostVisibleSectionId = entry.target.getAttribute('id');
+                        }
+                    }
+                });
+
+                if (topmostVisibleSectionId) {
+                    const activeLink = document.querySelector(`.local-side-nav a[href="#${topmostVisibleSectionId}"]`);
+                    if (activeLink && activeLink !== lastActiveLink) {
+                        if(lastActiveLink) lastActiveLink.classList.remove('active');
+                        activeLink.classList.add('active');
+                        lastActiveLink = activeLink;
+                        if (sidebarNav && sidebarNav.scrollHeight > sidebarNav.clientHeight) {
+                             activeLink.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                        }
+                    }
+                }
+                else if (window.scrollY === 0 && sidebarLinks.length > 0) {
+                     if(lastActiveLink) lastActiveLink.classList.remove('active');
+                     sidebarLinks[0].classList.add('active');
+                     lastActiveLink = sidebarLinks[0];
+                }
+            }, observerOptions);
+
+            // Observe all sections including the new ones
+            sections.forEach(section => { observer.observe(section); });
+
+             // Initial check on load (Handles new sections)
+            setTimeout(() => {
+                let initialActiveId = window.location.hash ? window.location.hash.substring(1) : null;
+                if (!initialActiveId && sections.length > 0) {
+                     const scrollY = window.scrollY;
+                     const initialOffset = window.innerHeight * 0.4;
+                     for (const section of sections) {
+                         if (section.offsetTop <= scrollY + initialOffset) { initialActiveId = section.getAttribute('id'); }
+                         else { break; }
+                     }
+                     if (!initialActiveId) initialActiveId = sections[0].getAttribute('id');
+                }
+
+                if (initialActiveId) {
+                    const initialActiveLink = document.querySelector(`.local-side-nav a[href="#${initialActiveId}"]`);
+                    if (initialActiveLink) {
+                         sidebarLinks.forEach(link => link.classList.remove('active'));
+                         initialActiveLink.classList.add('active');
+                         lastActiveLink = initialActiveLink;
+                         if (sidebarNav && sidebarNav.scrollHeight > sidebarNav.clientHeight) {
+                            initialActiveLink.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                         }
+                    }
+                } else if (sidebarLinks.length > 0 && !lastActiveLink) {
+                    sidebarLinks.forEach(link => link.classList.remove('active'));
+                    sidebarLinks[0].classList.add('active');
+                    lastActiveLink = sidebarLinks[0];
+                }
+            }, 100);
+
+        }); // End DOMContentLoaded
+    </script>
+
+</body>
+
+</html>

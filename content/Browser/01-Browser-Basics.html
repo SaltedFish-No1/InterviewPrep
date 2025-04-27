@@ -1,0 +1,2603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浏览器核心知识与面试指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../../global.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <style>
+        /* Minimal inline styles - Prioritize global.css */
+        /* Add styles ONLY for components not covered by global.css, using global.css variables */
+
+        /* --- Material Symbols Base Style (from reference) --- */
+        .material-symbols-outlined {
+            font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24;
+            vertical-align: middle;
+            font-size: 1.25em;
+            /* Slightly larger default */
+            line-height: 1;
+            /* Prevent extra spacing */
+        }
+
+        /* Adjust icon size within specific contexts if needed */
+        .local-side-nav .material-symbols-outlined,
+        .content-section h2 .material-symbols-outlined {
+            font-size: 1.3em;
+            /* Match sidebar/heading icon size */
+        }
+
+        .quiz-question .icon {
+            font-size: 1.3em;
+            opacity: 0.8;
+        }
+
+        .material-button .material-symbols-outlined {
+            font-size: 1.2em;
+        }
+
+
+        /* --- Typography & Spacing Enhancements (Adapted from reference, using global.css variables) --- */
+        /* Use global.css heading classes (.head1, .head2 etc.) where possible */
+        /* Override specific margins/paddings if needed */
+        .content-main h3 {
+            /* Adjust H3 style for consistency if needed */
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-top: 2.5rem;
+            /* Adjusted spacing */
+            margin-bottom: 1.5rem;
+            color: var(--text-color-dark);
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid var(--border-color-light);
+        }
+
+        /* First H3 in a card should have less top margin */
+        .content-card>h3:first-of-type {
+            margin-top: 0;
+        }
+
+        .content-main p,
+        .content-main ul,
+        .content-main ol {
+            margin-bottom: 1.4rem;
+            /* Increased paragraph spacing */
+            font-size: 1rem;
+            line-height: 1.75;
+            /* Increased readability */
+        }
+
+        .content-main .section-intro {
+            font-size: 1.05rem;
+            color: var(--text-color-secondary, var(--text-color-light));
+            /* Use secondary or light text color */
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color-light);
+            padding-left: 1.25rem;
+            line-height: 1.8;
+        }
+
+        .content-main .analogy {
+            background-color: var(--primary-color-light);
+            /* Use info/primary light color */
+            color: var(--primary-color-dark);
+            /* Use info/primary dark color */
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1.75rem 0;
+            border: 1px solid var(--border-color-default);
+            /* Use appropriate border */
+            font-style: normal;
+            position: relative;
+            padding-left: 3rem;
+        }
+
+        .content-main .analogy::before {
+            content: "\e80c";
+            /* Material 'lightbulb' icon */
+            font-family: 'Material Symbols Outlined';
+            position: absolute;
+            left: 1rem;
+            top: 1rem;
+            font-size: 1.5em;
+            color: var(--primary-color-dark);
+            opacity: 0.8;
+        }
+
+        .content-main .analogy strong {
+            color: inherit;
+            font-weight: 600;
+        }
+
+        /* Custom List Styles (Adapted from reference) */
+        .content-main ul:not([class]) {
+            list-style: none;
+            padding-left: 0.5rem;
+        }
+
+        .content-main ul:not([class]) li {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .content-main ul:not([class]) li::before {
+            content: "\e5ca";
+            /* Material 'check_circle' icon */
+            font-family: 'Material Symbols Outlined';
+            position: absolute;
+            left: 0;
+            top: 4px;
+            color: var(--primary-color);
+            font-size: 1.3em;
+            font-variation-settings: 'FILL' 1, 'wght' 300;
+        }
+
+        .content-main ol:not([class]) {
+            list-style: none;
+            padding-left: 0.5rem;
+            counter-reset: list-counter;
+        }
+
+        .content-main ol:not([class]) li {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 0.6rem;
+            counter-increment: list-counter;
+        }
+
+        .content-main ol:not([class]) li::before {
+            content: counter(list-counter);
+            position: absolute;
+            left: 0;
+            top: 2px;
+            background-color: var(--primary-color);
+            color: var(--bg-color-white);
+            font-size: 0.75em;
+            font-weight: 600;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            text-align: center;
+        }
+
+        /* Code Blocks (Rely on global.css pre/code and Prism theme) */
+        /* Ensure inline code uses global style */
+        .content-main *:not(pre)>code {
+            background-color: var(--primary-color-light);
+            color: var(--primary-color-dark);
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: var(--font-family-mono);
+            font-size: 0.875em;
+        }
+
+        /* --- Material Inspired Buttons (Adapted for global.css variables) --- */
+        .material-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            background-color: var(--primary-color);
+            color: var(--bg-color-white);
+            padding: 0.65rem 1.3rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+            font-weight: 600;
+            text-transform: none;
+            font-size: 0.9rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 1px 1px rgba(0, 0, 0, 0.05);
+            outline: none;
+            line-height: 1.5;
+        }
+
+        .material-button:hover {
+            background-color: var(--primary-color-dark);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 2px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .material-button:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .material-button:disabled {
+            background-color: var(--border-color-default);
+            color: var(--text-color-light);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .material-button.secondary {
+            background-color: var(--bg-color-light);
+            color: var(--primary-color);
+            box-shadow: 0 0 0 1px var(--border-color-default) inset;
+        }
+
+        .material-button.secondary:hover {
+            background-color: var(--bg-color-lighter);
+            box-shadow: 0 0 0 1px var(--text-color-light) inset;
+        }
+
+        /* --- Material Inspired Forms (Select, Checkbox - Adapted) --- */
+        .material-select {
+            padding: 0.7rem 2.5rem 0.7rem 1rem;
+            border: 1px solid var(--border-color-default);
+            border-radius: 6px;
+            background-color: var(--bg-color-white);
+            color: var(--text-color-primary);
+            font-size: 0.9rem;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24' fill='%236b7280'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            /* Use gray-500 */
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.3em;
+            cursor: pointer;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            line-height: 1.5;
+        }
+
+        .material-select:hover {
+            border-color: var(--text-color-light);
+        }
+
+        .material-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .material-checkbox-label {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            gap: 0.6rem;
+            padding: 0.5rem 0;
+        }
+
+        .material-checkbox {
+            appearance: none;
+            width: 1.3rem;
+            height: 1.3rem;
+            border: 2px solid var(--text-color-light);
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            flex-shrink: 0;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .material-checkbox:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .material-checkbox:checked::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 5px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .material-checkbox:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        /* --- Quiz Card Styles (Adapted) --- */
+        /* Use global.css .quiz-card and related styles where possible */
+        .quiz-card {
+            /* Assuming this class exists in global.css */
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            /* Add specific overrides if needed */
+            border-left-width: 4px;
+            border-left-color: var(--primary-color);
+            background-color: var(--primary-color-light);
+        }
+
+        .quiz-question {
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-color-dark);
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .quiz-options label {
+            display: block;
+            padding: 0.8rem 1rem 0.8rem 2.75rem;
+            border: 1px solid var(--border-color-default);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            position: relative;
+            background-color: var(--bg-color-white);
+        }
+
+        .quiz-options label:hover {
+            background-color: var(--bg-color-lighter);
+        }
+
+        .quiz-options input[type="radio"] {
+            display: none;
+        }
+
+        .quiz-options label::before {
+            content: '';
+            position: absolute;
+            left: 0.85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1.2rem;
+            height: 1.2rem;
+            border: 2px solid var(--border-color-default);
+            border-radius: 50%;
+            transition: border-color 0.2s ease;
+            background-color: var(--bg-color-white);
+        }
+
+        .quiz-options label::after {
+            content: '';
+            position: absolute;
+            left: calc(0.85rem + 5px);
+            top: 50%;
+            transform: translateY(-50%) scale(0);
+            width: 0.7rem;
+            height: 0.7rem;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+        }
+
+        .quiz-options input[type="radio"]:checked+.label-text::before {
+            border-color: var(--primary-color);
+        }
+
+        .quiz-options input[type="radio"]:checked+.label-text::after {
+            transform: translateY(-50%) scale(1);
+        }
+
+        .quiz-feedback {
+            margin-top: 1.25rem;
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            display: none;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .quiz-feedback.correct {
+            display: block;
+            background-color: var(--success-color-light);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .quiz-feedback.incorrect {
+            display: block;
+            background-color: var(--danger-color-light);
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        .quiz-feedback strong {
+            font-weight: 600;
+            color: inherit;
+        }
+
+        .quiz-feedback ol {
+            margin-top: 0.75rem;
+            padding-left: 1.25rem;
+            list-style: decimal;
+        }
+
+        .quiz-feedback ol li {
+            margin-bottom: 0.3rem;
+            padding-left: 0;
+        }
+
+        .quiz-feedback ol li::before {
+            display: none;
+        }
+
+        /* --- Reflow/Repaint Demo --- */
+        .reflow-repaint-demo {
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            background-color: var(--bg-color-light);
+            border: 1px solid var(--border-color-light);
+            border-radius: 8px;
+        }
+
+        .demo-controls {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .demo-controls p {
+            margin: 0;
+            font-weight: 500;
+            color: var(--text-color-light);
+        }
+
+        .demo-boxes {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .demo-box {
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            background-color: var(--primary-color-light);
+            color: var(--primary-color-dark);
+            font-weight: 500;
+            border: 1px solid var(--border-color-default);
+            transition: background-color 0.3s ease, width 0.3s ease, box-shadow 0.1s ease-out;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            width: 100px;
+            text-align: center;
+        }
+
+        .flash-repaint {
+            animation: flash-repaint-anim 0.4s ease-out;
+        }
+
+        .flash-reflow {
+            animation: flash-reflow-anim 0.4s ease-out;
+        }
+
+        @keyframes flash-repaint-anim {
+            0% {
+                box-shadow: 0 0 0 4px var(--md-flash-repaint-color, rgba(76, 175, 80, 0.3));
+            }
+
+            100% {
+                box-shadow: 0 0 0 0px transparent;
+            }
+        }
+
+        @keyframes flash-reflow-anim {
+            0% {
+                box-shadow: 0 0 0 4px var(--md-flash-reflow-color, rgba(244, 67, 54, 0.3));
+            }
+
+            100% {
+                box-shadow: 0 0 0 0px transparent;
+            }
+        }
+
+        .demo-output {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            background-color: var(--bg-color-light);
+            border: 1px solid var(--border-color-default);
+            font-size: 0.9rem;
+            color: var(--text-color-light);
+            transition: background-color 0.3s ease;
+        }
+
+        .demo-output.repaint {
+            background-color: var(--success-color-light);
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+
+        .demo-output.reflow {
+            background-color: var(--danger-color-light);
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        /* --- CORS Demo --- */
+        .cors-demo {
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            background-color: var(--bg-color-light);
+            border: 1px solid var(--border-color-light);
+            border-radius: 8px;
+        }
+
+        .cors-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .cors-controls label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .cors-controls label span:first-child {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-color-light);
+        }
+
+        .cors-controls .material-checkbox-label {
+            flex-direction: row;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .cors-output h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .cors-output #requestType {
+            font-weight: 600;
+        }
+
+        .cors-output #requestType.simple {
+            color: var(--success-color);
+        }
+
+        .cors-output #requestType.preflight {
+            color: var(--danger-color);
+        }
+
+        .cors-output #requiredHeaders h5 {
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-color-light);
+        }
+
+        .cors-output pre {
+            margin-top: 0;
+            margin-bottom: 0;
+            padding: 1rem;
+            font-size: 0.85rem;
+            background-color: var(--md-pre-bg);
+            color: var(--md-pre-text);
+            border-radius: 6px;
+        }
+
+        /* Use pre style */
+
+        /* --- Event Loop Visualization --- */
+        .event-loop-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: auto auto;
+            gap: 1.25rem;
+            border-radius: 8px;
+            padding: 1.5rem;
+            background-color: var(--bg-color-light);
+            border: 1px solid var(--border-color-light);
+            position: relative;
+        }
+
+        .event-loop-box {
+            border-radius: 6px;
+            border: 1px solid var(--border-color-default);
+            background-color: var(--bg-color-white);
+            padding: 0.8rem 1rem;
+            min-height: 120px;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .event-loop-box h4 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-color-light);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed var(--border-color-light);
+        }
+
+        .event-loop-box ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 150px;
+        }
+
+        .event-loop-box li {
+            background-color: var(--primary-color-light);
+            color: var(--primary-color-dark);
+            border: 1px solid var(--border-color-default);
+            border-radius: 4px;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            animation: task-enter 0.3s ease-out;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @keyframes task-enter {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .event-loop-box.active {
+            background-color: var(--warning-color-light);
+            border-color: var(--warning-color);
+        }
+
+        .processing-arrow {
+            position: absolute;
+            font-size: 1.8rem;
+            transition: top 0.3s ease, left 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+            color: var(--warning-color);
+        }
+
+        /* Use warning color for arrow */
+        #eventLoopLog {
+            border-radius: 6px;
+            background-color: #fdfdfe;
+            border: 1px solid var(--border-color-default);
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 1rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color-default) transparent;
+        }
+
+        #eventLoopLog::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        #eventLoopLog::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #eventLoopLog::-webkit-scrollbar-thumb {
+            background-color: var(--border-color-default);
+            border-radius: 3px;
+        }
+
+        #eventLoopLog p {
+            margin-bottom: 0.4rem;
+        }
+
+        /* --- Storage Table --- */
+        .storage-table-container {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        .storage-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 8px;
+            border: 1px solid var(--border-color-default);
+            font-size: 0.9rem;
+        }
+
+        .storage-table th,
+        .storage-table td {
+            border: 1px solid var(--border-color-default);
+            padding: 0.9rem 1.1rem;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .storage-table th {
+            background-color: var(--bg-color-lighter);
+            font-weight: 600;
+        }
+
+        .storage-table tbody tr:nth-child(even) {
+            background-color: var(--bg-color-light);
+        }
+
+        .storage-table td:first-child {
+            font-weight: 500;
+            color: var(--text-color-light);
+        }
+
+        /* --- Mermaid Diagram Container --- */
+        .mermaid-diagram-container {
+            border-radius: 8px;
+            border: 1px solid var(--border-color-default);
+            background-color: var(--bg-color-white);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            text-align: center;
+        }
+
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* --- Fade-in Animation --- */
+        .fade-in {
+            animation: fadeInAnimation 0.5s ease-in-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInAnimation {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- Footer --- */
+        .page-footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color-default);
+            text-align: center;
+            color: var(--text-color-light);
+            font-size: 0.85rem;
+        }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 1024px) {
+
+            /* Below lg */
+            .page-container {
+                flex-direction: column;
+            }
+
+            /* Revert to column layout */
+            .local-side-nav {
+                /* Use local-side-nav class */
+                height: auto;
+                position: relative;
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color-default);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+                margin-bottom: 1.5rem;
+                /* Add margin */
+            }
+
+            .local-side-nav h4 {
+                padding: 1rem 1.25rem;
+            }
+
+            .local-side-nav ul {
+                padding: 0 0.75rem 1rem 0.75rem;
+            }
+
+            .local-side-nav .back-link {
+                padding: 0.75rem;
+            }
+
+            /* Adjust padding */
+            .content-main {
+                padding: 1.5rem 1rem;
+            }
+
+            /* Reduce padding */
+            .event-loop-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* --- Demo of Rendering Process --- */
+        #tree-creation-demo-embed-wrapper {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color-dark);
+            background-color: var(--bg-color-white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--card-box-shadow);
+            max-width: 1200px;
+            margin: 1.5rem auto;
+            border: 1px solid var(--border-color-light);
+        }
+
+        #tree-creation-demo-embed-wrapper .material-symbols-outlined {
+            vertical-align: middle;
+            font-size: 1.25em;
+            line-height: 1;
+        }
+
+        #tree-creation-demo-embed-wrapper pre {
+            background-color: var(--md-pre-bg);
+            color: var(--md-pre-text);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: var(--font-family-mono);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        #tree-creation-demo-embed-wrapper pre.highlight {
+            background-color: #334155;
+            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+
+        #tree-creation-demo-embed-wrapper .visualization-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: var(--bg-color-light);
+            border-radius: 8px;
+            min-height: 350px;
+            align-items: start;
+        }
+
+        #tree-creation-demo-embed-wrapper .tree-container {
+            border: 1px solid var(--border-color-light);
+            border-radius: 8px;
+            padding: 1rem;
+            background-color: var(--bg-color-white);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.5s ease 0.1s, transform 0.5s ease 0.1s, border-color 0.3s ease, background-color 0.3s ease;
+            height: 100%;
+        }
+
+        #tree-creation-demo-embed-wrapper .tree-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #tree-creation-demo-embed-wrapper .tree-container h4 {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            text-align: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed var(--border-color-default);
+            font-size: 0.9rem;
+            color: var(--text-color-dark);
+        }
+
+        #tree-creation-demo-embed-wrapper .tree {
+            padding-left: 1rem;
+            font-size: 0.9rem;
+        }
+
+        #tree-creation-demo-embed-wrapper .tree .node {
+            margin-bottom: 0.5rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            border-left: 3px solid;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        #tree-creation-demo-embed-wrapper .tree .node .content {
+            display: inline-block;
+            font-family: var(--font-family-mono);
+            font-size: 0.85rem;
+        }
+
+        #tree-creation-demo-embed-wrapper .tree .node .styles {
+            font-size: 0.8em;
+            color: var(--text-color-light);
+            margin-left: 0.5rem;
+            font-style: italic;
+        }
+
+        #tree-creation-demo-embed-wrapper .tree .children {
+            margin-left: 1.5rem;
+            padding-top: 0.5rem;
+        }
+
+        #tree-creation-demo-embed-wrapper .dom-tree .node {
+            border-color: var(--primary-color);
+            background-color: var(--primary-color-light);
+        }
+
+        #tree-creation-demo-embed-wrapper .cssom-tree .node {
+            border-color: var(--danger-color);
+            background-color: var(--danger-color-light);
+        }
+
+        #tree-creation-demo-embed-wrapper .render-tree .node {
+            border-color: var(--success-color);
+            background-color: var(--success-color-light);
+        }
+
+        #tree-creation-demo-embed-wrapper .render-tree .node.hidden-node {
+            opacity: 0.4;
+            border-left-style: dashed;
+            background-color: var(--bg-color-lighter);
+        }
+
+        #tree-creation-demo-embed-wrapper .render-tree .node.hidden-node .content {
+            text-decoration: line-through;
+        }
+
+        #tree-creation-demo-embed-wrapper .render-tree .node.hidden-node .styles {
+            display: none;
+        }
+
+        #tree-creation-demo-embed-wrapper .rendered-output {
+            border-color: #a78bfa;
+        }
+
+        /* Keep specific color? */
+        #tree-creation-demo-embed-wrapper .rendered-page {
+            margin-top: 0.5rem;
+            padding: 1rem;
+            border-radius: 4px;
+            background-color: var(--primary-color-light);
+            border: 1px solid var(--border-color-default);
+            font-size: 16px;
+            min-height: 100px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #tree-creation-demo-embed-wrapper .rendered-page .content-final {
+            transition: opacity 0.5s ease;
+        }
+
+        #tree-creation-demo-embed-wrapper .rendered-page .content-painting {
+            color: var(--text-color-light);
+            transition: color 0.5s ease;
+        }
+
+        #tree-creation-demo-embed-wrapper .rendered-page .content-final p {
+            margin: 0;
+            color: blue;
+        }
+
+        /* Example style */
+        #tree-creation-demo-embed-wrapper .rendered-page .content-final span {
+            color: red;
+            font-weight: bold;
+        }
+
+        /* Example style */
+        #tree-creation-demo-embed-wrapper .layout-box {
+            position: absolute;
+            border: 1px dashed var(--warning-color);
+            background-color: rgba(251, 191, 36, 0.05);
+            box-sizing: border-box;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        #tree-creation-demo-embed-wrapper .layout-box::before {
+            content: attr(data-label);
+            position: absolute;
+            top: -1.2em;
+            left: 0;
+            font-size: 0.7rem;
+            color: var(--warning-color);
+            background-color: var(--warning-color-light);
+            padding: 0.1em 0.3em;
+            border-radius: 2px;
+        }
+
+        #tree-creation-demo-embed-wrapper #explanation {
+            margin-top: 1.5rem;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            background-color: var(--primary-color-light);
+            border: 1px solid var(--border-color-default);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--primary-color-dark);
+            min-height: 80px;
+            transition: background-color 0.3s ease;
+        }
+
+        #tree-creation-demo-embed-wrapper #explanation strong {
+            font-weight: 600;
+        }
+
+        #tree-creation-demo-embed-wrapper #explanation code {
+            background-color: rgba(59, 130, 246, 0.1);
+            padding: 0.1em 0.3em;
+            border-radius: 4px;
+            font-family: var(--font-family-mono);
+            font-size: 0.9em;
+        }
+
+        #tree-creation-demo-embed-wrapper .controls {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        /* Use .material-button styles defined above */
+        #tree-creation-demo-embed-wrapper .button-filled {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        #tree-creation-demo-embed-wrapper .button-filled:hover {
+            background-color: var(--primary-color-dark);
+        }
+
+        #tree-creation-demo-embed-wrapper .button-outlined {
+            background-color: transparent;
+            color: var(--text-color-default);
+            border: 1px solid var(--border-color-default);
+        }
+
+        #tree-creation-demo-embed-wrapper .button-outlined:hover {
+            background-color: var(--bg-color-light);
+            border-color: var(--text-color-light);
+        }
+
+        #tree-creation-demo-embed-wrapper .material-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Style for frequency/level tags (Using global.css variables) */
+        .level-tag {
+            display: inline-block;
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.1rem 0.5rem;
+            border-radius: 0.25rem;
+            vertical-align: middle;
+            border: 1px solid transparent;
+        }
+
+        .level-tag-high {
+            background-color: var(--danger-color-light);
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .level-tag-medium {
+            background-color: var(--warning-color-light);
+            color: var(--warning-color);
+            border-color: var(--warning-color);
+        }
+
+        .level-tag-base {
+            background-color: var(--bg-color-lighter);
+            color: var(--text-color-light);
+            border-color: var(--border-color-default);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <div class="page-container">
+        <aside class="local-side-nav">
+            <h4 class="head4">浏览器工作原理</h4>
+            <ul id="local-toc">
+                <li><a href="#rendering" class="sidebar-link active"><span
+                            class="material-symbols-outlined">palette</span><span>1. 渲染机制</span></a></li>
+                <li><a href="#reflow-repaint" class="sidebar-link"><span
+                            class="material-symbols-outlined">brush</span><span>2. 重排与重绘</span></a></li>
+                <li><a href="#caching" class="sidebar-link"><span
+                            class="material-symbols-outlined">history</span><span>3. 缓存机制</span></a></li>
+                <li><a href="#performance" class="sidebar-link"><span
+                            class="material-symbols-outlined">speed</span><span>4. 性能优化策略</span></a></li>
+                <li><a href="#security" class="sidebar-link"><span
+                            class="material-symbols-outlined">security</span><span>5. 安全机制</span></a></li>
+                <li><a href="#storage" class="sidebar-link"><span
+                            class="material-symbols-outlined">database</span><span>6. 浏览器存储</span></a></li>
+                <li><a href="#cors" class="sidebar-link"><span class="material-symbols-outlined">public</span><span>7.
+                            跨域(CORS)</span></a></li>
+                <li><a href="#eventloop" class="sidebar-link"><span
+                            class="material-symbols-outlined">sync</span><span>8. Event Loop</span></a></li>
+                <li><a href="#further-reading" class="sidebar-link"><span
+                            class="material-symbols-outlined">read_more</span><span>9. 扩展阅读</span></a></li>
+            </ul>
+            <a href="../../index.html" class="back-link"> &larr; 返回大纲目录
+            </a>
+        </aside>
+
+        <main class="content-main">
+            <article>
+                <section id="intro" class="content-section fade-in">
+                    <h1 class="head1 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-3xl text-blue-600">hub</span> 浏览器核心知识
+                    </h1>
+                    <p class="section-intro">
+                        理解浏览器如何将代码转化为用户看到的网页，是前端和全栈开发的基础。本节将深入探讨浏览器的核心工作流程，包括渲染过程、性能相关的重排与重绘、数据存储机制以及网络请求中的跨域问题，并结合面试常见考点进行解析。
+                    </p>
+                </section>
+
+                <section id="rendering" class="content-section fade-in">
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">palette</span>1. 浏览器渲染机制
+                        <span class="level-tag level-tag-high">高频基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">核心渲染流程</h3>
+                        <p>想象一下浏览器像一个建筑师，需要按步骤将设计图（代码）建成一座可视化的房子（网页）。这个过程大致可以分解为以下几个关键步骤：</p>
+                        <div class="mermaid-diagram-container">
+                            <pre class="mermaid">
+graph TD
+    A["1. 解析 HTML (Parse HTML)"] --> B["DOM Tree"];
+    C["2. 解析 CSS (Parse CSS)"] --> D["CSSOM Tree"];
+    B --> E{"3. 合并 (Combine)"};
+    D --> E;
+    E --> F["Render Tree"];
+    F --> G["4. 布局 (Layout / Reflow)"];
+    G --> H["5. 绘制 (Paint / Repaint)"];
+    H --> I["6. 合成 (Composite)"];
+
+    style B fill:#E3F2FD,stroke:#1565C0,stroke-width:1px,color:#1565C0
+    style D fill:#E3F2FD,stroke:#1565C0,stroke-width:1px,color:#1565C0
+    style F fill:#FFF8E1,stroke:#FF8F00,stroke-width:1px,color:#FF8F00
+    style G fill:#FFEBEE,stroke:#C62828,stroke-width:1px,color:#C62828
+    style H fill:#E8F5E9,stroke:#2E7D32,stroke-width:1px,color:#2E7D32
+    style I fill:#ECEFF1,stroke:#37474F,stroke-width:1px,color:#37474F
+                            </pre>
+                            <div class="mermaid-fallback text-xs text-gray-500 mt-2">
+                                [渲染流程图：解析HTML -> DOM; 解析CSS -> CSSOM; 合并 -> Render Tree; 布局 -> 绘制 -> 合成]
+                            </div>
+                        </div>
+                        <h4 class="head4">1. 解析 HTML 构建 DOM 树</h4>
+                        <p>浏览器接收到 HTML 文档后，自上而下解析成节点（Node），形成 DOM 树。</p>
+                        <ul>
+                            <li>DOM 树描述文档结构和内容。</li>
+                        </ul>
+
+                        <h4 class="head4">2. 解析 CSS 构建 CSSOM 树</h4>
+                        <p>浏览器解析 CSS 规则，为 DOM 节点计算最终样式，形成 CSSOM 树。</p>
+
+                        <h4 class="head4">3. 构建渲染树 (Render Tree)</h4>
+                        <p>结合 DOM 和 CSSOM，创建只包含<b>可见</b>元素及其样式的渲染树。</p>
+                        <ul>
+                            <li><code>display: none</code> 的元素不在渲染树中。</li>
+                        </ul>
+
+                        <h4 class="head4">4. 布局 (Layout / Reflow)</h4>
+                        <p>计算渲染树中每个节点在屏幕上的<b>精确位置和大小</b>。</p>
+                        <ul>
+                            <li>也称为“回流”或“重排”（Reflow）。</li>
+                        </ul>
+
+                        <h4 class="head4">5. 绘制 (Painting / Repaint)</h4>
+                        <p>将渲染树节点转换为屏幕上的实际像素。</p>
+                        <ul>
+                            <li>可能发生在多个图层上，然后合成。</li>
+                            <li>也称为“重绘”（Repaint）。</li>
+                        </ul>
+
+                        <h4 class="head4">6. 合成 (Composite)</h4>
+                        <p>将绘制好的各个图层按正确顺序合并，显示在屏幕上。</p>
+
+                        <div id="tree-creation-demo-embed-wrapper" class="tree-demo-wrapper content-card">
+                            <h3 class="head3 text-center text-indigo-600">交互式: DOM, CSSOM, Render Tree 构建过程</h3>
+                            <p class="text-center text-gray-600 mb-4">点击“下一步”按钮，逐步观察浏览器处理过程。</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <h4 class="head4 text-center">示例 HTML</h4>
+                                    <pre class="html-code-block"><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;&lt;head&gt;&lt;title&gt;示例&lt;/title&gt;&lt;link rel="stylesheet" href="style.css"&gt;&lt;/head&gt;
+&lt;body&gt;&lt;p&gt;Hello &lt;span&gt;World&lt;/span&gt;!&lt;/p&gt;&lt;div style="display: none;"&gt;隐藏内容&lt;/div&gt;&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                                </div>
+                                <div>
+                                    <h4 class="head4 text-center">示例 CSS (style.css)</h4>
+                                    <pre class="css-code-block"><code class="language-css">body { font-size: 16px; }
+p { color: blue; }
+span { color: red; font-weight: bold; }</code></pre>
+                                </div>
+                            </div>
+                            <div class="controls flex justify-center gap-4 mt-6"> <button
+                                    class="next-step-btn material-button button-filled"><span
+                                        class="material-symbols-outlined">skip_next</span> 下一步</button>
+                                <button class="reset-btn material-button button-outlined"><span
+                                        class="material-symbols-outlined">refresh</span> 重置</button>
+                            </div>
+                            <div
+                                class="explanation mt-4 p-4 bg-blue-50 border border-blue-200 rounded text-blue-800 min-h-[60px]">
+                                <p>点击“下一步”开始演示。</p>
+                            </div>
+                            <div class="visualization-area mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="tree-container dom-tree">
+                                    <h4>DOM Tree</h4>
+                                    <div class="tree dom-tree-vis"></div>
+                                </div>
+                                <div class="tree-container cssom-tree">
+                                    <h4>CSSOM Tree</h4>
+                                    <div class="tree cssom-tree-vis"></div>
+                                </div>
+                                <div class="tree-container render-tree">
+                                    <h4>Render Tree</h4>
+                                    <div class="tree render-tree-vis"></div>
+                                </div>
+                                <div class="tree-container rendered-output">
+                                    <h4>最终渲染 (模拟)</h4>
+                                    <div class="rendered-page rendered-output-vis"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="reflow-repaint" class="content-section fade-in">
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">brush</span>2. 重排 (Reflow) 与 重绘 (Repaint)
+                        <span class="level-tag level-tag-medium">中频基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">概念与区别</h3>
+                        <ul>
+                            <li><strong>重排 (Reflow / Layout):</strong> 元素几何属性或结构改变，需重新计算布局。开销大。</li>
+                            <li><strong>重绘 (Repaint / Paint):</strong> 元素外观样式改变，不影响布局，只需重新绘制。开销相对小。</li>
+                            <li><strong>关系:</strong> 重排必然导致重绘，重绘不一定需要重排。</li>
+                        </ul>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">常见触发条件</h3>
+                        <p><strong>重排:</strong> DOM增删、位置/尺寸/内容/字体改变、窗口resize、读布局属性 (<code>offsetWidth</code>等)。</p>
+                        <p><strong>重绘:</strong>
+                            颜色、背景、<code>visibility</code>、<code>outline</code>、<code>box-shadow</code>改变。</p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">交互示例：感受重排与重绘</h3>
+                        <div class="reflow-repaint-demo content-card border border-gray-200 shadow-inner">
+                            <div class="demo-controls">
+                                <p>操作 Box 1 (仅视觉):</p>
+                                <button id="changeColorBtn" class="material-button">改变背景色 (Repaint)</button>
+                                <p class="ml-4">操作 Box 2 (影响布局):</p>
+                                <button id="changeWidthBtn" class="material-button">改变宽度 (Reflow)</button>
+                                <button id="resetDemoBtn" class="material-button secondary ml-auto"><span
+                                        class="material-symbols-outlined">refresh</span> 重置</button>
+                            </div>
+                            <div class="demo-boxes">
+                                <div id="box1" class="demo-box">Box 1</div>
+                                <div id="box2" class="demo-box">Box 2</div>
+                            </div>
+                            <div id="demoOutput" class="demo-output">等待操作... (观察方块的视觉反馈)</div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">*注意：此示例通过视觉闪烁模拟触发效果。</p>
+                    </div>
+                    <div class="content-card">
+                        <h3 class="head3">优化建议</h3>
+                        <ul>
+                            <li><strong>读写分离:</strong> 避免修改样式后立即读取布局信息。</li>
+                            <li><strong>批量修改:</strong> 使用 CSS class 或 <code>documentFragment</code>。</li>
+                            <li><strong>脱离文档流:</strong> 使用 <code>position: absolute/fixed</code> 或
+                                <code>display: none</code>。
+                            </li>
+                            <li><strong>善用合成层:</strong> 优先使用 <code>transform</code> 和 <code>opacity</code> 动画。</li>
+                        </ul>
+                        <div class="quiz-card content-card border border-gray-200 shadow-inner" id="quiz1">
+                            <p class="quiz-question"><span
+                                    class="icon material-symbols-outlined">quiz</span><strong>面试题:</strong>
+                                以下哪个操作<strong>最</strong>可能导致浏览器发生重排 (Reflow)?</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1" value="a"><span class="label-text">修改元素的
+                                        <code>color</code> 属性</span></label>
+                                <label><input type="radio" name="q1" value="b"><span class="label-text">修改元素的
+                                        <code>visibility: hidden;</code></span></label>
+                                <label><input type="radio" name="q1" value="c"><span class="label-text">修改元素的
+                                        <code>padding-left</code> 属性</span></label>
+                                <label><input type="radio" name="q1" value="d"><span class="label-text">修改元素的
+                                        <code>transform: translateX(10px);</code></span></label>
+                            </div>
+                            <div class="quiz-feedback" data-correct="c"><strong>答案解析:</strong> 修改
+                                <code>padding-left</code> 会直接改变元素的尺寸和内部布局，是典型的触发重排的操作。修改 <code>color</code> 通常只触发重绘。修改
+                                <code>transform</code> 通常只触发合成。<code>visibility: hidden</code>
+                                虽然使元素不可见，但仍占据布局空间，也会触发重排，但改变内边距是更直接影响几何布局的操作。
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="caching" class="content-section fade-in">
+                    <h2 class="flex items-center head2"><span class="material-symbols-outlined">history</span>3. 缓存机制
+                    </h2>
+                    <div class="content-card">
+                        <p class="section-intro">
+                            浏览器缓存就像是浏览器的“短期记忆”，它存储访问过的资源副本（图片、脚本、样式表等），以便下次访问相同页面时能更快地加载，减少等待时间和网络流量消耗。本章将介绍主要的缓存策略。</p>
+                        <h3 class="head3">缓存类型与流程</h3>
+                        <p>浏览器主要使用两种缓存策略：<strong>强缓存</strong>（直接用本地副本，不问服务器）和 <strong>协商缓存</strong>（问一下服务器本地副本还能不能用）。
+                        </p>
+                        <div class="mt-6 grid grid-cols-1 gap-8">
+                            <div class="content-card p-4 border border-gray-200 shadow-sm">
+                                <pre class="mermaid bg-transparent text-gray-900 lg: w-[100%]">
+graph TD
+    A["请求资源"] --> B{"检查强缓存 (Cache-Control/Expires)"};
+    B -- "✅ 有效 (未过期)" --> C["直接使用缓存 (200 from cache)"];
+    B -- "❌ 无效/不存在" --> D{"准备协商缓存请求 (带 If-None-Match/If-Modified-Since)"};
+    D --> E["发送请求至服务器"];
+    E --> F{"服务器验证资源"};
+    F -- "❓ 未修改" --> G["返回 304 Not Modified"];
+    G --> H["浏览器使用本地缓存"];
+    F -- "❗ 已修改" --> I["返回 200 OK + 新资源"];
+    I --> J["浏览器使用新资源 & 更新缓存"];
+
+    style C fill:#dcfce7,stroke:#15803d,stroke-width:1px,color:#15803d;
+    style H fill:#e0f2fe,stroke:#0284c7,stroke-width:1px,color:#0284c7;
+    style J fill:#f3e8ff,stroke:#7e22ce,stroke-width:1px,color:#7e22ce;
+                                     </pre>
+                                <div class="text-xs text-gray-500 mt-2">[缓存决策流程图]</div>
+                            </div>
+                            <div class="content-card p-4 border border-gray-200 shadow-sm">
+                                <ul class="list-disc list-inside space-y-4 text-gray-700">
+                                    <li><strong>强缓存:</strong> 看“保质期”(<code
+                                            class="code-inline">Cache-Control: max-age</code> / <code
+                                            class="code-inline">Expires</code>)，期内直接用。</li>
+                                    <li><strong>协商缓存:</strong> 强缓存过期后，带标识(<code class="code-inline">Last-Modified</code>
+                                        / <code class="code-inline">ETag</code>)问服务器。服务器回 <code
+                                            class="code-inline">304</code> (用缓存) 或 <code class="code-inline">200</code>
+                                        (用新资源)。</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <h3 class="head3">面试高频点：缓存更新策略</h3>
+                        <p>常用策略：内容 Hash 文件名 + 静态资源长缓存 + 入口文件短缓存/协商缓存。</p>
+                        <ol>
+                            <li>内容变，Hash 变，文件名变。</li>
+                            <li>静态资源设长缓存 (一年)。</li>
+                            <li>HTML 入口文件设短缓存或协商缓存。</li>
+                            <li>用户访问时先请求 HTML，获取新文件名，下载新资源。</li>
+                        </ol>
+                        <div class="quiz-card content-card border border-gray-200 shadow-inner" id="quiz2">
+                            <p class="quiz-question"><span
+                                    class="icon material-symbols-outlined">quiz</span><strong>面试题:</strong> HTTP 响应头
+                                <code>Cache-Control: no-cache</code> 的确切含义是？
+                            </p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2" value="a"><span class="label-text">完全不缓存该资源
+                                        (no-store)</span></label>
+                                <label><input type="radio" name="q2" value="b"><span
+                                        class="label-text">缓存资源，但每次使用前必须向服务器验证其有效性 (协商缓存)</span></label>
+                                <label><input type="radio" name="q2" value="c"><span
+                                        class="label-text">只允许浏览器缓存，不允许代理服务器缓存 (private)</span></label>
+                                <label><input type="radio" name="q2" value="d"><span
+                                        class="label-text">缓存资源，并设置一个较短的过期时间 (max-age=...)</span></label>
+                            </div>
+                            <div class="quiz-feedback" data-correct="b"><strong>答案解析:</strong> <code>no-cache</code>
+                                并非完全不缓存，而是指示客户端可以缓存资源，但在使用缓存副本之前，<strong>必须</strong>先向服务器发送一个条件请求（协商缓存）来确认资源是否仍然有效。如果想完全禁止缓存，应使用
+                                <code>no-store</code>。
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="performance" class="content-section fade-in">
+                    <h2 class="flex items-center head2"><span class="material-symbols-outlined">speed</span>4. 性能优化策略
+                    </h2>
+                    <div class="content-card">
+                        <p class="section-intro">
+                            网页性能优化是一个系统工程，目标是让用户感觉“快”——加载快、交互响应快、动画流畅。这不仅关乎用户体验，也影响搜索引擎排名和业务转化。本章将梳理常见的优化手段。</p>
+                        <h3 class="head3">常见优化手段</h3>
+                        <p>优化的方向可以从资源、加载、渲染、网络、代码执行等多个维度入手：</p>
+                        <ul>
+                            <li><strong>资源优化:</strong> 压缩代码/传输、图片优化(WebP/AVIF, 懒加载)、字体优化(子集, WOFF2)。</li>
+                            <li><strong>加载策略:</strong> 懒加载、异步脚本(defer/async)、资源提示(preconnect/preload)、代码分割。</li>
+                            <li><strong>渲染优化:</strong> 减少重排/重绘、骨架屏、利用合成层(transform/opacity)、虚拟滚动。</li>
+                            <li><strong>网络优化:</strong> CDN、HTTP/2 & HTTP/3、合理缓存、减少请求(合并, Sprites)。</li>
+                            <li><strong>代码执行优化:</strong> Web Worker、任务分解(setTimeout/requestIdleCallback)、节流/防抖、内存优化。
+                            </li>
+                            <li><strong>监测与度量:</strong> 关注核心 Web 指标(LCP, FID/INP, CLS)、使用性能工具(DevTools, Lighthouse)。
+                            </li>
+                        </ul>
+                        <div class="quiz-card content-card border border-gray-200 shadow-inner" id="quiz3">
+                            <p class="quiz-question"><span
+                                    class="icon material-symbols-outlined">quiz</span><strong>面试题:</strong> 对于需要按顺序执行且依赖
+                                DOM 的多个 JavaScript 文件，最佳的加载方式是？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q3" value="a"><span class="label-text">在
+                                        <code>&lt;head&gt;</code> 中按顺序放置，使用 <code>async</code> 属性</span></label>
+                                <label><input type="radio" name="q3" value="b"><span class="label-text">在
+                                        <code>&lt;body&gt;</code> 结束前按顺序放置，不加属性</span></label>
+                                <label><input type="radio" name="q3" value="c"><span class="label-text">在
+                                        <code>&lt;head&gt;</code> 中按顺序放置，使用 <code>defer</code> 属性</span></label>
+                                <label><input type="radio" name="q3" value="d"><span class="label-text">使用多个
+                                        <code>&lt;link rel="preload" as="script"&gt;</code> 加载</span></label>
+                            </div>
+                            <div class="quiz-feedback" data-correct="c"><strong>答案解析:</strong> 使用 <code>defer</code>
+                                属性并按顺序放在 <code>&lt;head&gt;</code> 中是最佳实践。它允许脚本与 HTML 解析并行下载，不阻塞渲染，并且能保证在
+                                DOMContentLoaded 事件之前按它们在文档中出现的顺序执行，确保 DOM 可用。放在 <code>&lt;body&gt;</code> 结束前虽然也能保证顺序和
+                                DOM 可用，但会延迟脚本的下载开始时间。<code>async</code> 无法保证执行顺序。<code>preload</code> 只负责加载，不负责执行。</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="security" class="content-section fade-in">
+                    <h2 class="flex items-center head2"><span class="material-symbols-outlined">security</span>5. 安全机制
+                    </h2>
+                    <div class="content-card">
+                        <p class="section-intro">Web
+                            世界并非总是安全的，存在各种潜在的攻击风险。浏览器内置了多种安全机制来保护用户和网站，同时开发者也需要采取措施来防御常见的攻击。本章将介绍核心的同源策略及常见的 Web 攻击与防护。
+                        </p>
+                        <h3 class="head3">同源策略 (Same-Origin Policy - SOP)</h3>
+                        <p>这是浏览器安全模型的基石，限制来自不同“源”（协议+域名+端口）的文档或脚本相互访问资源。主要限制：DOM 访问、本地存储读取、AJAX 请求。</p>
+                        <h3 class="head3">常见攻击与防护</h3>
+                        <ul>
+                            <li><strong>XSS (跨站脚本攻击):</strong> 攻击者注入恶意脚本在用户浏览器执行。防护：输入验证、输出转义(关键)、CSP、HttpOnly Cookie。
+                            </li>
+                            <li><strong>CSRF (跨站请求伪造):</strong> 诱导登录用户发送非本意请求。防护：Anti-CSRF Token、SameSite Cookie、验证
+                                Referer、二次验证。</li>
+                            <li><strong>点击劫持 (Clickjacking):</strong> 透明 iframe
+                                覆盖诱导点击。防护：<code>X-Frame-Options</code>、CSP 的 <code>frame-ancestors</code>。</li>
+                            <li><strong>HTTPS 与内容安全:</strong> 全站 HTTPS、HSTS、避免混合内容。</li>
+                        </ul>
+                        <div class="quiz-card content-card border border-gray-200 shadow-inner" id="quiz-security">
+                            <p class="quiz-question"><span
+                                    class="icon material-symbols-outlined">quiz</span><strong>面试题:</strong> 设置 Cookie 的
+                                <code>HttpOnly</code> 属性主要是为了防御哪种攻击？
+                            </p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q-security" value="a"><span class="label-text">CSRF
+                                        (跨站请求伪造)</span></label>
+                                <label><input type="radio" name="q-security" value="b"><span class="label-text">XSS
+                                        (跨站脚本攻击)</span></label>
+                                <label><input type="radio" name="q-security" value="c"><span class="label-text">点击劫持
+                                        (Clickjacking)</span></label>
+                                <label><input type="radio" name="q-security" value="d"><span class="label-text">中间人攻击
+                                        (MITM)</span></label>
+                            </div>
+                            <div class="quiz-feedback" data-correct="b"><strong>答案解析:</strong> <code>HttpOnly</code>
+                                属性禁止 JavaScript 访问带有该属性的 Cookie。XSS 攻击常常试图通过注入的脚本读取用户的 Cookie (特别是 Session ID) 来冒充用户，设置
+                                <code>HttpOnly</code> 可以有效阻止这种通过脚本窃取 Cookie 的行为。虽然它不能完全阻止 XSS，但能增加攻击难度并保护敏感 Cookie。
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="storage" class="content-section fade-in">
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">database</span>6. 浏览器存储
+                        <span class="level-tag level-tag-high">高频基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <p class="section-intro">浏览器提供了多种在客户端存储数据的机制，主要包括 Cookie、localStorage 和
+                            sessionStorage。它们各有特点和适用场景。</p>
+                        <h3 class="head3">主要存储方式对比</h3>
+                        <div class="storage-table-container">
+                            <table class="storage-table">
+                                <thead>
+                                    <tr>
+                                        <th>特性</th>
+                                        <th>Cookie</th>
+                                        <th>LocalStorage</th>
+                                        <th>SessionStorage</th>
+                                        <th>IndexedDB</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>生命周期</strong></td>
+                                        <td>可设置过期时间，否则随会话</td>
+                                        <td>永久，需手动清除</td>
+                                        <td>当前会话 (标签页关闭清除)</td>
+                                        <td>永久，需手动清除</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>存储大小</strong></td>
+                                        <td>小 (约 4KB)</td>
+                                        <td>较大 (约 5-10MB)</td>
+                                        <td>较大 (约 5MB)</td>
+                                        <td>巨大 (GB 级)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>与服务器交互</strong></td>
+                                        <td>自动随请求发送</td>
+                                        <td>不自动发送</td>
+                                        <td>不自动发送</td>
+                                        <td>不自动发送</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>API 复杂度</strong></td>
+                                        <td>操作繁琐</td>
+                                        <td>简单 (同步)</td>
+                                        <td>简单 (同步)</td>
+                                        <td>复杂 (异步)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>数据类型</strong></td>
+                                        <td>字符串</td>
+                                        <td>字符串</td>
+                                        <td>字符串</td>
+                                        <td>复杂类型 (对象等)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>作用域</strong></td>
+                                        <td>同源 (受 Path/Domain 限制)</td>
+                                        <td>同源</td>
+                                        <td>同源 + 同标签页</td>
+                                        <td>同源</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>主要用途</strong></td>
+                                        <td>会话管理, 跟踪</td>
+                                        <td>持久化配置, 少量离线数据</td>
+                                        <td>临时会话数据</td>
+                                        <td>大量结构化数据, PWA</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>线程</strong></td>
+                                        <td>主线程 (同步)</td>
+                                        <td>主线程 (同步)</td>
+                                        <td>主线程 (同步)</td>
+                                        <td>异步 (Worker 可用)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <h3 class="head3">选择建议</h3>
+                        <ul>
+                            <li><strong>Cookie:</strong> 仅用于需要和服务器通信的少量数据（如 Session ID）。</li>
+                            <li><strong>LocalStorage:</strong> 简单方便地存储用户偏好、少量离线数据。</li>
+                            <li><strong>SessionStorage:</strong> 存储一次性会话数据，如表单临时状态。</li>
+                            <li><strong>IndexedDB:</strong> 存储大量、复杂结构数据，构建离线应用的首选。</li>
+                        </ul>
+                        <div class="quiz-card content-card border border-gray-200 shadow-inner" id="quiz-storage-2">
+                            <p class="quiz-question"><span
+                                    class="icon material-symbols-outlined">quiz</span><strong>面试题:</strong>
+                                用户关闭浏览器标签页后，哪种存储方式的数据仍然会被保留？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q-storage-2" value="a"><span
+                                        class="label-text">SessionStorage</span></label>
+                                <label><input type="radio" name="q-storage-2" value="b"><span
+                                        class="label-text">LocalStorage 和 IndexedDB</span></label>
+                                <label><input type="radio" name="q-storage-2" value="c"><span class="label-text">Cookie
+                                        (如果设置了过期时间) 和 LocalStorage</span></label>
+                                <label><input type="radio" name="q-storage-2" value="d"><span
+                                        class="label-text">LocalStorage, IndexedDB 和 Cookie (如果设置了过期时间)</span></label>
+                            </div>
+                            <div class="quiz-feedback" data-correct="d"><strong>答案解析:</strong> SessionStorage
+                                的数据在标签页关闭时清除。LocalStorage 和 IndexedDB 的数据是持久化的，除非用户手动清除。Cookie 如果设置了有效的过期时间 (Expires 或
+                                Max-Age)，也会在关闭浏览器后保留，直到过期。</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="cors" class="content-section fade-in">
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">public</span>7. 跨域(CORS)
+                        <span class="level-tag level-tag-medium">中频基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <p class="section-intro">为了安全地允许受信任的跨域请求（主要是 AJAX），诞生了 CORS 机制。它允许服务器声明哪些源站有权限访问其资源。</p>
+                        <h3 class="head3">交互示例：模拟 CORS 请求类型</h3>
+                        <div class="cors-demo content-card border border-gray-200 shadow-inner">
+                            <div class="cors-controls">
+                                <label for="requestMethod"><span>请求方法:</span>
+                                    <select id="requestMethod" class="material-select">
+                                        <option value="GET">GET</option>
+                                        <option value="POST">POST (Content-Type: text/plain)</option>
+                                        <option value="PUT">PUT</option>
+                                        <option value="DELETE">DELETE</option>
+                                        <option value="POST-JSON">POST (Content-Type: application/json)</option>
+                                    </select>
+                                </label>
+                                <label class="material-checkbox-label"><input type="checkbox" id="customHeader"
+                                        class="material-checkbox"><span>携带自定义头 (X-Custom)?</span></label>
+                                <label class="material-checkbox-label"><input type="checkbox" id="withCredentials"
+                                        class="material-checkbox"><span>携带凭证 (Cookie)?</span></label>
+                            </div>
+                            <div id="corsOutput" class="cors-output">
+                                <h4 class="head4">请求分析:</h4>
+                                <p id="requestType" class="my-2"></p>
+                                <div id="requiredHeaders">
+                                    <h5 class="head5">关键请求/响应头:</h5>
+                                    <pre><code id="headersInfo">请选择条件...</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        <ul>
+                            <li><strong>简单请求:</strong> 满足特定条件，浏览器直接发请求，服务器响应 <code>Access-Control-Allow-Origin</code>。
+                            </li>
+                            <li><strong>预检请求 (Preflight):</strong> 不满足简单请求条件，浏览器先发 <code>OPTIONS</code> 请求探路，服务器通过
+                                <code>Allow-Methods</code>, <code>Allow-Headers</code> 等响应。
+                            </li>
+                            <li><strong>携带凭证:</strong> 前端需设置 <code>credentials: 'include'</code>，服务器响应
+                                <code>Allow-Credentials: true</code> 且 <code>Allow-Origin</code> 不能是 <code>*</code>。
+                            </li>
+                        </ul>
+                        <h3 class="head3">其他跨域方案 (了解)</h3>
+                        <ul>
+                            <li><strong>JSONP:</strong> 利用 <code>&lt;script&gt;</code> 标签，只支持 GET，安全性差。</li>
+                            <li><strong>代理服务器:</strong> 通过同源服务器转发请求。</li>
+                            <li><strong>WebSocket:</strong> 协议本身支持跨源。</li>
+                        </ul>
+                        <div class="quiz-card content-card border border-gray-200 shadow-inner" id="quiz4">
+                            <p class="quiz-question"><span
+                                    class="icon material-symbols-outlined">quiz</span><strong>面试题:</strong> 浏览器发送 CORS
+                                预检请求 (Preflight Request) 使用的是哪个 HTTP 方法？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q4" value="a"><span
+                                        class="label-text">GET</span></label>
+                                <label><input type="radio" name="q4" value="b"><span
+                                        class="label-text">POST</span></label>
+                                <label><input type="radio" name="q4" value="c"><span
+                                        class="label-text">OPTIONS</span></label>
+                                <label><input type="radio" name="q4" value="d"><span
+                                        class="label-text">HEAD</span></label>
+                            </div>
+                            <div class="quiz-feedback" data-correct="c"><strong>答案解析:</strong> 对于需要预检的 CORS 请求
+                                (非简单请求)，浏览器会自动先发送一个 HTTP <code>OPTIONS</code> 方法的请求到目标服务器，以确定实际请求是否安全、是否被允许。</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="eventloop" class="content-section fade-in">
+                    <h2 class="flex items-center head2"><span class="material-symbols-outlined">sync</span>8. Event Loop
+                    </h2>
+                    <div class="content-card">
+                        <p class="section-intro">JavaScript 本身是单线程的，但浏览器如何处理异步操作（如定时器、网络请求、用户点击）并保持页面响应？答案就是事件循环 (Event
+                            Loop)。理解它对于编写高性能、不卡顿的 JS 代码至关重要。</p>
+                        <h3 class="head3">事件循环基础流程 (简化模型)</h3>
+                        <p>可以把事件循环想象成一个永不停歇的“调度员”，负责协调主线程、异步任务和渲染。它的核心工作流程是不断地检查和执行不同队列中的任务。</p>
+                        <div class="content-card border border-gray-200 shadow-inner">
+                            <div style="font-size: 1rem; color: #374151; margin-bottom: 1rem; line-height: 1.6;">
+                                <strong>说明：</strong>流程分两部分：
+                                <ol style="margin:0.5rem 0; padding-left:1.2rem;">
+                                    <li><strong>主线程 & 浏览器环境</strong>：调用栈、Web APIs 与任务队列关系；</li>
+                                    <li><strong>事件循环</strong>：同步任务 → 微任务 → 渲染判断 → 宏任务。</li>
+                                </ol>
+                            </div>
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <h4 class="head4 text-center">📌 主线程 & 浏览器环境结构</h4>
+                                    <pre class="mermaid">
+graph LR
+    CS["调用栈<br/>Call Stack"]
+    subgraph 浏览器环境 ["Browser Environment"]
+        direction LR
+        API["Web APIs<br/>(setTimeout, DOM, fetch)"]
+        MQ["微任务队列<br/>(Microtask Queue)"]
+        TQ["宏任务队列<br/>(Task Queue)"]
+    end
+    CS -->|调用 Web API| API
+    API -->|完成 → 宏任务| TQ
+    API -->|完成 → 微任务| MQ
+    MQ -->|微任务入栈| CS
+    TQ -->|宏任务入栈| CS
+                                         </pre>
+                                </div>
+                                <div>
+                                    <h4 class="head4 text-center">📌 事件循环流程</h4>
+                                    <pre class="mermaid">
+graph LR
+    Start["开始<br/>执行同步任务"] --> CheckCS{"调用栈空？"}
+    CheckCS -- 否 --> Start
+    CheckCS -- 是 --> ExecuteMicro["执行所有微任务"]
+    ExecuteMicro --> NeedRender{"需要更新 UI？"}
+    NeedRender -- 是 --> Render["触发渲染"]
+    NeedRender -- 否 --> CheckTask["检查宏任务队列"]
+    Render --> CheckTask
+    CheckTask --> TaskEmpty{"宏任务队列空？"}
+    TaskEmpty -- 否 --> ExecuteTask["取出并执行宏任务"]
+    ExecuteTask --> CheckCS
+    TaskEmpty -- 是 --> Wait["等待新任务…"]
+    Wait --> TaskEmpty
+                                         </pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="analogy"><strong>类比：</strong> 想象你（主线程）有一张主要的待办清单（调用栈）。当你遇到一个需要等待的任务（如点外卖
+                            <code>setTimeout</code>），你把它交给助手（Web
+                            APIs）去处理，然后继续做手头的事。助手完成后，会把“外卖到了”这个消息（回调函数）放到一个临时的便签条上（任务队列）。你有两种便签条：一种是“紧急”的（微任务队列，如
+                            Promise 的 <code>.then</code>），一种是“普通”的（宏任务队列，如 <code>setTimeout</code>
+                            回调）。你做完手头的主要清单后，会优先处理所有“紧急”便签条上的事，直到处理完。然后，可能会休息一下看看风景（UI
+                            渲染），接着再从“普通”便签条上拿一件事情来做。做完这件普通事后，又会去检查并处理所有“紧急”便签，如此循环往复。
+                        </p>
+                        <h3 class="head3">核心概念</h3>
+                        <ul>
+                            <li><strong>调用栈:</strong> 执行同步代码的地方，后进先出。</li>
+                            <li><strong>Web APIs:</strong> 浏览器提供的异步功能接口。</li>
+                            <li><strong>任务队列:</strong> 存放异步回调的地方。
+                                <ul>
+                                    <li><strong>宏任务 (Macrotask):</strong> <code>script</code> (整体代码),
+                                        <code>setTimeout</code>, <code>setInterval</code>, I/O, UI 渲染, 用户交互事件等。一次循环处理一个。
+                                    </li>
+                                    <li><strong>微任务 (Microtask):</strong> <code>Promise.then/catch/finally</code>,
+                                        <code>MutationObserver</code>, <code>queueMicrotask</code>
+                                        等。优先级高，在当前宏任务结束后、下次渲染或宏任务前，会清空队列中所有任务。
+                                    </li>
+                                </ul>
+                            </li>
+                            <li><strong>执行顺序:</strong> 执行完一个宏任务 -> 清空所有微任务 -> (可能) UI 渲染 -> 执行下一个宏任务...</li>
+                        </ul>
+                        <h3 class="head3">事件循环与渲染</h3>
+                        <p>UI 渲染通常发生在两次宏任务之间（微任务之后）。如果你的 JS 代码（无论是宏任务还是微任务）执行时间太长，就会阻塞渲染，导致页面看起来卡顿或无响应。</p>
+                        <h3 class="head3">优化与避免阻塞</h3>
+                        <ul>
+                            <li><strong><code>requestAnimationFrame(rAF)</code>:</strong> 动画更新的首选。</li>
+                            <li><strong>Web Worker:</strong> 将耗时计算移至后台。</li>
+                            <li><strong>任务分解:</strong> 使用 <code>setTimeout(..., 0)</code> 或
+                                <code>requestIdleCallback</code> 分割长任务。
+                            </li>
+                        </ul>
+                        <h4>交互演示：理解执行顺序</h4>
+                        <div class="content-card border border-gray-200 shadow-inner">
+                            <div class="event-loop-container" id="eventLoopViz">
+                                <div class="event-loop-box" id="callStackBox">
+                                    <h4>调用栈</h4>
+                                    <ul id="callStackList"></ul>
+                                </div>
+                                <div class="event-loop-box" id="webApisBox">
+                                    <h4>Web APIs / Timers</h4>
+                                    <ul id="webApisList"></ul>
+                                </div>
+                                <div class="event-loop-box" id="microtaskQueueBox">
+                                    <h4>微任务队列</h4>
+                                    <ul id="microtaskQueueList"></ul>
+                                </div>
+                                <div class="event-loop-box" id="macrotaskQueueBox">
+                                    <h4>宏任务队列</h4>
+                                    <ul id="macrotaskQueueList"></ul>
+                                </div>
+                                <div class="processing-arrow" id="processingArrow">➡️</div>
+                            </div>
+                            <button id="runEventLoopDemo" class="material-button mt-4"><span
+                                    class="material-symbols-outlined">play_arrow</span> 运行事件循环演示</button>
+                            <div id="eventLoopLog" class="mt-4">
+                                <p class="text-gray-500 italic">点击按钮开始演示...</p>
+                            </div>
+                        </div>
+                        <div class="quiz-card content-card border border-gray-200 shadow-inner" id="quiz5">
+                            <p class="quiz-question"><span
+                                    class="icon material-symbols-outlined">quiz</span><strong>面试题:</strong>
+                                下列代码的输出顺序是什么？</p>
+                            <pre><code class="language-javascript">async function async1() { console.log('A'); await async2(); console.log('B'); }
+async function async2() { console.log('C'); }
+console.log('D'); setTimeout(function() { console.log('E'); }, 0); async1();
+new Promise(function(resolve) { console.log('F'); resolve(); }).then(function() { console.log('G'); });
+console.log('H'); </code></pre>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q5" value="a"><span class="label-text">D A C F H B G
+                                        E</span></label>
+                                <label><input type="radio" name="q5" value="b"><span class="label-text">D A C F H G B
+                                        E</span></label>
+                                <label><input type="radio" name="q5" value="c"><span class="label-text">D F H A C B G
+                                        E</span></label>
+                                <label><input type="radio" name="q5" value="d"><span class="label-text">D A F H C B G
+                                        E</span></label>
+                            </div>
+                            <div class="quiz-feedback" data-correct="a"><strong>答案解析:</strong>
+                                <ol>
+                                    <li>同步代码: D。</li>
+                                    <li>调用 async1: 同步 A, C。await 后 B 入微任务。</li>
+                                    <li>new Promise: 同步 F。then 的 G 入微任务。</li>
+                                    <li>同步代码: H。</li>
+                                    <li>清空微任务: B, G。</li>
+                                    <li>执行宏任务: E。</li>
+                                </ol>最终顺序: D A C F H B G E。
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="further-reading" class="content-section fade-in">
+                    <h2 class="flex items-center head2"><span class="material-symbols-outlined">read_more</span>9. 扩展阅读
+                    </h2>
+                    <div class="content-card">
+                        <p class="section-intro">恭喜你！掌握了前面的核心知识点，已经对浏览器的工作原理有了不错的理解。如果想继续深入，成为浏览器领域的专家，可以探索以下相关技术：</p>
+                        <ul>
+                            <li><strong>HTTP/2 & HTTP/3:</strong> 新一代 HTTP 协议。</li>
+                            <li><strong>Service Worker:</strong> PWA 核心，离线缓存、推送。</li>
+                            <li><strong>WebAssembly (Wasm):</strong> C/C++/Rust 等在浏览器高速运行。</li>
+                            <li><strong>Web Vitals:</strong> LCP, FID/INP, CLS 等性能指标。</li>
+                            <li><strong>网络安全进阶:</strong> CSP, SRI, CORP/COEP/COOP 等。</li>
+                            <li><strong>渲染性能进阶:</strong> 层压缩、栅格化、引擎差异。</li>
+                            <li><strong>内存管理与 GC:</strong> 内存生命周期、GC 算法、泄漏排查。</li>
+                            <li><strong>浏览器内核与多进程架构:</strong> Chrome 等底层架构。</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <footer class="page-footer">
+                    浏览器核心知识与面试指南
+                </footer>
+            </article>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        /**
+  * JavaScript for Browser Working Principles Page (v5 - Enhanced UX)
+  *
+  * Handles:
+  * - Mermaid diagram initialization and rendering.
+  * - Quiz card functionality (radio button selection, feedback display).
+  * - Active link highlighting in the sidebar based on scroll position.
+  * - Reflow/Repaint interactive demo.
+  * - CORS request type simulation demo.
+  * - Event Loop visualization demo.
+  * - DOM/CSSOM/Render Tree creation visualization demo.
+  * - Prism code highlighting initialization.
+  */
+
+        /**
+         * JavaScript for Browser Working Principles Page (v5 - Enhanced UX)
+         *
+         * Handles:
+         * - Mermaid diagram initialization and rendering.
+         * - Quiz card functionality (radio button selection, feedback display).
+         * - Active link highlighting in the sidebar based on scroll position.
+         * - Reflow/Repaint interactive demo.
+         * - CORS request type simulation demo.
+         * - Event Loop visualization demo.
+         * - DOM/CSSOM/Render Tree creation visualization demo.
+         * - Prism code highlighting initialization.
+         */
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Initialize Mermaid ---
+            // 初始化 Mermaid 图表库
+            function initializeMermaid() {
+                try {
+                    if (typeof mermaid !== 'undefined') {
+                        mermaid.initialize({
+                            startOnLoad: false, // We call run explicitly (我们显式调用 run)
+                            theme: 'neutral', // Consistent theme (一致的主题)
+                            flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+                            sequence: { useMaxWidth: true },
+                            gantt: { useMaxWidth: true },
+                            securityLevel: 'loose' // Allow HTML labels if needed by diagrams (允许 HTML 标签)
+                        });
+                        // Render all mermaid elements found on the page (渲染页面上所有找到的 mermaid 元素)
+                        mermaid.run({
+                            nodes: document.querySelectorAll('.mermaid'),
+                        });
+                        // Handle potential fallback display (处理潜在的回退显示)
+                        document.querySelectorAll('.mermaid-diagram-container').forEach(container => {
+                            const mermaidEl = container.querySelector('.mermaid');
+                            const fallbackEl = container.querySelector('.mermaid-fallback');
+                            if (mermaidEl && fallbackEl && !mermaidEl.hasAttribute('data-processed')) {
+                                // Check if mermaid actually rendered something (检查 mermaid 是否实际渲染了内容)
+                                if (mermaidEl.innerHTML.trim().startsWith('<svg') || mermaidEl.querySelector('svg')) {
+                                    if (fallbackEl) fallbackEl.style.display = 'none'; // Hide fallback if SVG is present (如果 SVG 存在则隐藏回退)
+                                } else {
+                                    if (fallbackEl) fallbackEl.style.display = 'block'; // Show fallback if rendering failed (如果渲染失败则显示回退)
+                                }
+                            } else if (fallbackEl) {
+                                if (fallbackEl) fallbackEl.style.display = 'none'; // Hide fallback if mermaid processed (如果 mermaid 已处理则隐藏回退)
+                            }
+                        });
+                    } else {
+                        console.warn("Mermaid library not loaded."); // Mermaid 库未加载
+                        document.querySelectorAll('.mermaid-fallback').forEach(el => el.style.display = 'block');
+                    }
+                } catch (e) {
+                    console.error("Mermaid initialization or rendering failed:", e); // Mermaid 初始化或渲染失败
+                    document.querySelectorAll('.mermaid-fallback').forEach(el => el.style.display = 'block');
+                }
+            }
+            // Run Mermaid initialization after other scripts might have run (e.g., Prism)
+            // Using window.load might be safer if diagrams depend on external resources
+            // 在其他脚本（例如 Prism）运行后运行 Mermaid 初始化
+            // 如果图表依赖外部资源，使用 window.load 可能更安全
+            window.addEventListener('load', initializeMermaid);
+
+
+            // --- Initialize Prism Code Highlighting ---
+            // 初始化 Prism 代码高亮
+            function initializePrism() {
+                try {
+                    if (window.Prism) {
+                        Prism.highlightAll();
+                    } else {
+                        console.warn("Prism library not loaded."); // Prism 库未加载
+                    }
+                } catch (e) {
+                    console.error("Prism highlighting failed:", e); // Prism 高亮失败
+                }
+            }
+            initializePrism(); // Initialize Prism on DOMContentLoaded (在 DOMContentLoaded 时初始化 Prism)
+
+
+            // --- Quiz Card Logic ---
+            // 测验卡片逻辑
+            document.querySelectorAll('.quiz-card').forEach(card => {
+                const options = card.querySelectorAll('.quiz-options input[type="radio"]');
+                const feedback = card.querySelector('.quiz-feedback');
+                if (!feedback) return;
+                const correctAnswer = feedback.getAttribute('data-correct');
+
+                // Store original feedback HTML if not already stored (如果尚未存储，则存储原始反馈 HTML)
+                if (!feedback.hasAttribute('data-original-html')) {
+                    feedback.setAttribute('data-original-html', feedback.innerHTML);
+                }
+
+                options.forEach(option => {
+                    option.addEventListener('change', () => {
+                        // Reset feedback and styles (重置反馈和样式)
+                        feedback.style.display = 'none';
+                        feedback.classList.remove('correct', 'incorrect');
+                        const originalHtml = feedback.getAttribute('data-original-html') || '';
+                        feedback.innerHTML = originalHtml; // Restore original content first (首先恢复原始内容)
+                        card.querySelectorAll('.quiz-options label').forEach(lbl => {
+                            // Reset specific inline styles if they were applied (如果应用了特定的内联样式，则重置它们)
+                            lbl.style.backgroundColor = '';
+                            lbl.style.borderColor = '';
+                            lbl.style.fontWeight = '';
+                            lbl.style.color = '';
+                            // Remove helper classes if used (如果使用了辅助类，则删除它们)
+                            lbl.classList.remove('quiz-option-correct', 'quiz-option-incorrect', 'quiz-option-selected');
+                        });
+
+                        if (option.checked) {
+                            const parentLabel = option.closest('label');
+                            if (parentLabel) parentLabel.classList.add('quiz-option-selected'); // Add selected class (添加选中类)
+
+                            if (option.value === correctAnswer) {
+                                feedback.classList.add('correct');
+                                feedback.innerHTML = '✅ <strong>回答正确！</strong> ' + originalHtml;
+                                if (parentLabel) {
+                                    parentLabel.classList.add('quiz-option-correct'); // Add correct class (添加正确类)
+                                    // Apply styles via classes if defined, or fallback to inline (如果定义了类，则通过类应用样式，否则回退到内联样式)
+                                    parentLabel.style.borderColor = 'var(--md-success-border, #A5D6A7)';
+                                    parentLabel.style.backgroundColor = 'var(--md-success-bg, #E8F5E9)';
+                                    parentLabel.style.fontWeight = '600';
+                                    parentLabel.style.color = 'var(--md-success-text, #2E7D32)';
+                                }
+                            } else {
+                                feedback.classList.add('incorrect');
+                                feedback.innerHTML = '❌ <strong>回答错误。</strong> ' + originalHtml;
+                                if (parentLabel) {
+                                    parentLabel.classList.add('quiz-option-incorrect'); // Add incorrect class (添加错误类)
+                                    parentLabel.style.borderColor = 'var(--md-error-border, #EF9A9A)';
+                                    parentLabel.style.backgroundColor = 'var(--md-error-bg, #FFEBEE)';
+                                    parentLabel.style.color = 'var(--md-error-text, #C62828)';
+                                }
+                                // Highlight the correct answer as well (同时高亮正确答案)
+                                const correctInput = card.querySelector(`.quiz-options input[value="${correctAnswer}"]`);
+                                if (correctInput) {
+                                    const correctLabel = correctInput.closest('label');
+                                    if (correctLabel) {
+                                        correctLabel.classList.add('quiz-option-correct'); // Add correct class (添加正确类)
+                                        correctLabel.style.borderColor = 'var(--md-success-border, #A5D6A7)';
+                                        correctLabel.style.backgroundColor = 'var(--md-success-bg, #E8F5E9)';
+                                        correctLabel.style.fontWeight = '600';
+                                        correctLabel.style.color = 'var(--md-success-text, #2E7D32)';
+                                    }
+                                }
+                            }
+                            feedback.style.display = 'block'; // Show the feedback div (显示反馈 div)
+                        }
+                    });
+                });
+            });
+
+
+            // --- Sidebar Active Link Highlighting ---
+            // 侧边栏活动链接高亮逻辑
+            // Use the existing `local-side-nav` and `sidebar-link` classes if they match the HTML structure
+            // 如果 HTML 结构匹配，则使用现有的 `local-side-nav` 和 `sidebar-link` 类
+            const sections = document.querySelectorAll('main section[id]'); // Target sections in main content (目标主内容中的 section)
+            const sidebarLinks = document.querySelectorAll('.local-side-nav .sidebar-link, .sidebar .sidebar-link'); // Target links within the specific sidebar (目标特定侧边栏中的链接) - Added .sidebar for broader compatibility
+            const sidebarNav = document.querySelector('.local-side-nav, .sidebar'); // Use the sidebar itself for scrolling check (使用侧边栏本身进行滚动检查) - Added .sidebar
+
+            const observerOptions = {
+                root: null, // relative to the viewport (相对于视口)
+                rootMargin: '0px 0px -60% 0px', // Trigger when the top 40% of the section is visible (当 section 顶部 40% 可见时触发)
+                threshold: 0 // Trigger as soon as any part enters/leaves the rootMargin (一旦任何部分进入/离开 rootMargin 就触发)
+            };
+
+            let activeSectionId = null; // Keep track of the currently active section (跟踪当前活动 section)
+
+            const observer = new IntersectionObserver((entries) => {
+                let topmostVisibleSectionId = null;
+                let minOffsetTop = Infinity;
+
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Find the section closest to the top of the viewport among intersecting ones (在相交的 section 中找到最靠近视口顶部的)
+                        if (entry.target.offsetTop < minOffsetTop) {
+                            minOffsetTop = entry.target.offsetTop;
+                            topmostVisibleSectionId = entry.target.getAttribute('id');
+                        }
+                    }
+                });
+
+                // Update active section ID logic (更新活动 section ID 逻辑)
+                if (topmostVisibleSectionId) {
+                    activeSectionId = topmostVisibleSectionId;
+                } else if (window.scrollY === 0 && sections.length > 0) {
+                    activeSectionId = sections[0].getAttribute('id'); // Default to first if scrolled to top (如果滚动到顶部则默认为第一个)
+                }
+                // If no section is intersecting based on the margin, keep the last active one highlighted. (如果没有 section 基于边距相交，则保持上一个活动的高亮)
+
+                // Update sidebar links (更新侧边栏链接)
+                sidebarLinks.forEach(link => {
+                    const linkHref = link.getAttribute('href');
+                    const linkSectionId = linkHref ? linkHref.substring(1) : null;
+
+                    if (linkSectionId && linkSectionId === activeSectionId) {
+                        if (!link.classList.contains('active')) {
+                            link.classList.add('active');
+                            // Scroll the active link into view within the sidebar if needed and sidebar exists (如果需要且侧边栏存在，则将活动链接滚动到侧边栏的视图中)
+                            if (sidebarNav && sidebarNav.scrollHeight > sidebarNav.clientHeight) {
+                                link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                            }
+                        }
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all sections (观察所有 section)
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
+            // Initial check on load (加载时进行初始检查)
+            setTimeout(() => {
+                let initialActiveId = null;
+                const scrollY = window.scrollY;
+                // Adjust offset based on observer margin (top 40% visible means section top is within viewport top + 60% height)
+                // 根据观察者边距调整偏移量（顶部 40% 可见意味着 section 顶部在视口顶部 + 60% 高度内）
+                const initialOffset = window.innerHeight * 0.4;
+
+                for (const section of sections) {
+                    if (section.offsetTop <= scrollY + initialOffset) {
+                        initialActiveId = section.getAttribute('id');
+                    } else {
+                        break; // Stop checking once past visible sections (一旦超过可见 section 就停止检查)
+                    }
+                }
+
+                if (!initialActiveId && sections.length > 0) {
+                    initialActiveId = sections[0].getAttribute('id'); // Default to first (默认为第一个)
+                }
+
+                if (initialActiveId) {
+                    activeSectionId = initialActiveId; // Set initial active ID (设置初始活动 ID)
+                    sidebarLinks.forEach(link => {
+                        const linkHref = link.getAttribute('href');
+                        const linkSectionId = linkHref ? linkHref.substring(1) : null;
+                        if (linkSectionId === activeSectionId) {
+                            link.classList.add('active');
+                            // Scroll into view immediately on load if sidebar is scrollable (如果侧边栏可滚动，则在加载时立即滚动到视图中)
+                            if (sidebarNav && sidebarNav.scrollHeight > sidebarNav.clientHeight) {
+                                link.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                            }
+                        } else {
+                            link.classList.remove('active');
+                        }
+                    });
+                }
+            }, 100); // Delay slightly for layout stability (稍微延迟以确保布局稳定)
+
+
+            // --- Reflow/Repaint Demo Logic ---
+            // 重排/重绘演示逻辑
+            const box1 = document.getElementById('box1');
+            const box2 = document.getElementById('box2');
+            const changeColorBtn = document.getElementById('changeColorBtn');
+            const changeWidthBtn = document.getElementById('changeWidthBtn');
+            const resetDemoBtn = document.getElementById('resetDemoBtn');
+            const demoOutput = document.getElementById('demoOutput');
+
+            if (box1 && box2 && changeColorBtn && changeWidthBtn && resetDemoBtn && demoOutput) {
+                const originalBox1Color = getComputedStyle(box1).backgroundColor;
+                const originalBox2Width = getComputedStyle(box2).width || '100px'; // Store original width (存储原始宽度)
+                let flashTimeoutId = null;
+
+                // Function to apply a visual flash effect (应用视觉闪烁效果的函数)
+                function applyFlash(element, className) {
+                    element.classList.remove('flash-repaint', 'flash-reflow');
+                    void element.offsetWidth; // Force reflow to restart animation (强制重排以重新启动动画)
+                    element.classList.add(className);
+                    if (flashTimeoutId) { clearTimeout(flashTimeoutId); }
+                    // Remove the class after the animation duration (动画持续时间后删除类)
+                    flashTimeoutId = setTimeout(() => { element.classList.remove(className); }, 400);
+                }
+
+                // Event listener for changing color (Repaint) (更改颜色的事件监听器（重绘）)
+                changeColorBtn.addEventListener('click', () => {
+                    const isCurrentlyOriginal = box1.style.backgroundColor === '' || box1.style.backgroundColor === originalBox1Color;
+                    const newColor = isCurrentlyOriginal ? 'rgb(255, 193, 7)' : originalBox1Color; // Amber color (琥珀色)
+                    box1.style.backgroundColor = newColor;
+                    demoOutput.textContent = '改变背景色：通常只触发重绘 (Repaint)';
+                    demoOutput.className = 'demo-output repaint'; // Style the output box (设置输出框样式)
+                    applyFlash(box1, 'flash-repaint'); // Apply flash effect to the box (对方块应用闪烁效果)
+                });
+
+                // Event listener for changing width (Reflow) (更改宽度的事件监听器（重排）)
+                changeWidthBtn.addEventListener('click', () => {
+                    const newWidth = box2.style.width === '150px' ? originalBox2Width : '150px';
+                    box2.style.width = newWidth;
+                    demoOutput.textContent = '改变宽度：触发重排 (Reflow) 和重绘 (Repaint)';
+                    demoOutput.className = 'demo-output reflow'; // Style the output box (设置输出框样式)
+                    applyFlash(box2, 'flash-reflow'); // Apply flash effect to the box (对方块应用闪烁效果)
+                });
+
+                // Event listener for resetting the demo (重置演示的事件监听器)
+                resetDemoBtn.addEventListener('click', () => {
+                    box1.style.backgroundColor = originalBox1Color; // Reset color (重置颜色)
+                    box2.style.width = originalBox2Width; // Reset width (重置宽度)
+                    demoOutput.textContent = '等待操作... (观察方块的视觉反馈)';
+                    demoOutput.className = 'demo-output'; // Reset output style (重置输出样式)
+                    // Remove any lingering flash classes (删除任何残留的闪烁类)
+                    box1.classList.remove('flash-repaint', 'flash-reflow');
+                    box2.classList.remove('flash-repaint', 'flash-reflow');
+                });
+            } else {
+                console.warn("Reflow/Repaint demo elements not found."); // 未找到重排/重绘演示元素
+            }
+
+
+            // --- CORS Demo Logic ---
+            // CORS 演示逻辑
+            const requestMethodSelect = document.getElementById('requestMethod');
+            const customHeaderCheckbox = document.getElementById('customHeader');
+            const withCredentialsCheckbox = document.getElementById('withCredentials');
+            const requestTypeP = document.getElementById('requestType');
+            const headersInfoCode = document.getElementById('headersInfo');
+
+            if (requestMethodSelect && customHeaderCheckbox && withCredentialsCheckbox && requestTypeP && headersInfoCode) {
+                function updateCorsDemo() {
+                    const method = requestMethodSelect.value;
+                    const hasCustomHeader = customHeaderCheckbox.checked;
+                    const sendCredentials = withCredentialsCheckbox.checked;
+                    let isSimple = false;
+                    let headersText = '';
+                    const actualMethod = method.split('-')[0]; // Handle 'POST-JSON' case (处理 'POST-JSON' 情况)
+                    let isSimpleContentType = true;
+
+                    if (actualMethod === 'POST') {
+                        // Only specific Content-Types are simple for POST (对于 POST，只有特定的 Content-Type 是简单的)
+                        const simpleContentTypes = ['application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain'];
+                        const selectedContentTypeOption = requestMethodSelect.options[requestMethodSelect.selectedIndex].text;
+                        if (selectedContentTypeOption.includes('application/json')) {
+                            isSimpleContentType = false;
+                        }
+                    }
+
+                    // Simplified logic: Preflight if non-simple method, custom header, non-simple content-type, or credentials sent
+                    // 简化逻辑：如果是非简单方法、自定义标头、非简单内容类型或发送凭据，则进行预检
+                    if (['GET', 'HEAD', 'POST'].includes(actualMethod) && !hasCustomHeader && isSimpleContentType && !sendCredentials) {
+                        isSimple = true;
+                    }
+                    if (sendCredentials || hasCustomHeader || !['GET', 'HEAD', 'POST'].includes(actualMethod) || !isSimpleContentType) {
+                        isSimple = false;
+                    }
+
+                    if (isSimple) {
+                        requestTypeP.textContent = '类型: 简单请求 (Simple Request)';
+                        requestTypeP.className = 'my-2 simple'; // Use classes for styling (使用类进行样式设置)
+                        headersText = `浏览器直接发送实际请求 (无需预检)。
+请求头自动附加:
+Origin: [your-origin]
+服务器响应头必需:
+Access-Control-Allow-Origin: [your-origin] 或 *`;
+                    } else {
+                        requestTypeP.textContent = '类型: 非简单请求 (需要 Preflight)';
+                        requestTypeP.className = 'my-2 preflight'; // Use classes for styling (使用类进行样式设置)
+                        let requestHeadersList = [];
+                        if (hasCustomHeader) requestHeadersList.push('X-Custom');
+                        if (!isSimpleContentType || sendCredentials) requestHeadersList.push('Content-Type'); // Content-Type might be requested (如果非简单或带凭据，可能会请求 Content-Type)
+
+                        headersText = `浏览器先发送 OPTIONS 预检请求。
+[1] 预检请求 (OPTIONS):
+请求头自动附加:
+Origin: [your-origin]
+Access-Control-Request-Method: ${actualMethod}
+${requestHeadersList.length > 0 ? `Access-Control-Request-Headers: ${requestHeadersList.join(', ')}` : ''}
+服务器响应头必需:
+Access-Control-Allow-Origin: ${sendCredentials ? '[your-origin] (不能是 *)' : '[your-origin] 或 *'}
+Access-Control-Allow-Methods: (必须包含 ${actualMethod})
+${requestHeadersList.length > 0 ? `Access-Control-Allow-Headers: (必须包含 ${requestHeadersList.join(', ')})` : ''}
+${sendCredentials ? 'Access-Control-Allow-Credentials: true' : ''}
+Access-Control-Max-Age: [可选, 缓存预检结果秒数]
+
+[2] 实际请求 (${actualMethod}) (预检成功后发送):
+请求头自动附加:
+Origin: [your-origin]
+${hasCustomHeader ? 'X-Custom: [value]' : ''}
+${!isSimpleContentType ? 'Content-Type: [e.g., application/json]' : ''}
+服务器响应头必需:
+Access-Control-Allow-Origin: ${sendCredentials ? '[your-origin] (不能是 *)' : '[your-origin] 或 *'}
+${sendCredentials ? 'Access-Control-Allow-Credentials: true' : ''}`;
+                    }
+                    // Update the code block content safely
+                    // 安全地更新代码块内容
+                    if (headersInfoCode) headersInfoCode.textContent = headersText.trim();
+                }
+
+                // Add event listeners (添加事件监听器)
+                requestMethodSelect.addEventListener('change', updateCorsDemo);
+                customHeaderCheckbox.addEventListener('change', updateCorsDemo);
+                withCredentialsCheckbox.addEventListener('change', updateCorsDemo);
+
+                // Initial run to set the state (初始运行以设置状态)
+                updateCorsDemo();
+            } else {
+                console.warn("CORS demo elements not found."); // 未找到 CORS 演示元素
+            }
+
+
+            // --- Event Loop Visualization Demo Logic ---
+            // 事件循环可视化演示逻辑
+            const runEventLoopDemoBtn = document.getElementById('runEventLoopDemo');
+            const callStackListEl = document.getElementById('callStackList');
+            const webApisListEl = document.getElementById('webApisList');
+            const microQueueListEl = document.getElementById('microtaskQueueList');
+            const macroQueueListEl = document.getElementById('macrotaskQueueList');
+            const arrowEl = document.getElementById('processingArrow');
+            const eventLoopLogEl = document.getElementById('eventLoopLog');
+            const allBoxesEl = document.querySelectorAll('.event-loop-box');
+            let demoRunning = false;
+
+            if (runEventLoopDemoBtn && callStackListEl && webApisListEl && microQueueListEl && macroQueueListEl && arrowEl && eventLoopLogEl && allBoxesEl.length > 0) {
+
+                // Function to log messages to the demo log area (将消息记录到演示日志区域的函数)
+                function logToDemo(message, type = 'info') {
+                    const p = document.createElement('p');
+                    const timestamp = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
+                    let prefix = ''; let colorClass = 'text-gray-600';
+                    // Assign prefix and color based on log type (根据日志类型分配前缀和颜色)
+                    switch (type) {
+                        case 'step': prefix = '🔵'; colorClass = 'text-blue-700 font-semibold'; p.style.marginTop = '0.5rem'; break;
+                        case 'code': prefix = '⚙️'; colorClass = 'text-purple-700'; p.style.fontFamily = 'monospace'; break;
+                        case 'output': prefix = '➡️'; colorClass = 'text-green-700 font-bold'; break;
+                        case 'queue': prefix = '📥'; colorClass = 'text-orange-600'; break;
+                        case 'api': prefix = '⏳'; colorClass = 'text-cyan-600'; break;
+                        case 'micro': prefix = '⚡'; colorClass = 'text-indigo-700'; break;
+                        case 'macro': prefix = '🕒'; colorClass = 'text-red-700'; break;
+                        case 'render': prefix = '🎨'; colorClass = 'text-pink-600'; p.style.marginTop = '0.5rem'; break;
+                        case 'finish': prefix = '🏁'; colorClass = 'text-gray-800 font-bold'; p.style.marginTop = '0.5rem'; break;
+                        case 'error': prefix = '❌'; colorClass = 'text-red-700 font-bold'; break;
+                    }
+                    p.innerHTML = `<span class="text-gray-400 text-xs mr-1">[${timestamp}]</span> <span class="inline-block w-5 text-center">${prefix}</span> ${message}`;
+                    p.classList.add(...colorClass.split(' '));
+                    eventLoopLogEl.appendChild(p);
+                    eventLoopLogEl.scrollTop = eventLoopLogEl.scrollHeight; // Auto-scroll (自动滚动)
+                }
+
+                // Function to clear the visualization areas (清除可视化区域的函数)
+                function clearViz() {
+                    callStackListEl.innerHTML = ''; webApisListEl.innerHTML = ''; microQueueListEl.innerHTML = ''; macroQueueListEl.innerHTML = '';
+                    arrowEl.style.opacity = 0; // Hide arrow (隐藏箭头)
+                    eventLoopLogEl.innerHTML = `<p class="text-gray-500 italic">点击按钮开始演示...</p><p class="text-gray-500 italic text-xs mt-1">演示代码: console.log('Start'); setTimeout(() => console.log('Timeout'), 0); Promise.resolve().then(() => console.log('Promise Then')); console.log('End');</p>`;
+                    allBoxesEl.forEach(box => box.classList.remove('active')); // Remove highlights (移除高亮)
+                }
+
+                // Function to highlight a specific box (高亮特定框的函数)
+                function highlightBox(boxElement) {
+                    allBoxesEl.forEach(box => box.classList.remove('active'));
+                    if (boxElement) { boxElement.classList.add('active'); }
+                }
+
+                // Function to add a task item to a list (向列表中添加任务项的函数)
+                function addTaskItem(listElement, text, id) {
+                    const li = document.createElement('li'); li.textContent = text; li.dataset.id = id;
+                    li.style.animationDelay = `${listElement.children.length * 0.05}s`; // Stagger animation (错开动画)
+                    listElement.appendChild(li); return li;
+                }
+
+                // Function to remove a task item from a list with animation (从列表中移除带动画的任务项的函数)
+                function removeTaskItem(listElement, id, delay = 0) {
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            const itemToRemove = listElement.querySelector(`li[data-id="${id}"]`);
+                            if (itemToRemove) {
+                                itemToRemove.style.opacity = 0;
+                                itemToRemove.style.transform = 'scale(0.8)';
+                                // Remove from DOM after transition (过渡后从 DOM 中移除)
+                                setTimeout(() => itemToRemove.remove(), 200);
+                            }
+                            resolve();
+                        }, delay);
+                    });
+                }
+
+                // Function to move the processing arrow above an element (将处理箭头移动到元素上方的函数)
+                async function moveArrowToElement(targetElement, delay = 0) {
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            if (!targetElement) { arrowEl.style.opacity = 0; resolve(); return; } // Hide arrow if no target (如果没有目标则隐藏箭头)
+                            const targetRect = targetElement.getBoundingClientRect();
+                            const containerRect = document.getElementById('eventLoopViz').getBoundingClientRect();
+                            // Calculate position relative to the container (计算相对于容器的位置)
+                            const endX = targetRect.left - containerRect.left + targetRect.width / 2;
+                            const endY = targetRect.top - containerRect.top;
+                            // Position arrow centered above the target (将箭头居中放置在目标上方)
+                            arrowEl.style.left = `${endX - arrowEl.offsetWidth / 2}px`;
+                            arrowEl.style.top = `${endY - arrowEl.offsetHeight * 1.2}px`; // Adjust vertical offset (调整垂直偏移)
+                            arrowEl.style.opacity = 1; // Show arrow (显示箭头)
+                            resolve();
+                        }, delay);
+                    });
+                }
+
+                // The main demo execution function (主演示执行函数)
+                async function runDemo() {
+                    if (demoRunning) return; // Prevent multiple runs (防止多次运行)
+                    demoRunning = true;
+                    clearViz(); // Reset visualization (重置可视化)
+                    runEventLoopDemoBtn.disabled = true; // Disable button during run (运行时禁用按钮)
+
+                    logToDemo('事件循环演示开始', 'step');
+                    let stepDelay = 700; // Delay between major steps (主要步骤之间的延迟)
+                    let animDelay = 300; // Delay for animations/transitions (动画/过渡的延迟)
+                    let taskIdCounter = 0; // Unique ID for tasks (任务的唯一 ID)
+
+                    try {
+                        // --- Start Script (Initial Macrotask) --- (开始脚本（初始宏任务）)
+                        logToDemo('执行 Script (宏任务)', 'macro');
+                        const scriptTaskId = `task-${taskIdCounter++}`;
+                        highlightBox(callStackListEl); await moveArrowToElement(callStackListEl, animDelay / 2);
+                        addTaskItem(callStackListEl, 'script (全局)', scriptTaskId); await new Promise(r => setTimeout(r, stepDelay));
+
+                        // console.log('Start')
+                        logToDemo("遇到: console.log('Start')", 'code');
+                        const logStartId = `task-${taskIdCounter++}`;
+                        addTaskItem(callStackListEl, "log('Start')", logStartId); await new Promise(r => setTimeout(r, animDelay));
+                        logToDemo("输出: Start", 'output'); await removeTaskItem(callStackListEl, logStartId, animDelay);
+
+                        // setTimeout
+                        logToDemo("遇到: setTimeout(cbTimeout, 0)", 'code');
+                        const setTimeoutId = `task-${taskIdCounter++}`; const cbTimeoutId = `task-${taskIdCounter++}`; // ID for the callback (回调的 ID)
+                        addTaskItem(callStackListEl, 'setTimeout', setTimeoutId); await new Promise(r => setTimeout(r, animDelay));
+                        await moveArrowToElement(webApisListEl, animDelay / 2); highlightBox(webApisListEl);
+                        addTaskItem(webApisListEl, 'Timer (0ms)', cbTimeoutId); // Add timer to Web APIs (将计时器添加到 Web API)
+                        logToDemo("注册 Timer 到 Web API", 'api');
+                        await removeTaskItem(callStackListEl, setTimeoutId, animDelay); // setTimeout returns immediately (setTimeout 立即返回)
+                        // Simulate timer completion (模拟计时器完成)
+                        await new Promise(r => setTimeout(r, 50)); // Short delay for timer (计时器的短暂延迟)
+                        logToDemo("Timer 完成 -> cbTimeout 加入宏任务队列", 'queue');
+                        await moveArrowToElement(macroQueueListEl, animDelay / 2); highlightBox(macroQueueListEl);
+                        await removeTaskItem(webApisListEl, cbTimeoutId, animDelay); // Remove from APIs (从 API 中移除)
+                        addTaskItem(macroQueueListEl, 'cbTimeout', cbTimeoutId); // Add callback to macrotask queue (将回调添加到宏任务队列)
+                        await new Promise(r => setTimeout(r, animDelay));
+
+                        // Promise.resolve().then()
+                        logToDemo("遇到: Promise.resolve().then(cbPromise)", 'code');
+                        const promiseId = `task-${taskIdCounter++}`; const cbPromiseId = `task-${taskIdCounter++}`; // ID for the .then callback (.then 回调的 ID)
+                        addTaskItem(callStackListEl, 'Promise.resolve()', promiseId);
+                        highlightBox(callStackListEl); await moveArrowToElement(callStackListEl, animDelay / 2);
+                        await new Promise(r => setTimeout(r, animDelay));
+                        logToDemo(".then(cbPromise) 回调加入微任务队列", 'queue');
+                        await moveArrowToElement(microQueueListEl, animDelay / 2); highlightBox(microQueueListEl);
+                        addTaskItem(microQueueListEl, 'cbPromise', cbPromiseId); // Add .then callback to microtask queue (将 .then 回调添加到微任务队列)
+                        await removeTaskItem(callStackListEl, promiseId, animDelay); // Promise resolves immediately (Promise 立即解析)
+                        await new Promise(r => setTimeout(r, animDelay));
+
+                        // console.log('End')
+                        logToDemo("遇到: console.log('End')", 'code');
+                        const logEndId = `task-${taskIdCounter++}`;
+                        highlightBox(callStackListEl); await moveArrowToElement(callStackListEl, animDelay / 2);
+                        addTaskItem(callStackListEl, "log('End')", logEndId); await new Promise(r => setTimeout(r, animDelay));
+                        logToDemo("输出: End", 'output'); await removeTaskItem(callStackListEl, logEndId, animDelay);
+
+                        // --- Script End --- (脚本结束)
+                        logToDemo('Script (宏任务) 执行完毕', 'step');
+                        await removeTaskItem(callStackListEl, scriptTaskId, animDelay); // Remove script task (移除脚本任务)
+                        await moveArrowToElement(null, animDelay / 2); // Hide arrow (隐藏箭头)
+                        highlightBox(null); // Remove highlight (移除高亮)
+                        await new Promise(r => setTimeout(r, stepDelay));
+
+                        // --- Process Microtasks --- (处理微任务)
+                        logToDemo('检查并清空微任务队列', 'micro');
+                        await new Promise(r => setTimeout(r, stepDelay / 2)); highlightBox(microQueueListEl); await moveArrowToElement(microQueueListEl, animDelay / 2);
+                        while (microQueueListEl.children.length > 0) {
+                            const microtaskItem = microQueueListEl.firstElementChild; const microtaskId = microtaskItem.dataset.id; const microtaskText = microtaskItem.textContent;
+                            logToDemo(`取出微任务: ${microtaskText}`, 'queue'); await removeTaskItem(microQueueListEl, microtaskId, animDelay);
+                            await moveArrowToElement(callStackListEl, animDelay / 2); highlightBox(callStackListEl);
+                            addTaskItem(callStackListEl, microtaskText, microtaskId); // Add microtask to call stack (将微任务添加到调用栈)
+                            logToDemo(`执行微任务: ${microtaskText}`, 'code');
+                            await new Promise(r => setTimeout(r, stepDelay));
+                            // Specific logic for this demo's microtask (此演示微任务的特定逻辑)
+                            if (microtaskText.includes('cbPromise')) { logToDemo("输出: Promise Then", 'output'); }
+                            await removeTaskItem(callStackListEl, microtaskId, animDelay); // Remove from call stack (从调用栈中移除)
+                            await new Promise(r => setTimeout(r, animDelay));
+                        }
+                        logToDemo("微任务队列已清空", 'micro'); await moveArrowToElement(null, animDelay / 2); highlightBox(null);
+                        await new Promise(r => setTimeout(r, stepDelay));
+
+                        // --- Check for Rendering (Optional Step) --- (检查渲染（可选步骤）)
+                        logToDemo('检查是否需要 UI 渲染 (本演示跳过)', 'render'); await new Promise(r => setTimeout(r, stepDelay));
+
+                        // --- Process Next Macrotask --- (处理下一个宏任务)
+                        logToDemo('检查宏任务队列', 'macro');
+                        await new Promise(r => setTimeout(r, stepDelay / 2)); highlightBox(macroQueueListEl); await moveArrowToElement(macroQueueListEl, animDelay / 2);
+                        if (macroQueueListEl.children.length > 0) {
+                            const macrotaskItem = macroQueueListEl.firstElementChild; const macrotaskId = macrotaskItem.dataset.id; const macrotaskText = macrotaskItem.textContent;
+                            logToDemo(`取出宏任务: ${macrotaskText}`, 'queue'); await removeTaskItem(macroQueueListEl, macrotaskId, animDelay);
+                            await moveArrowToElement(callStackListEl, animDelay / 2); highlightBox(callStackListEl);
+                            addTaskItem(callStackListEl, macrotaskText, macrotaskId); // Add macrotask to call stack (将宏任务添加到调用栈)
+                            logToDemo(`执行宏任务: ${macrotaskText}`, 'code');
+                            await new Promise(r => setTimeout(r, stepDelay));
+                            // Specific logic for this demo's macrotask (此演示宏任务的特定逻辑)
+                            if (macrotaskText.includes('cbTimeout')) { logToDemo("输出: Timeout", 'output'); }
+                            await removeTaskItem(callStackListEl, macrotaskId, animDelay); // Remove from call stack (从调用栈中移除)
+                            logToDemo(`宏任务 ${macrotaskText} 执行完毕`, 'step');
+                            // After macrotask, check microtasks again (even if empty) (宏任务后，再次检查微任务（即使为空）)
+                            logToDemo('再次检查微任务队列 (为空)', 'micro'); await new Promise(r => setTimeout(r, stepDelay / 2));
+                        } else { logToDemo("宏任务队列为空", 'macro'); }
+
+                        // --- Finish --- (完成)
+                        await moveArrowToElement(null, animDelay / 2); highlightBox(null); await new Promise(r => setTimeout(r, stepDelay));
+                        logToDemo('事件循环空闲，等待新任务...', 'finish');
+
+                    } catch (error) { console.error("Demo error:", error); logToDemo(`演示出错: ${error.message}`, 'error'); }
+                    finally { demoRunning = false; runEventLoopDemoBtn.disabled = false; } // Re-enable button (重新启用按钮)
+                }
+                // Attach event listener to the button (将事件监听器附加到按钮)
+                runEventLoopDemoBtn.addEventListener('click', runDemo);
+                clearViz(); // Initial clear (初始清除)
+            } else {
+                console.warn("Event Loop demo elements not found."); // 未找到事件循环演示元素
+            }
+
+
+            // --- Tree Creation Demo Logic ---
+            // 树创建演示逻辑
+            function initializeTreeCreationDemo(wrapperId) {
+                const wrapperElement = document.getElementById(wrapperId);
+                if (!wrapperElement) { console.error(`Tree Creation Demo wrapper element with ID "${wrapperId}" not found.`); return; } // 未找到具有 ID "${wrapperId}" 的树创建演示包装器元素
+
+                // Find elements within the wrapper (在包装器内查找元素)
+                const nextStepBtn = wrapperElement.querySelector('.next-step-btn');
+                const resetBtn = wrapperElement.querySelector('.reset-btn');
+                const explanationDiv = wrapperElement.querySelector('.explanation');
+                const htmlCodeBlock = wrapperElement.querySelector('.html-code-block');
+                const cssCodeBlock = wrapperElement.querySelector('.css-code-block');
+                const domTreeContainer = wrapperElement.querySelector('.dom-tree');
+                const domTreeDiv = wrapperElement.querySelector('.dom-tree-vis');
+                const cssomTreeContainer = wrapperElement.querySelector('.cssom-tree');
+                const cssomTreeDiv = wrapperElement.querySelector('.cssom-tree-vis');
+                const renderTreeContainer = wrapperElement.querySelector('.render-tree');
+                const renderTreeDiv = wrapperElement.querySelector('.render-tree-vis');
+                const renderedOutputContainer = wrapperElement.querySelector('.rendered-output');
+                const renderedOutputDiv = wrapperElement.querySelector('.rendered-output-vis');
+
+                // Check if all elements were found (检查是否找到所有元素)
+                if (!nextStepBtn || !resetBtn || !explanationDiv || !htmlCodeBlock || !cssCodeBlock || !domTreeContainer || !domTreeDiv || !cssomTreeContainer || !cssomTreeDiv || !renderTreeContainer || !renderTreeDiv || !renderedOutputContainer || !renderedOutputDiv) {
+                    console.error("One or more elements required for the Tree Creation Demo were not found inside:", wrapperId); // 在 ${wrapperId} 内未找到树创建演示所需的一个或多个元素
+                    if (explanationDiv) explanationDiv.innerHTML = "<p><strong>错误：</strong> 演示初始化失败，缺少必要的元素。</p>";
+                    return; // Stop initialization if elements are missing (如果缺少元素则停止初始化)
+                }
+
+                // --- State --- (状态)
+                let currentStep = 0;
+                const totalSteps = 7;
+
+                // --- Tree Data (Simplified Representation) --- (树数据（简化表示）)
+                const domStructure = { tag: 'html', children: [{ tag: 'head', children: [{ tag: 'title', text: '示例' }, { tag: 'link', attrs: { rel: 'stylesheet', href: 'style.css' } }] }, { tag: 'body', children: [{ tag: 'p', children: [{ text: 'Hello ' }, { tag: 'span', children: [{ text: 'World' }] }, { text: '!' }] }, { tag: 'div', attrs: { style: 'display: none;' }, children: [{ text: '隐藏内容' }] }] }] };
+                const cssomStructure = [{ selector: 'body', styles: { 'font-size': '16px' } }, { selector: 'p', styles: { 'color': 'blue' } }, { selector: 'span', styles: { 'color': 'red', 'font-weight': 'bold' } }];
+
+                // --- Functions --- (These functions remain largely the same, operating on local variables) (函数（这些函数基本保持不变，操作局部变量）)
+                function createNodeElement(nodeData, isRenderTree = false) {
+                    const nodeEl = document.createElement('div'); nodeEl.classList.add('node');
+                    const contentSpan = document.createElement('span'); contentSpan.classList.add('content');
+                    if (nodeData.tag) { contentSpan.textContent = `<${nodeData.tag}>`; if (nodeData.attrs) { let attrsString = Object.entries(nodeData.attrs).map(([k, v]) => `${k}="${v}"`).join(' '); if (attrsString) contentSpan.textContent += ` ${attrsString}`; } }
+                    else if (nodeData.text) { contentSpan.textContent = `"${nodeData.text}"`; nodeEl.style.borderLeftWidth = '1px'; nodeEl.style.paddingLeft = '0.3rem'; nodeEl.style.backgroundColor = 'transparent'; }
+                    else if (nodeData.selector) { contentSpan.textContent = nodeData.selector; }
+                    nodeEl.appendChild(contentSpan);
+                    if (nodeData.styles && Object.keys(nodeData.styles).length > 0) { const stylesSpan = document.createElement('span'); stylesSpan.classList.add('styles'); stylesSpan.textContent = `{ ${Object.entries(nodeData.styles).map(([k, v]) => `${k}: ${v}`).join('; ')} }`; nodeEl.appendChild(stylesSpan); }
+                    if (isRenderTree && nodeData.isHidden) nodeEl.classList.add('hidden-node');
+                    if (nodeData.children && nodeData.children.length > 0 && !(isRenderTree && nodeData.isHidden)) { const childrenDiv = document.createElement('div'); childrenDiv.classList.add('children'); nodeData.children.forEach(child => { const childNodeEl = createNodeElement(child, isRenderTree); if (childNodeEl && !(isRenderTree && child.isHidden)) childrenDiv.appendChild(childNodeEl); }); if (childrenDiv.hasChildNodes()) nodeEl.appendChild(childrenDiv); }
+                    return nodeEl;
+                }
+                function buildRenderTree(domNode) {
+                    if (!domNode.tag || domNode.tag === 'head' || domNode.tag === 'title' || domNode.tag === 'link') return null;
+                    const isHidden = domNode.attrs?.style?.includes('display: none');
+                    if (isHidden) return { tag: domNode.tag, isHidden: true, styles: {}, children: [] };
+                    let nodeStyles = {}; cssomStructure.forEach(rule => { if (rule.selector === domNode.tag) Object.assign(nodeStyles, rule.styles); });
+                    let renderChildren = []; if (domNode.children) { domNode.children.forEach(child => { const renderChild = buildRenderTree(child); if (renderChild) renderChildren.push(renderChild); }); }
+                    return { tag: domNode.tag, styles: nodeStyles, children: renderChildren, isHidden: false };
+                }
+                function highlightElement(element) {
+                    if (!element) return;
+                    element.classList.add('highlight'); setTimeout(() => { element.classList.remove('highlight'); }, 500);
+                }
+                function clearLayoutBoxes() {
+                    const existingBoxes = renderedOutputDiv.querySelectorAll('.layout-box'); existingBoxes.forEach(box => box.remove());
+                }
+                function showLayoutBoxes() {
+                    clearLayoutBoxes();
+                    const pBox = document.createElement('div'); pBox.classList.add('layout-box'); pBox.style.cssText = 'top: 10px; left: 10px; width: calc(100% - 20px); height: 40px;'; pBox.dataset.label = '<p>'; renderedOutputDiv.appendChild(pBox);
+                    const spanBox = document.createElement('div'); spanBox.classList.add('layout-box'); spanBox.style.cssText = 'top: 15px; left: 60px; width: 60px; height: 30px;'; spanBox.dataset.label = '<span>'; renderedOutputDiv.appendChild(spanBox);
+                }
+                function updateUI() {
+                    explanationDiv.innerHTML = '';
+                    domTreeContainer.classList.remove('visible'); cssomTreeContainer.classList.remove('visible'); renderTreeContainer.classList.remove('visible'); renderedOutputContainer.classList.remove('visible');
+                    domTreeDiv.innerHTML = ''; cssomTreeDiv.innerHTML = ''; renderTreeDiv.innerHTML = ''; renderedOutputDiv.innerHTML = ''; clearLayoutBoxes();
+                    switch (currentStep) {
+                        case 0: explanationDiv.innerHTML = '<p><strong>初始状态:</strong> 浏览器已接收到 HTML 和 CSS 文件。</p>'; break;
+                        case 1: explanationDiv.innerHTML = '<p><strong>步骤 1: 解析 HTML</strong><br>浏览器读取 HTML，构建 <strong>DOM</strong> 树。</p>'; highlightElement(htmlCodeBlock); break;
+                        case 2: explanationDiv.innerHTML = '<p><strong>步骤 2: 构建 DOM 树</strong><br>DOM 树完成，反映 HTML 结构。</p>'; domTreeDiv.appendChild(createNodeElement(domStructure)); domTreeContainer.classList.add('visible'); break;
+                        case 3: explanationDiv.innerHTML = '<p><strong>步骤 3: 解析 CSS</strong><br>浏览器解析 CSS，构建 <strong>CSSOM</strong> 树。</p>'; domTreeContainer.classList.add('visible'); highlightElement(cssCodeBlock); cssomStructure.forEach(rule => cssomTreeDiv.appendChild(createNodeElement(rule))); cssomTreeContainer.classList.add('visible'); break;
+                        case 4: explanationDiv.innerHTML = '<p><strong>步骤 4: 构建渲染树</strong><br>结合 DOM 和 CSSOM，创建<strong>可见</strong>元素的<strong>渲染树</strong>。</p>'; domTreeContainer.classList.add('visible'); cssomTreeContainer.classList.add('visible'); const renderTreeRoot = buildRenderTree(domStructure.children.find(n => n.tag === 'body')); if (renderTreeRoot) renderTreeDiv.appendChild(createNodeElement(renderTreeRoot, true)); renderTreeContainer.classList.add('visible'); break;
+                        case 5: explanationDiv.innerHTML = '<p><strong>步骤 5: 布局 (Layout / Reflow)</strong><br>计算渲染树节点的位置和大小。</p>'; domTreeContainer.classList.add('visible'); cssomTreeContainer.classList.add('visible'); renderTreeContainer.classList.add('visible'); renderedOutputContainer.classList.add('visible'); showLayoutBoxes(); break;
+                        case 6: explanationDiv.innerHTML = '<p><strong>步骤 6: 绘制 (Paint / Repaint)</strong><br>将节点转换为屏幕像素。</p>'; domTreeContainer.classList.add('visible'); cssomTreeContainer.classList.add('visible'); renderTreeContainer.classList.add('visible'); renderedOutputContainer.classList.add('visible'); showLayoutBoxes(); renderedOutputDiv.innerHTML = '<div class="content-painting"><p>Hello <span>World</span>!</p></div>'; break;
+                        case 7: explanationDiv.innerHTML = '<p><strong>步骤 7: 合成 (Composite) & 显示</strong><br>合并图层，显示最终页面。</p>'; domTreeContainer.classList.add('visible'); cssomTreeContainer.classList.add('visible'); renderTreeContainer.classList.add('visible'); renderedOutputContainer.classList.add('visible'); clearLayoutBoxes(); renderedOutputDiv.innerHTML = '<div class="content-final"><p>Hello <span>World</span>!</p></div>'; break;
+                        default: explanationDiv.innerHTML = '<p>演示完成！点击“重置”重新开始。</p>'; domTreeContainer.classList.add('visible'); cssomTreeContainer.classList.add('visible'); renderTreeContainer.classList.add('visible'); renderedOutputContainer.classList.add('visible'); renderedOutputDiv.innerHTML = '<div class="content-final"><p>Hello <span>World</span>!</p></div>';
+                    }
+                    nextStepBtn.disabled = currentStep >= totalSteps; resetBtn.disabled = currentStep === 0;
+                }
+
+                // --- Event Listeners --- (事件监听器)
+                nextStepBtn.addEventListener('click', () => { if (currentStep < totalSteps) { currentStep++; updateUI(); } });
+                resetBtn.addEventListener('click', () => { currentStep = 0; updateUI(); });
+
+                // --- Initial Setup --- (初始设置)
+                updateUI(); // Initialize UI on load (加载时初始化 UI)
+            }
+            // Initialize the demo (Make sure the wrapper ID exists in your HTML) (初始化演示（确保包装器 ID 存在于您的 HTML 中）)
+            initializeTreeCreationDemo('tree-creation-demo-embed-wrapper');
+
+        }); // End DOMContentLoaded
+    </script>
+</body>
+
+</html>

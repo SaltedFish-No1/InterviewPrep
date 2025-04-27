@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS 进阶与实践</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="../../global.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+
+    <style>
+        /* Minimal inline styles - Prioritize global.css and Tailwind */
+        /* Styles adapted from 01-Browser-Basics.html for consistency */
+
+        /* Material Symbols Base Style */
+        .material-symbols-outlined {
+            font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24;
+            vertical-align: middle;
+            font-size: 1.25em;
+            line-height: 1;
+        }
+        .local-side-nav .material-symbols-outlined,
+        .content-section h2 .material-symbols-outlined {
+            font-size: 1.3em;
+        }
+
+        /* Style for frequency/level tags (From 01-Browser-Basics.html) */
+        .level-tag {
+            display: inline-block;
+            margin-left: 0.5rem;
+            font-size: 0.75rem; /* text-xs */
+            font-weight: 500; /* font-medium */
+            padding: 0.1rem 0.5rem; /* py-0.5 px-2 */
+            border-radius: 0.25rem; /* rounded-sm */
+            vertical-align: middle;
+            border: 1px solid transparent;
+        }
+        .level-tag-high { /* Not used here, but kept for potential future use */
+            background-color: var(--danger-color-light);
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        .level-tag-medium {
+            background-color: var(--warning-color-light);
+            color: var(--warning-color);
+            border-color: var(--warning-color);
+        }
+        .level-tag-low { /* Renamed from base for clarity */
+            background-color: var(--bg-color-lighter); /* gray-100 */
+            color: var(--text-color-light); /* gray-500 */
+            border-color: var(--border-color-default); /* gray-300 */
+        }
+        .level-tag-basic { /* Added for "基础" tag */
+             background-color: var(--secondary-color-light); /* emerald-50 */
+             color: var(--secondary-color); /* emerald-500 */
+             border-color: var(--secondary-color); /* emerald-500 */
+        }
+
+        /* Section headers alignment */
+         .content-section h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; /* space between icon and text */
+        }
+        .content-section h2 .tags-container {
+            display: inline-flex; /* Keep tags together */
+            gap: 0.3rem; /* Space between tags */
+            margin-left: auto; /* Push tags to the right */
+            flex-shrink: 0; /* Prevent tags from shrinking */
+        }
+
+         /* Add some margin below code examples */
+        .content-card pre {
+            margin-bottom: 1rem; /* Add space below code blocks */
+        }
+
+        /* Basic responsive example styling */
+        .responsive-example-container {
+            border: 1px dashed var(--border-color-default);
+            padding: 1rem;
+            margin-top: 1rem;
+            background-color: var(--bg-color-light);
+            border-radius: 0.375rem; /* rounded-md */
+        }
+        .responsive-box {
+            background-color: var(--primary-color-light);
+            border: 1px solid var(--primary-color);
+            padding: 1rem;
+            text-align: center;
+            color: var(--primary-color-dark);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-radius: 0.25rem; /* rounded-sm */
+        }
+        /* Example Media Query Styles */
+        @media (min-width: 640px) { /* Corresponds to sm: in Tailwind */
+            .responsive-box.change-color {
+                background-color: var(--secondary-color-light);
+                border-color: var(--secondary-color);
+                color: var(--secondary-color);
+            }
+        }
+         @media (min-width: 1024px) { /* Corresponds to lg: in Tailwind */
+            .responsive-box.change-layout {
+               float: left; /* Example layout change */
+               width: 48%;
+               margin-right: 4%;
+            }
+            .responsive-example-container::after { /* Clearfix for float */
+                content: "";
+                display: table;
+                clear: both;
+            }
+        }
+
+        /* --- Interactive Units Demo Styles --- */
+        .interactive-units-demo {
+            border: 1px solid var(--border-color-default);
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: 1.5rem; /* p-6 */
+            margin-top: 1.5rem; /* mt-6 */
+            background-color: var(--bg-color-light); /* gray-50 */
+        }
+        .units-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .units-controls label {
+            font-weight: 500;
+            color: var(--text-color-default);
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .units-controls input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+        .units-controls .value-display {
+            font-size: 0.875rem; /* text-sm */
+            color: var(--text-color-light);
+            font-weight: normal;
+        }
+        #unit-demo-parent {
+            border: 2px solid var(--secondary-color);
+            padding: 1rem;
+            margin-top: 1rem;
+            background-color: var(--secondary-color-light);
+            transition: width 0.2s ease, font-size 0.2s ease; /* Smooth transitions */
+            overflow: hidden; /* Contain children */
+        }
+        .unit-demo-box {
+            border: 2px dashed var(--primary-color);
+            padding: 0.5rem;
+            margin-bottom: 0.75rem; /* mb-3 */
+            background-color: var(--primary-color-light);
+            color: var(--primary-color-dark);
+            text-align: center;
+            font-size: 12px; /* Base small font for demo text */
+            transition: width 0.2s ease, height 0.2s ease, font-size 0.2s ease, padding 0.2s ease; /* Smooth transitions */
+            overflow: hidden; /* Prevent text overflow */
+            white-space: nowrap;
+        }
+        .unit-demo-box .label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        .unit-demo-box .computed-value {
+            font-family: var(--font-family-mono);
+            font-size: 0.9em;
+            color: var(--text-color-light);
+            display: block;
+        }
+        /* Specific styles for demo boxes */
+        #box-px { width: 100px; height: 40px; font-size: 14px; }
+        #box-percent { width: 50%; height: 40px; } /* % width depends on parent */
+        #box-em-size { font-size: 1.5em; } /* em font-size depends on parent font-size */
+        #box-em-padding { padding: 0.5em; } /* em padding depends on *this* element's font-size */
+        #box-rem-size { font-size: 1.5rem; } /* rem font-size depends on root font-size */
+        #box-rem-width { width: 10rem; } /* rem width depends on root font-size */
+        #box-vw { width: 25vw; height: 40px; } /* vw depends on viewport width */
+        #box-vh { height: 5vh; width: 100px; } /* vh depends on viewport height */
+        /* --- End Interactive Units Demo Styles --- */
+
+
+        /* BEM example styling */
+        .bem-example {
+            border: 1px solid var(--border-color-default);
+            padding: 1rem;
+            border-radius: 0.375rem; /* rounded-md */
+            margin-top: 1rem;
+            background-color: var(--bg-color-light);
+        }
+        /* Example BEM styles */
+        .card { border: 1px solid #ccc; border-radius: 4px; padding: 10px; margin-bottom: 10px; background-color: white; }
+        .card__title { font-size: 1.2em; font-weight: bold; margin: 0 0 5px 0; color: #333; }
+        .card__button { padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; }
+        .card__button--primary { background-color: var(--primary-color); color: white; }
+        .card__button--disabled { background-color: #eee; color: #999; cursor: not-allowed; }
+
+
+        /* --- Fade-in Animation (Keep if not in global.css) --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in-section {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+    </style>
+</head>
+
+<body class="bg-gray-100"> <div class="page-container">
+        <aside class="local-side-nav">
+            <h4 class="head4">CSS 进阶与实践</h4>
+            <ul id="local-toc">
+                <li><a href="#responsive" class="sidebar-link active"><span
+                            class="material-symbols-outlined">devices</span><span>响应式设计</span></a></li>
+                <li><a href="#units" class="sidebar-link"><span
+                            class="material-symbols-outlined">straighten</span><span>常用单位</span></a></li>
+                <li><a href="#preprocessors" class="sidebar-link"><span
+                            class="material-symbols-outlined">integration_instructions</span><span>CSS 预处理器</span></a></li>
+                <li><a href="#bem" class="sidebar-link"><span
+                            class="material-symbols-outlined">construction</span><span>CSS 命名规范</span></a></li>
+                <li><a href="#css-in-js" class="sidebar-link"><span
+                            class="material-symbols-outlined">javascript</span><span>CSS-in-JS</span></a></li>
+            </ul>
+            <a href="../../index.html" class="back-link"> &larr; 返回大纲目录 </a>
+        </aside>
+
+        <main class="content-main">
+            <article>
+                <section id="intro" class="content-section fade-in-section" style="animation-delay: 0s;">
+                    <h1 class="head1 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-3xl text-blue-600">css</span> CSS 进阶与实践
+                    </h1>
+                    <p class="section-intro">
+                        掌握基础 CSS 后，深入了解进阶概念对于构建复杂、可维护且响应迅速的现代 Web 界面至关重要。本节将探讨响应式设计、不同 CSS 单位的运用、预处理器、命名规范以及 CSS-in-JS 等核心进阶主题。
+                    </p>
+                     <p class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md text-sm">💡
+                        <strong>提示:</strong> 点击左侧导航可以快速跳转到相应主题。代码示例使用了语法高亮。部分章节包含交互式演示。
+                    </p>
+                </section>
+
+                <section id="responsive" class="content-section fade-in-section" style="animation-delay: 0.05s;">
+                    <h2 class="head2">
+                        <span class="material-symbols-outlined">devices</span>响应式设计：媒体查询 (@media)
+                        <div class="tags-container">
+                            <span class="level-tag level-tag-medium">中频</span>
+                            <span class="level-tag level-tag-basic">基础</span>
+                        </div>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">什么是响应式设计？</h3>
+                        <p>响应式网页设计 (Responsive Web Design, RWD) 是一种让网页布局能够适应不同设备屏幕尺寸和方向（如桌面、平板、手机）的技术。核心目标是提供跨设备的最佳用户体验。</p>
+                        <h3 class="head3">核心技术：媒体查询 (@media)</h3>
+                        <p>媒体查询是实现响应式设计的关键 CSS 功能。它允许你根据设备的特定特征（如视口宽度、高度、方向、分辨率等）应用不同的 CSS 规则。</p>
+                        <h4 class="head4">基本语法</h4>
+                        <pre><code class="language-css">/* 基本结构 */
+@media media-type and (media-feature-rule) {
+  /* CSS 规则，当条件满足时应用 */
+  selector {
+    property: value;
+  }
+}
+
+/* 示例：当屏幕宽度至少为 768px 时应用 (min-width: 平板及以上) */
+@media screen and (min-width: 768px) {
+  .container {
+    max-width: 750px; /* 在中等屏幕上限制容器宽度 */
+    margin: 0 auto; /* 居中 */
+  }
+  body {
+    font-size: 18px; /* 增大字体 */
+  }
+}
+
+/* 示例：当屏幕宽度小于 600px 时应用 (max-width: 移动设备) */
+@media (max-width: 599px) {
+  nav ul {
+    display: none; /* 隐藏导航列表 */
+  }
+  .mobile-menu-button {
+    display: block; /* 显示汉堡菜单按钮 */
+  }
+}
+
+/* 示例：组合条件 (宽度范围: 600px 到 900px) */
+@media (min-width: 600px) and (max-width: 900px) {
+  .sidebar {
+    width: 200px;
+  }
+}
+
+/* 示例：针对打印样式 */
+@media print {
+  body {
+    font-family: serif;
+    color: black;
+  }
+  a::after {
+    content: " (" attr(href) ")"; /* 打印时显示链接地址 */
+  }
+  .no-print {
+    display: none; /* 隐藏不需要打印的元素 */
+  }
+}</code></pre>
+                        <h4 class="head4">常用媒体特性 (Media Features)</h4>
+                        <ul>
+                            <li><code>width</code> / <code>min-width</code> / <code>max-width</code>: 视口宽度。<strong>(最常用)</strong></li>
+                            <li><code>height</code> / <code>min-height</code> / <code>max-height</code>: 视口高度。</li>
+                            <li><code>orientation</code>: 设备方向 (<code>portrait</code> 竖屏, <code>landscape</code> 横屏)。</li>
+                            <li><code>aspect-ratio</code> / <code>min-aspect-ratio</code> / <code>max-aspect-ratio</code>: 视口宽高比。</li>
+                            <li><code>resolution</code>: 设备分辨率 (如 <code>min-resolution: 2dppx</code> 针对高分屏)。</li>
+                        </ul>
+                         <h4 class="head4">实践思路 (移动优先 Mobile First)</h4>
+                        <p>推荐采用“移动优先”的策略：</p>
+                        <ol>
+                            <li>先为小屏幕（移动设备）编写基础样式。</li>
+                            <li>然后使用 <code>min-width</code> 的媒体查询，逐步为更大的屏幕添加或覆盖样式。</li>
+                        </ol>
+                        <pre><code class="language-css">/* 1. 移动端基础样式 (默认) */
+.container { width: 95%; margin: 0 auto; }
+nav ul { display: none; }
+.mobile-menu-button { display: block; }
+
+/* 2. 平板及以上屏幕样式 (>= 768px) */
+@media (min-width: 768px) {
+  .container { max-width: 750px; }
+  nav ul { display: flex; }
+  .mobile-menu-button { display: none; }
+}
+
+/* 3. 桌面及以上屏幕样式 (>= 1024px) */
+@media (min-width: 1024px) {
+  .container { max-width: 960px; }
+  /* 可能有其他布局调整 */
+}</code></pre>
+                        <h4 class="head4">简单示例</h4>
+                        <p>下面的框会在不同屏幕宽度下改变背景色或布局（需要调整浏览器窗口大小查看效果）：</p>
+                        <div class="responsive-example-container">
+                             <div class="responsive-box change-color change-layout">
+                                调整浏览器窗口宽度查看效果
+                             </div>
+                             <p class="text-sm text-gray-600 mt-2">
+                                 - 默认: 蓝色背景 <br>
+                                 - 宽度 >= 640px: 绿色背景 (<code>change-color</code> 类生效) <br>
+                                 - 宽度 >= 1024px: 左浮动布局 (<code>change-layout</code> 类生效)
+                             </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="units" class="content-section fade-in-section" style="animation-delay: 0.1s;">
+                     <h2 class="head2">
+                        <span class="material-symbols-outlined">straighten</span>常用单位：px, %, em, rem, vw, vh
+                        <div class="tags-container">
+                            <span class="level-tag level-tag-low">低频</span>
+                            <span class="level-tag level-tag-basic">基础</span>
+                        </div>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">单位分类与详解</h3>
+                        <p>CSS 提供了多种单位来定义元素的尺寸、边距、字体大小等。理解它们的区别对于实现精确且灵活的布局至关重要。<strong>(面试考点：em vs rem 的区别)</strong></p>
+
+                        <div class="interactive-units-demo">
+                            <h4 class="head4 mb-4 text-center text-indigo-600">交互式演示：单位如何响应变化</h4>
+                            <div class="units-controls">
+                                <label>
+                                    根元素 (html) Font Size:
+                                    <input type="range" id="root-font-size-slider" min="8" max="24" value="16" step="1">
+                                    <span class="value-display"><span id="root-font-size-value">16</span>px</span>
+                                </label>
+                                <label>
+                                    父元素 Font Size:
+                                    <input type="range" id="parent-font-size-slider" min="10" max="30" value="20" step="1">
+                                    <span class="value-display"><span id="parent-font-size-value">20</span>px</span>
+                                </label>
+                                <label>
+                                    父元素 Width:
+                                    <input type="range" id="parent-width-slider" min="200" max="600" value="400" step="10">
+                                    <span class="value-display"><span id="parent-width-value">400</span>px</span>
+                                </label>
+                                <div class="text-sm text-gray-600">
+                                    (视口单位基于当前浏览器窗口)
+                                </div>
+                            </div>
+
+                            <div id="unit-demo-parent">
+                                <strong>父元素 (Parent)</strong>
+                                <div class="unit-demo-box" id="box-px">
+                                    <span class="label">100px / 14px</span>
+                                    <span class="computed-value">Width: <span class="value">?</span>px | Font: <span class="value-font">?</span>px</span>
+                                </div>
+                                <div class="unit-demo-box" id="box-percent">
+                                     <span class="label">50% (width)</span>
+                                    <span class="computed-value">Width: <span class="value">?</span>px</span>
+                                </div>
+                                <div class="unit-demo-box" id="box-em-size">
+                                     <span class="label">1.5em (font-size)</span>
+                                    <span class="computed-value">Font: <span class="value-font">?</span>px</span>
+                                </div>
+                                <div class="unit-demo-box" id="box-em-padding">
+                                     <span class="label">0.5em (padding)</span>
+                                    <span class="computed-value">Padding: <span class="value-padding">?</span>px</span>
+                                </div>
+                                <div class="unit-demo-box" id="box-rem-size">
+                                     <span class="label">1.5rem (font-size)</span>
+                                    <span class="computed-value">Font: <span class="value-font">?</span>px</span>
+                                </div>
+                                <div class="unit-demo-box" id="box-rem-width">
+                                     <span class="label">10rem (width)</span>
+                                    <span class="computed-value">Width: <span class="value">?</span>px</span>
+                                </div>
+                                <div class="unit-demo-box" id="box-vw">
+                                     <span class="label">25vw (width)</span>
+                                    <span class="computed-value">Width: <span class="value">?</span>px</span>
+                                </div>
+                                <div class="unit-demo-box" id="box-vh">
+                                     <span class="label">5vh (height)</span>
+                                    <span class="computed-value">Height: <span class="value">?</span>px</span>
+                                </div>
+                            </div>
+                        </div>
+                        <h3 class="head3 mt-6">单位总结</h3>
+                        <ul>
+                            <li><strong><code>px</code> (像素):</strong> 固定大小，不受父级影响。</li>
+                            <li><strong><code>%</code> (百分比):</strong> 相对于父元素的<strong>相同属性</strong>。</li>
+                            <li><strong><code>em</code>:</strong> 相对于<strong>当前元素</strong>的 <code>font-size</code> (用于非字体属性) 或 <strong>父元素</strong>的 <code>font-size</code> (用于 <code>font-size</code> 属性)。<strong>会层叠计算</strong>。</li>
+                            <li><strong><code>rem</code> (Root em):</strong> 相对于<strong>根元素 (<code>&lt;html&gt;</code>)</strong> 的 <code>font-size</code>。<strong>不会层叠计算</strong>，更易于管理全局缩放。</li>
+                            <li><strong><code>vw</code> / <code>vh</code>:</strong> 相对于视口宽度/高度的百分比。</li>
+                        </ul>
+
+                        <h3 class="head3">选择建议</h3>
+                        <ul>
+                            <li><strong>布局宽度/高度:</strong> 优先使用 <code>%</code> 或视口单位 (<code>vw</code>) 实现流式/响应式布局。<code>px</code> 用于固定尺寸元素。</li>
+                            <li><strong>字体大小:</strong> <strong>推荐使用 <code>rem</code></strong> 实现整体缩放和响应式字体。<code>em</code> 可用于需要根据父元素字体大小调整的组件内部。<code>px</code> 用于需要固定像素大小的文本。</li>
+                            <li><strong>边距/内边距:</strong> <code>px</code> 最直接。<code>em</code>/<code>rem</code> 可用于创建与字体大小相关的间距。<code>%</code> 可用于创建与父元素宽度相关的水平间距。</li>
+                            <li><strong>视口单位:</strong> 适用于需要撑满屏幕高度（如 <code>height: 100vh</code>）或创建相对于视口尺寸的元素。</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section id="preprocessors" class="content-section fade-in-section" style="animation-delay: 0.15s;">
+                     <h2 class="head2">
+                        <span class="material-symbols-outlined">integration_instructions</span>CSS 预处理器 (Sass/Less 概念)
+                        <div class="tags-container">
+                            <span class="level-tag level-tag-low">低频</span>
+                            <span class="level-tag level-tag-basic">基础</span>
+                        </div>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">什么是 CSS 预处理器？</h3>
+                        <p>CSS 预处理器（如 Sass、Less）是一种脚本语言，它扩展了 CSS 的功能，允许你使用变量、嵌套规则、混合 (Mixin)、函数等特性来编写 CSS。这些预处理器代码最终会被编译成标准的 CSS 文件，供浏览器使用。</p>
+                        <p>它们的主要目的是提高 CSS 代码的可维护性、可重用性和组织性，尤其是在大型项目中。</p>
+
+                        <h3 class="head3">核心概念 (以 Sass 为例)</h3>
+                        <h4 class="head4">1. 变量 (Variables)</h4>
+                        <p>允许你存储颜色、字体、尺寸等值，方便复用和修改。</p>
+                        <pre><code class="language-scss">// Sass (.scss)
+$primary-color: #3b82f6;
+$base-font-size: 16px;
+
+body {
+  color: $primary-color;
+  font-size: $base-font-size;
+}
+
+a {
+  color: $primary-color;
+  &:hover { // See Nesting below
+    color: darken($primary-color, 10%); // Using a function
+  }
+}
+
+/* Compiled CSS */
+/*
+body {
+  color: #3b82f6;
+  font-size: 16px;
+}
+
+a {
+  color: #3b82f6;
+}
+a:hover {
+  color: #2563eb; // Darkened color
+}
+*/</code></pre>
+
+                        <h4 class="head4">2. 嵌套 (Nesting)</h4>
+                        <p>允许你像 HTML 结构一样嵌套 CSS 规则，减少重复的选择器，提高可读性。</p>
+                        <pre><code class="language-scss">// Sass (.scss)
+nav {
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li { display: inline-block; }
+
+  a {
+    display: block;
+    padding: 6px 12px;
+    text-decoration: none;
+
+    &:hover { // '&' refers to the parent selector 'a'
+      background-color: #eee;
+    }
+  }
+}
+
+/* Compiled CSS */
+/*
+nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+nav li {
+  display: inline-block;
+}
+nav a {
+  display: block;
+  padding: 6px 12px;
+  text-decoration: none;
+}
+nav a:hover {
+  background-color: #eee;
+}
+*/</code></pre>
+
+                        <h4 class="head4">3. 混合 (Mixins)</h4>
+                        <p>允许你定义可重用的 CSS 声明块，可以像函数一样调用并传递参数。</p>
+                         <pre><code class="language-scss">// Sass (.scss)
+@mixin border-radius($radius) {
+  -webkit-border-radius: $radius;
+     -moz-border-radius: $radius;
+      -ms-border-radius: $radius;
+          border-radius: $radius;
+}
+
+.box { @include border-radius(10px); }
+.button { @include border-radius(5px); }
+
+/* Compiled CSS */
+/*
+.box {
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  border-radius: 10px;
+}
+
+.button {
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -ms-border-radius: 5px;
+  border-radius: 5px;
+}
+*/</code></pre>
+                         <h4 class="head4">其他特性</h4>
+                         <p>预处理器通常还支持继承 (<code>@extend</code>)、导入 (<code>@import</code>)、逻辑控制 (<code>@if</code>, <code>@for</code>) 和内置函数 (颜色处理、数学运算等)。</p>
+                         <h3 class="head3">为什么了解它们？</h3>
+                         <p>虽然面试中可能不会深入考察预处理器语法，但了解其概念和解决的问题（如代码冗余、缺乏变量、组织性差）表明你了解 CSS 工程化的实践，这对于团队协作和维护大型项目非常有价值。</p>
+                    </div>
+                </section>
+
+                <section id="bem" class="content-section fade-in-section" style="animation-delay: 0.2s;">
+                     <h2 class="head2">
+                        <span class="material-symbols-outlined">construction</span>CSS 命名规范：了解 BEM
+                        <div class="tags-container">
+                            <span class="level-tag level-tag-low">低频</span>
+                            <span class="level-tag level-tag-basic">基础</span>
+                        </div>
+                    </h2>
+                    <div class="content-card">
+                         <h3 class="head3">为什么需要命名规范？</h3>
+                         <p>随着项目变大，CSS 容易变得混乱：选择器冲突、样式覆盖困难、难以理解某个类名的作用。CSS 命名规范提供了一套结构化的方法来命名类，旨在提高代码的清晰度、可维护性和可重用性。</p>
+                         <h3 class="head3">BEM 简介</h3>
+                         <p>BEM (Block, Element, Modifier) 是一种流行且实用的 CSS 命名约定。</p>
+                         <ul>
+                             <li><strong>Block (块):</strong> 独立的、可重用的组件。例如：<code>.card</code>, <code>.menu</code>, <code>.search-form</code>。</li>
+                             <li><strong>Element (元素):</strong> 块内部的组成部分，不能脱离块独立存在。使用双下划线 <code>__</code> 连接。例如：<code>.card__title</code>, <code>.menu__item</code>, <code>.search-form__input</code>。</li>
+                             <li><strong>Modifier (修饰符):</strong> 定义块或元素的不同状态或变体。使用双连字符 <code>--</code> 连接。例如：<code>.card--highlighted</code>, <code>.menu__item--active</code>, <code>.search-form__button--disabled</code>。</li>
+                         </ul>
+                         <h4 class="head4">示例</h4>
+                         <p>假设我们有一个卡片组件：</p>
+                         <div class="bem-example">
+                             <strong>HTML 结构:</strong>
+                             <pre><code class="language-html">&lt;div class="card card--featured"&gt;
+  &lt;h2 class="card__title"&gt;Featured Article&lt;/h2&gt;
+  &lt;p class="card__description"&gt;This is the content of the card.&lt;/p&gt;
+  &lt;button class="card__button card__button--primary"&gt;Read More&lt;/button&gt;
+  &lt;button class="card__button card__button--disabled"&gt;Share (Disabled)&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+                            <strong>对应的 CSS (结构清晰):</strong>
+                             <pre><code class="language-css">/* Block */
+.card {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 15px;
+}
+
+/* Modifier for Block */
+.card--featured {
+  border-color: var(--primary-color); /* Use CSS variable */
+  background-color: var(--primary-color-light);
+}
+
+/* Element */
+.card__title {
+  font-size: 1.5em;
+  margin: 0 0 10px 0;
+  color: var(--text-color-dark);
+}
+
+/* Element */
+.card__description {
+  color: var(--text-color-default);
+  margin-bottom: 15px;
+}
+
+/* Element */
+.card__button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+/* Modifier for Element */
+.card__button--primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+.card__button--primary:hover {
+    background-color: var(--primary-color-dark);
+}
+
+
+/* Modifier for Element */
+.card__button--disabled {
+  background-color: #eee; /* Or use a variable */
+  color: #999;
+  cursor: not-allowed;
+}</code></pre>
+                            <strong>渲染效果 (模拟):</strong>
+                            <div class="card card--featured">
+                                <h2 class="card__title">Featured Article</h2>
+                                <p class="card__description">This is the content of the card.</p>
+                                <button class="card__button card__button--primary">Read More</button>
+                                <button class="card__button card__button--disabled">Share (Disabled)</button>
+                            </div>
+                         </div>
+
+                         <h3 class="head3">BEM 的优点</h3>
+                         <ul>
+                             <li><strong>清晰性:</strong> 类名直观地反映了元素的结构和作用。</li>
+                             <li><strong>模块化:</strong> 块是独立的，易于移动和重用。</li>
+                             <li><strong>避免冲突:</strong> 结构化的命名减少了全局样式冲突的可能性。</li>
+                             <li><strong>低特异性:</strong> BEM 通常只使用类选择器，保持较低的 CSS 特异性，易于覆盖。</li>
+                         </ul>
+                         <p>了解 BEM (或其他命名规范如 OOCSS, SMACSS) 体现了你对编写可维护、可扩展 CSS 的关注，是良好工程素养的体现。</p>
+                    </div>
+                </section>
+
+                <section id="css-in-js" class="content-section fade-in-section" style="animation-delay: 0.25s;">
+                    <h2 class="head2">
+                        <span class="material-symbols-outlined">javascript</span>了解 CSS-in-JS 概念
+                         <div class="tags-container">
+                            <span class="level-tag level-tag-low">低频</span>
+                            <span class="level-tag level-tag-basic">基础</span>
+                        </div>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">什么是 CSS-in-JS？</h3>
+                        <p>CSS-in-JS 是一种在 JavaScript 代码中编写 CSS 样式的技术。它通常与现代前端框架（如 React, Vue, Angular）的组件化开发模型结合使用。</p>
+                        <p>与传统的将 CSS 写在单独的 <code>.css</code> 文件中不同，CSS-in-JS 库允许你直接在组件的 JavaScript 文件中定义样式。</p>
+
+                        <h3 class="head3">核心思想与优势</h3>
+                        <ul>
+                            <li><strong>组件级作用域:</strong> 样式默认只作用于当前组件，有效避免了全局样式冲突（类似于 Shadow DOM 的效果）。</li>
+                            <li><strong>动态样式:</strong> 可以方便地根据组件的状态 (state) 或属性 (props) 动态改变样式，无需手动切换类名。</li>
+                            <li><strong>与 JS 共享:</strong> 可以直接在样式中使用 JavaScript 变量、函数和逻辑。</li>
+                            <li><strong>更好的开发体验:</strong> 将组件的结构 (HTML/JSX)、逻辑 (JS) 和样式 (CSS) 聚合在一起，便于开发和维护。</li>
+                            <li><strong>关键 CSS 提取:</strong> 一些库支持在构建时自动提取页面实际使用的 CSS（关键 CSS），优化首屏加载。</li>
+                            <li><strong>自动添加浏览器前缀:</strong> 库通常会自动处理浏览器兼容性前缀。</li>
+                        </ul>
+
+                        <h3 class="head3">常见库与示例概念 (以 Styled Components 为例)</h3>
+                        <p><code>styled-components</code> 是 React 中一个流行的 CSS-in-JS 库。它允许你创建带有样式的 React 组件。</p>
+                        <pre><code class="language-jsx">// 概念性示例 (非运行代码，仅作说明)
+import React from 'react';
+import styled from 'styled-components'; // 导入库
+
+// 创建一个带样式的 <button> 组件
+const StyledButton = styled.button`
+  /* 可以访问 props 来动态设置样式 */
+  background-color: ${props => props.primary ? 'palevioletred' : 'white'};
+  color: ${props => props.primary ? 'white' : 'palevioletred'};
+
+  font-size: 1em;
+  margin: 1em;
+  padding: 0.25em 1em;
+  border: 2px solid palevioletred;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover { /* 支持类似 Sass 的嵌套 */
+    opacity: 0.9;
+  }
+`;
+
+// 在 React 组件中使用
+function MyComponent() {
+  const isPrimary = true; // 可以是来自 state 或 props 的值
+
+  return (
+    &lt;div&gt;
+      &lt;StyledButton&gt;Normal Button&lt;/StyledButton&gt;
+      {/* 通过 prop 传递 'primary' 来应用不同样式 */}
+      &lt;StyledButton primary={isPrimary}&gt;Primary Button&lt;/StyledButton&gt;
+    &lt;/div&gt;
+  );
+}
+
+// 最终会被库编译成类似这样的 CSS (带有唯一的类名):
+/*
+.sc-a1b2c3d4 { // 自动生成的唯一类名
+  background-color: white;
+  color: palevioletred;
+  font-size: 1em;
+  // ... 其他基础样式
+}
+.sc-a1b2c3d4:hover { opacity: 0.9; }
+
+.sc-e5f6g7h8 { // 另一个唯一类名 (primary 变体)
+  background-color: palevioletred;
+  color: white;
+  font-size: 1em;
+ // ... 其他基础样式
+}
+.sc-e5f6g7h8:hover { opacity: 0.9; }
+*/
+</code></pre>
+                        <p>其他流行的 CSS-in-JS 库包括 Emotion, JSS 等。</p>
+
+                        <h3 class="head3">为什么了解它？</h3>
+                        <p>在现代前端框架（尤其是 React）的面试中，了解 CSS-in-JS 的概念、解决了什么问题以及常见的库是很重要的。它代表了一种与传统 CSS 不同的组件化样式方案。</p>
+                    </div>
+                </section>
+
+            </article>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Initialize Prism Code Highlighting ---
+             try {
+                if (window.Prism) {
+                    Prism.highlightAll();
+                } else {
+                    console.warn("Prism library not loaded.");
+                }
+            } catch (e) {
+                console.error("Prism highlighting failed:", e);
+            }
+
+            // --- Sidebar Active Link Highlighting ---
+            // Based on the script from 01-Browser-Basics.html
+            const sections = document.querySelectorAll('main section[id]');
+            const sidebarLinks = document.querySelectorAll('.local-side-nav .sidebar-link');
+            const sidebarNav = document.querySelector('.local-side-nav');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px 0px -60% 0px', // Trigger when top 40% is visible
+                threshold: 0
+            };
+
+            let activeSectionId = null;
+
+            const observer = new IntersectionObserver((entries) => {
+                let topmostVisibleSectionId = null;
+                let minOffsetTop = Infinity;
+
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (entry.target.offsetTop < minOffsetTop) {
+                            minOffsetTop = entry.target.offsetTop;
+                            topmostVisibleSectionId = entry.target.getAttribute('id');
+                        }
+                    }
+                });
+
+                if (topmostVisibleSectionId) {
+                    activeSectionId = topmostVisibleSectionId;
+                } else if (window.scrollY === 0 && sections.length > 0) {
+                    activeSectionId = sections[0].getAttribute('id');
+                }
+
+                sidebarLinks.forEach(link => {
+                    const linkHref = link.getAttribute('href');
+                    const linkSectionId = linkHref ? linkHref.substring(1) : null;
+
+                    if (linkSectionId && linkSectionId === activeSectionId) {
+                        if (!link.classList.contains('active')) {
+                            link.classList.add('active');
+                            if (sidebarNav && sidebarNav.scrollHeight > sidebarNav.clientHeight) {
+                                link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                            }
+                        }
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
+            // Initial check on load
+            setTimeout(() => {
+                let initialActiveId = null;
+                const scrollY = window.scrollY;
+                const initialOffset = window.innerHeight * 0.4;
+
+                for (const section of sections) {
+                    if (section.offsetTop <= scrollY + initialOffset) {
+                        initialActiveId = section.getAttribute('id');
+                    } else {
+                        break;
+                    }
+                }
+
+                if (!initialActiveId && sections.length > 0) {
+                    initialActiveId = sections[0].getAttribute('id');
+                }
+
+                if (initialActiveId) {
+                    activeSectionId = initialActiveId;
+                    sidebarLinks.forEach(link => {
+                        const linkHref = link.getAttribute('href');
+                        const linkSectionId = linkHref ? linkHref.substring(1) : null;
+                        if (linkSectionId === activeSectionId) {
+                            link.classList.add('active');
+                             if (sidebarNav && sidebarNav.scrollHeight > sidebarNav.clientHeight) {
+                                link.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                            }
+                        } else {
+                            link.classList.remove('active');
+                        }
+                    });
+                }
+            }, 100);
+
+             // --- Fade-in Animation Logic ---
+            const mainContentSections = document.querySelectorAll('main > article > section.content-section');
+            const fadeObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+            const fadeObserverCallback = (entries, observer) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        // Calculate delay based on index
+                        const delayIndex = Array.from(mainContentSections).indexOf(entry.target);
+                        entry.target.style.animationDelay = `${delayIndex * 0.05}s`; // Stagger the animation
+                        entry.target.classList.add('fade-in-section');
+                        observer.unobserve(entry.target); // Stop observing once animated
+                    }
+                });
+            };
+            const fadeObserver = new IntersectionObserver(fadeObserverCallback, fadeObserverOptions);
+            mainContentSections.forEach(section => fadeObserver.observe(section));
+
+            // --- Interactive Units Demo Script ---
+            const rootSlider = document.getElementById('root-font-size-slider');
+            const rootValueDisplay = document.getElementById('root-font-size-value');
+            const parentSizeSlider = document.getElementById('parent-font-size-slider');
+            const parentSizeValueDisplay = document.getElementById('parent-font-size-value');
+            const parentWidthSlider = document.getElementById('parent-width-slider');
+            const parentWidthValueDisplay = document.getElementById('parent-width-value');
+            const demoParent = document.getElementById('unit-demo-parent');
+
+            // Get references to all demo boxes
+            const boxes = {
+                px: document.getElementById('box-px'),
+                percent: document.getElementById('box-percent'),
+                emSize: document.getElementById('box-em-size'),
+                emPadding: document.getElementById('box-em-padding'),
+                remSize: document.getElementById('box-rem-size'),
+                remWidth: document.getElementById('box-rem-width'),
+                vw: document.getElementById('box-vw'),
+                vh: document.getElementById('box-vh')
+            };
+
+            // Function to update computed values display
+            function updateComputedValues() {
+                if (!demoParent) return; // Exit if parent not found
+
+                // Update parent styles based on sliders
+                const parentFontSize = parentSizeSlider.value + 'px';
+                const parentWidth = parentWidthSlider.value + 'px';
+                demoParent.style.fontSize = parentFontSize;
+                demoParent.style.width = parentWidth;
+
+                // Update root font size
+                document.documentElement.style.fontSize = rootSlider.value + 'px';
+
+                // Update display values next to sliders
+                rootValueDisplay.textContent = rootSlider.value;
+                parentSizeValueDisplay.textContent = parentSizeSlider.value;
+                parentWidthValueDisplay.textContent = parentWidthSlider.value;
+
+                // Update computed values for each box
+                for (const key in boxes) {
+                    const box = boxes[key];
+                    if (box) {
+                        const computedStyle = window.getComputedStyle(box);
+                        const computedWidth = parseFloat(computedStyle.width).toFixed(1);
+                        const computedHeight = parseFloat(computedStyle.height).toFixed(1);
+                        const computedFontSize = parseFloat(computedStyle.fontSize).toFixed(1);
+                        const computedPadding = parseFloat(computedStyle.paddingTop).toFixed(1); // Assuming padding is uniform
+
+                        const widthSpan = box.querySelector('.computed-value .value');
+                        const fontSpan = box.querySelector('.computed-value .value-font');
+                        const paddingSpan = box.querySelector('.computed-value .value-padding');
+                        const heightSpan = box.querySelector('.computed-value .value'); // Re-use for vh height
+
+                        if (widthSpan && computedWidth) widthSpan.textContent = computedWidth;
+                        if (fontSpan && computedFontSize) fontSpan.textContent = computedFontSize;
+                        if (paddingSpan && computedPadding) paddingSpan.textContent = computedPadding;
+                        if (key === 'vh' && heightSpan && computedHeight) heightSpan.textContent = computedHeight; // Special case for vh height display
+                    }
+                }
+            }
+
+            // Add event listeners to sliders
+            if (rootSlider && parentSizeSlider && parentWidthSlider && demoParent) {
+                rootSlider.addEventListener('input', updateComputedValues);
+                parentSizeSlider.addEventListener('input', updateComputedValues);
+                parentWidthSlider.addEventListener('input', updateComputedValues);
+
+                // Initial calculation on load
+                updateComputedValues();
+            } else {
+                console.warn("Interactive units demo elements not all found.");
+            }
+
+            // Cleanup root font size on leaving the page (optional)
+            window.addEventListener('unload', () => {
+                 document.documentElement.style.fontSize = ''; // Reset root font size
+            });
+
+
+        }); // End DOMContentLoaded
+    </script>
+
+</body>
+
+</html>

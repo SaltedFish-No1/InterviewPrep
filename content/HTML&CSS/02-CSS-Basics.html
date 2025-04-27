@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS 基础与布局</title> <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="../../global.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <style>
+        /* Minimal page-specific styles - Rely on global.css and Tailwind */
+
+        /* --- Base & Icons --- */
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle; font-size: 1.25em; line-height: 1;
+        }
+        .content-section h2 .material-symbols-outlined,
+        .local-side-nav li a .material-symbols-outlined { font-size: 1.3em; margin-right: 0.3em; }
+
+        /* --- Tags --- */
+        .level-tag { display: inline-block; margin-left: 0.75rem; font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.6rem; border-radius: 0.25rem; vertical-align: middle; border: 1px solid transparent; text-transform: uppercase; letter-spacing: 0.05em; }
+        .level-tag-high { background-color: var(--danger-color-light); color: var(--danger-color); border-color: var(--danger-color); }
+        .level-tag-medium { background-color: var(--warning-color-light); color: var(--warning-color); border-color: var(--warning-color); }
+        .level-tag-low { background-color: var(--secondary-color-light); color: var(--secondary-color); border-color: var(--secondary-color); }
+        .level-tag-base { background-color: var(--bg-color-lighter); color: var(--text-color-light); border-color: var(--border-color-default); }
+
+        /* --- Enhanced Card & Example Box Styles --- */
+        .content-card, .example-box {
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        .content-card:hover, .example-box:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+        .example-box {
+            border: 1px solid var(--border-color-default); padding: 1.5rem; margin: 1.5rem 0;
+            background-color: var(--bg-color-light); border-radius: 0.5rem;
+            box-shadow: var(--card-shadow-nested-level1);
+        }
+        .example-box h4.demo-title {
+             font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-color-dark);
+             padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border-color-light);
+        }
+        .demo-controls { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
+        .demo-controls label { margin-bottom: 0; font-size: 0.85rem; color: var(--text-color-default); }
+        .demo-controls input[type="range"], .demo-controls input[type="number"], .demo-controls select {
+             padding: 0.3rem 0.5rem; border: 1px solid var(--border-color-default); border-radius: 0.25rem; font-size: 0.85rem;
+        }
+        .demo-controls input[type="range"] { vertical-align: middle; cursor: pointer; }
+        .demo-controls input[type="number"] { width: 60px; }
+        .demo-controls .button { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+        .demo-output { margin-top: 1rem; font-size: 0.85rem; color: var(--text-color-light); background-color: var(--bg-color-lighter); padding: 0.75rem 1rem; border-radius: 4px; border: 1px dashed var(--border-color-light); min-height: 3em; line-height: 1.5; white-space: pre-wrap; }
+
+        /* --- Interactive Demo Button States --- */
+        .demo-controls button.active {
+            background-color: var(--primary-color); color: white; border-color: var(--primary-color-dark);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .demo-controls input:disabled, .demo-controls select:disabled { opacity: 0.5; cursor: not-allowed; background-color: var(--bg-color-lighter); }
+
+        /* --- Ripple Effect --- */
+        .ripple-container { position: relative; overflow: hidden; }
+        .ripple { position: absolute; border-radius: 50%; background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.3); transform: scale(0); animation: ripple-animation 0.6s linear; pointer-events: none; }
+        @keyframes ripple-animation { to { transform: scale(4); opacity: 0; } }
+
+
+        /* --- Selector Demo --- */
+        .selector-demo-area { display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem; align-items: start; }
+        @media (max-width: 768px) { .selector-demo-area { grid-template-columns: 1fr; } }
+        .selector-demo-controls label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-color-default); }
+        .selector-demo-controls input[type="text"] { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color-default); border-radius: 0.375rem; font-family: var(--font-family-mono); font-size: 0.9rem; margin-bottom: 1rem; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .selector-demo-controls input[type="text"]:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px var(--focus-ring-color); }
+        #selector-specificity-output { font-size: 0.85rem; color: var(--text-color-light); margin-top: 0.5rem; font-family: var(--font-family-mono); min-height: 6em; background-color: var(--bg-color-lighter); padding: 0.75rem; border-radius: 4px; border: 1px dashed var(--border-color-light); white-space: pre-wrap; }
+        #selector-parsed-output { margin-top: 0.5rem; font-size: 0.8rem; line-height: 1.4; }
+        #selector-parsed-output span { display: inline-block; padding: 2px 5px; margin: 2px; border-radius: 3px; transition: background-color 0.3s ease; }
+        #selector-parsed-output .spec-id { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; } /* Red */
+        #selector-parsed-output .spec-class { background-color: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; } /* Orange */
+        #selector-parsed-output .spec-element { background-color: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; } /* Blue */
+        #selector-parsed-output .spec-other { background-color: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; } /* Gray */
+        .selector-demo-html { border: 1px solid var(--border-color-default); padding: 1rem; border-radius: 0.375rem; background-color: white; font-size: 0.9rem; line-height: 1.6; }
+        .selector-demo-html .highlighted { background-color: #fef9c3; outline: 2px solid #facc15; border-radius: 3px; transition: all 0.2s ease-out; box-shadow: 0 0 8px rgba(250, 204, 21, 0.5); }
+        .selector-demo-html span, .selector-demo-html div, .selector-demo-html p, .selector-demo-html button { margin: 2px 0; display: block; padding: 2px 4px; border: 1px solid transparent; }
+        .selector-demo-html .demo-item { border: 1px dashed #ccc; padding: 5px; margin: 5px; }
+
+
+        /* --- Box Model Demo --- */
+        .box-model-demo-area { display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; align-items: start; }
+        @media (max-width: 768px) { .box-model-demo-area { grid-template-columns: 1fr; } }
+        .box-model-controls .control-group { margin-bottom: 1rem; }
+        .box-model-controls label { display: block; font-size: 0.8rem; margin-bottom: 0.25rem; color: var(--text-color-default); font-weight: 500;}
+        .box-model-controls input[type="range"] { width: calc(100% - 70px); }
+        .box-model-controls .value-display { display: inline-block; width: 50px; text-align: right; font-size: 0.8rem; font-family: var(--font-family-mono); margin-left: 10px; background: #eee; padding: 2px 4px; border-radius: 3px; }
+        .box-model-visualizer {
+            background-color: var(--bg-color-lighter); border: 1px dashed var(--border-color-default);
+            padding: 20px; /* FIXED padding for stable visual area */
+            min-height: 280px;
+            position: relative; display: flex; align-items: center; justify-content: center;
+            border-radius: 0.375rem;
+            overflow: hidden; /* Prevent box overflow */
+        }
+        .box-model-box {
+            position: relative;
+            box-sizing: content-box; /* Default, changed by JS */
+            transition: all 0.3s ease-out;
+            background-clip: padding-box;
+            z-index: 1;
+            margin: 0; /* Margin applied via JS */
+            border: 5px solid #0ea5e9; /* Default border */
+            padding: 10px; /* Default padding */
+            background-color: rgba(22, 163, 74, 0.1); /* Simulate padding bg */
+            /* Add visual indicator for margin */
+            outline-offset: 0px; /* Start offset for outline */
+            outline: 1px dashed #a855f7; /* Use outline to show margin */
+            transition: outline-offset 0.3s ease-out, width 0.3s ease-out, height 0.3s ease-out, padding 0.3s ease-out, border-width 0.3s ease-out;
+        }
+        .box-model-content-visual {
+            width: 100%; height: 100%;
+            background-color: #fefce8; /* Content color */
+            border: 1px dashed #ca8a04;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; color: #ca8a04; text-align: center;
+            transition: all 0.3s ease-out;
+        }
+        #box-model-output { white-space: pre-wrap; }
+
+
+        /* --- Position Demo --- */
+        .position-container-interactive { position: relative; height: 200px; background-color: var(--bg-color-lighter); border: 1px dashed var(--border-color-default); margin-top: 1rem; border-radius: 0.375rem; overflow: auto; transition: border 0.3s ease-out; }
+        .position-container-interactive.has-relative-context { border-style: solid; border-color: var(--primary-color); border-width: 2px; box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); }
+        .pos-box-interactive { width: 80px; height: 50px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 0.8rem; position: static; top: auto; left: auto; bottom: auto; right: auto; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); z-index: 1; margin: 5px; }
+        .pos-box-target { background-color: #bfdbfe; border: 1px solid #60a5fa; color: #1e40af; }
+        .pos-box-other { background-color: #d1fae5; border: 1px solid #34d399; color: #065f46; }
+        /* Specific offsets applied via JS */
+        .pos-box-interactive.is-relative { position: relative; top: 15px; left: 15px; z-index: 2; }
+        .pos-box-interactive.is-absolute { position: absolute; top: 40px; right: 30px; z-index: 3; margin: 0; }
+        .pos-box-interactive.is-fixed { position: fixed; bottom: 80px; right: 40px; z-index: 50; margin: 0; background-color: #fecaca; border-color: #ef4444; color: #991b1b; }
+        .pos-box-interactive.is-sticky { position: sticky; top: 10px; z-index: 4; background-color: #fed7aa; border-color: #f97316; color: #9a3412; }
+        .context-arrow { position: absolute; width: 0; height: 0; border-style: solid; opacity: 0; transition: opacity 0.3s ease-out, top 0.3s ease-out, left 0.3s ease-out; pointer-events: none; z-index: 10; border-width: 6px 0 6px 10px; border-color: transparent transparent transparent var(--primary-color); }
+        .context-arrow.visible { opacity: 0.7; }
+
+
+        /* --- Stacking Context (z-index) Demo --- */
+        .zindex-demo-area { display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; align-items: start; }
+        @media (max-width: 768px) { .zindex-demo-area { grid-template-columns: 1fr; } }
+        .zindex-controls .control-group { margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color-light); }
+        .zindex-controls .control-group:last-child { border-bottom: none; margin-bottom: 0; }
+        .zindex-controls label { display: block; font-size: 0.8rem; margin-bottom: 0.25rem; color: var(--text-color-default); font-weight: 500;}
+        .zindex-visualizer { position: relative; min-height: 150px; background-color: var(--bg-color-lighter); border: 1px dashed var(--border-color-default); border-radius: 0.375rem; padding: 1rem; }
+        .zindex-box { width: 100px; height: 80px; border-radius: 4px; position: absolute; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 0.9rem; transition: all 0.3s ease-out; border: 1px solid rgba(0,0,0,0.2); }
+        .zindex-box-1 { background-color: rgba(252, 165, 165, 0.8); color: #7f1d1d; top: 20px; left: 20px; }
+        .zindex-box-2 { background-color: rgba(165, 180, 252, 0.8); color: #312e81; top: 50px; left: 60px; }
+        .zindex-box.is-positioned { /* Applied when position is not static */ }
+
+
+        /* --- Display Demo --- */
+        .display-container-interactive { background-color: var(--bg-color-lighter); border: 1px dashed var(--border-color-default); padding: 1rem; margin-top: 1rem; border-radius: 0.375rem; min-height: 100px; overflow: hidden; }
+        .display-item { border: 1px solid var(--primary-color); background-color: var(--primary-color-light); color: var(--primary-color-dark); padding: 0.5rem 1rem; margin: 5px; font-size: 0.9rem; text-align: center; transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out, width 0.3s ease-in-out, height 0.3s ease-in-out, margin 0.3s ease-in-out, padding 0.3s ease-in-out; transform-origin: center left; }
+        .display-item.is-hiding { opacity: 0; transform: scale(0.8); padding: 0 !important; margin: 0 !important; height: 0 !important; border-width: 0 !important; font-size: 0; line-height: 0; }
+        .display-item.is-block { width: auto; }
+        .display-item.is-inline-block { width: 120px; height: 40px; }
+
+
+        /* --- Flexbox Playground --- */
+        .flex-playground-area { display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; align-items: start; }
+        @media (max-width: 768px) { .flex-playground-area { grid-template-columns: 1fr; } }
+        .flex-playground-controls .control-group { margin-bottom: 1rem; }
+        .flex-playground-controls label { display: block; font-size: 0.8rem; margin-bottom: 0.25rem; color: var(--text-color-default); font-weight: 500;}
+        .flex-playground-controls select { width: 100%; }
+        .flex-playground-container { display: flex; min-height: 150px; background-color: var(--bg-color-lighter); border: 1px dashed var(--border-color-default); padding: 0.5rem; border-radius: 0.375rem; transition: all 0.3s ease-out; }
+        .flex-playground-item { background-color: #cffafe; border: 1px solid #06b6d4; color: #0e7490; padding: 1rem; text-align: center; border-radius: 0.25rem; min-width: 60px; flex-basis: 80px; transition: all 0.3s ease-out; }
+
+
+        /* --- Grid Demo --- */
+        /* IMPROVED Grid Example Styles */
+        .grid-example-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* Define 3 columns */
+            grid-template-rows: repeat(2, 80px);    /* Define 2 rows */
+            gap: 10px;
+            background-color: var(--bg-color-lighter);
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border: 1px dashed var(--border-color-default);
+        }
+        .grid-example-item {
+            background-color: #fce7f3; border: 1px solid #db2777; color: #9d174d;
+            padding: 1rem; text-align: center; border-radius: 0.25rem;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; font-weight: 500;
+        }
+        /* Explicit placement examples */
+        .grid-item-explicit-1 { grid-column: 1; grid-row: 1; }
+        .grid-item-explicit-2 { grid-column: 3; grid-row: 1; }
+        .grid-item-explicit-3 { grid-column: 1 / 3; grid-row: 2; background-color: #fbcfe8; } /* Span columns */
+        .grid-item-explicit-4 { grid-column: 3; grid-row: 2; }
+
+
+        /* --- BFC Demo --- */
+        .bfc-demo-area { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+        .bfc-demo-case { border: 1px solid var(--border-color-default); border-radius: 0.5rem; padding: 1rem; background-color: white; }
+        .bfc-demo-case h5 { font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9rem; color: var(--text-color-dark); }
+        /* Margin Collapse Demo */
+        .bfc-margin-collapse { position: relative; padding-top: 10px; padding-bottom: 10px; }
+        .bfc-margin-collapse p { margin: 10px 0; background: #ecfdf5; border: 1px solid #6ee7b7; padding: 5px; color: #047857; position: relative; z-index: 1; }
+        .margin-visual { position: absolute; left: 0; right: 0; height: 10px; background-color: rgba(248, 113, 113, 0.3); border: 1px dashed rgba(220, 38, 38, 0.5); z-index: 0; transition: top 0.4s ease-out, bottom 0.4s ease-out; pointer-events: none; }
+        #bfc-p1 .margin-visual-top { top: -10px; } #bfc-p1 .margin-visual-bottom { bottom: -10px; }
+        #bfc-p2 .margin-visual-top { top: -10px; } #bfc-p2 .margin-visual-bottom { bottom: -10px; }
+        /* Use flow-root for BFC to avoid layout jitter */
+        #bfc-p2-container.has-bfc { display: flow-root; background-color: rgba(239, 246, 255, 0.5); border-radius: 3px; }
+        /* Clear Float Demo */
+        .bfc-clear-float .float-box { float: left; width: 60px; height: 40px; background: #fef3c7; border: 1px solid #fcd34d; margin: 5px; color: #b45309; }
+        .bfc-clear-float .parent-container { border: 1px dashed #f87171; padding: 5px; margin-bottom: 5px; transition: all 0.4s ease-out; background-color: transparent; min-height: 10px; }
+        .bfc-clear-float .parent-container.show-bg { background-color: rgba(254, 226, 226, 0.4); }
+        .bfc-clear-float .parent-container.has-bfc { display: flow-root; /* Use flow-root */ }
+
+
+        /* --- Centering Demo --- */
+        .centering-methods-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+        .centering-example { border: 1px solid var(--border-color-light); border-radius: 0.5rem; padding: 1rem; background-color: white; }
+        .centering-example h4 { margin-bottom: 0.75rem; }
+        .centering-example pre { margin-top: 1rem; font-size: 0.8rem; padding: 0.75rem; }
+        .center-container { height: 100px; background-color: var(--bg-color-lighter); border: 1px dashed var(--border-color-default); margin-bottom: 1rem; border-radius: 0.375rem; }
+        .center-item { width: 50px; height: 50px; background-color: var(--secondary-color-light); border: 1px solid var(--secondary-color); color: var(--secondary-color); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border-radius: 0.25rem; }
+        .center-flex { display: flex; justify-content: center; align-items: center; }
+        .center-grid { display: grid; place-items: center; }
+        .center-pos-container { position: relative; }
+        .center-pos-item { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+
+        /* --- Fade-in Animation --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in-section { opacity: 0; animation: fadeIn 0.5s ease-out forwards; }
+        .fade-in-section.visible { opacity: 1; transform: translateY(0); }
+
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <div class="page-container">
+
+        <aside class="local-side-nav">
+             <h4 class="head4">CSS 基础与布局</h4>
+             <ul id="local-toc">
+                 <li><a href="#selectors" class="sidebar-link active"><span class="material-symbols-outlined">target</span>选择器</a></li>
+                 <li><a href="#box-model" class="sidebar-link"><span class="material-symbols-outlined">inventory_2</span>盒模型</a></li>
+                 <li><a href="#position" class="sidebar-link"><span class="material-symbols-outlined">layers</span>Position & Z-Index</a></li>
+                 <li><a href="#display" class="sidebar-link"><span class="material-symbols-outlined">visibility</span>Display 属性</a></li>
+                 <li><a href="#flexbox" class="sidebar-link"><span class="material-symbols-outlined">align_horizontal_left</span>Flexbox 布局</a></li>
+                 <li><a href="#grid" class="sidebar-link"><span class="material-symbols-outlined">grid_view</span>Grid 布局</a></li>
+                 <li><a href="#centering" class="sidebar-link"><span class="material-symbols-outlined">center_focus_strong</span>水平垂直居中</a></li>
+                 <li><a href="#bfc" class="sidebar-link"><span class="material-symbols-outlined">space_dashboard</span>BFC</a></li>
+             </ul>
+             <a href="../../index.html" class="back-link">
+                 &larr; 返回大纲目录
+             </a>
+         </aside>
+
+        <main class="content-main">
+            <article>
+                <section id="intro" class="content-section fade-in-section" style="animation-delay: 0s;">
+                     <h1 class="head1 flex items-center gap-2">
+                         <span class="material-symbols-outlined text-3xl text-blue-600">css</span> CSS 基础与布局核心
+                     </h1>
+                     <p class="mb-4">层叠样式表 (Cascading Style Sheets) 是网页设计的基础，用于定义页面的外观和布局。本节将深入探讨 CSS 的核心概念，包括选择器、盒模型、定位、显示方式以及现代布局技术 Flexbox 和 Grid，并通过交互式示例加深理解。</p>
+                     <p class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md text-sm">💡
+                         <strong>提示:</strong> 点击左侧导航可以快速跳转。尝试下方的交互式演示来体验 CSS 属性的效果！
+                     </p>
+                 </section>
+
+                <section id="selectors" class="content-section fade-in-section" style="animation-delay: 0.05s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">target</span>CSS 选择器与优先级
+                        <span class="level-tag level-tag-high">高频基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">概念</h3>
+                        <p>选择器用于“选择”你想要应用样式的 HTML 元素。优先级决定了当多个规则冲突时哪个生效。</p>
+
+                        <div class="example-box selector-demo-area">
+                            <div class="selector-demo-controls">
+                                 <h4 class="demo-title w-full">交互式选择器演示</h4>
+                                <label for="selector-input">输入 CSS 选择器:</label>
+                                <input type="text" id="selector-input" placeholder=".item, #container p, div > span" value="#container p.item">
+                                <button id="selector-apply-btn" class="button button-primary text-sm py-1 px-3 ripple-container">应用选择器</button>
+                                <h5 class="head6 mt-4 mb-1 w-full">解析与优先级计算:</h5>
+                                <div id="selector-parsed-output"></div>
+                                <div id="selector-specificity-output">(0, 1, 1, 1)</div>
+                                <p class="text-xs text-gray-500 mt-1 w-full">格式: (内联, ID, 类/属性/伪类, 元素/伪元素)</p>
+                            </div>
+                            <div class="selector-demo-html" id="selector-target-html">
+                                <div class="demo-item" id="container">
+                                    Container DIV (#container)
+                                    <p class="item intro">这是一个段落 (p.item.intro)。</p>
+                                    <div class="item">
+                                        这是一个嵌套 DIV (.item)
+                                        <span>嵌套 SPAN</span>
+                                    </div>
+                                    <p>另一个段落。</p>
+                                    <button data-type="submit">按钮 (button[data-type="submit"])</button>
+                                </div>
+                                <span class="item">外部 SPAN (.item)</span>
+                            </div>
+                        </div>
+                        <h3 class="head3 mt-6">常用选择器回顾</h3>
+                         <ul>
+                            <li><strong>ID (<code>#id</code>):</strong> 唯一，高优先级。</li>
+                            <li><strong>类 (<code>.class</code>):</strong> 可复用，常用。</li>
+                            <li><strong>标签 (<code>tag</code>):</strong> 基础选择。</li>
+                            <li><strong>属性 (<code>[attr=val]</code>):</strong> 根据属性选择。</li>
+                            <li><strong>伪类 (<code>:hover</code>, <code>:nth-child()</code>):</strong> 特定状态。</li>
+                            <li><strong>伪元素 (<code>::before</code>, <code>::after</code>):</strong> 元素部分。</li>
+                            <li><strong>后代 (<code>A B</code>), 子 (<code>A > B</code>), 相邻兄弟 (<code>A + B</code>), 通用兄弟 (<code>A ~ B</code>):</strong> 关系选择。</li>
+                        </ul>
+                         <h3 class="head3">优先级规则 (面试重点)</h3>
+                         <p>大致顺序: <code>!important</code> > 内联 > ID > 类/属性/伪类 > 标签/伪元素。精确计算需比较各类选择器的数量，数量多的优先，同级比较下一级。</p>
+                         <p>交互演示中的计算器可以帮你理解不同部分的权重。</p>
+                    </div>
+                </section>
+
+                <section id="box-model" class="content-section fade-in-section" style="animation-delay: 0.1s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">inventory_2</span>盒模型 (Box Model)
+                        <span class="level-tag level-tag-high">高频基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">概念</h3>
+                        <p>每个 HTML 元素都是一个盒子，包含内容(Content)、内边距(Padding)、边框(Border)、外边距(Margin)。<code>box-sizing</code> 属性决定了 <code>width</code> 和 <code>height</code> 的计算方式。</p>
+
+                        <div class="example-box box-model-demo-area">
+                            <div class="box-model-controls">
+                                <h4 class="demo-title w-full">交互式盒模型演示</h4>
+                                <div class="control-group">
+                                    <label>Box Sizing (面试重点):</label>
+                                    <div class="flex gap-4 mt-1">
+                                        <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="box-sizing" value="content-box" checked> content-box</label>
+                                        <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="box-sizing" value="border-box"> border-box</label>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label for="bm-width">Width:</label>
+                                    <input type="range" id="bm-width" min="50" max="200" value="100"><span class="value-display" id="bm-width-val">100px</span>
+                                </div>
+                                <div class="control-group">
+                                    <label for="bm-height">Height:</label>
+                                    <input type="range" id="bm-height" min="30" max="150" value="50"><span class="value-display" id="bm-height-val">50px</span>
+                                </div>
+                                <div class="control-group">
+                                    <label for="bm-padding">Padding:</label>
+                                    <input type="range" id="bm-padding" min="0" max="30" value="10"><span class="value-display" id="bm-padding-val">10px</span>
+                                </div>
+                                <div class="control-group">
+                                    <label for="bm-border">Border:</label>
+                                    <input type="range" id="bm-border" min="0" max="15" value="5"><span class="value-display" id="bm-border-val">5px</span>
+                                </div>
+                                <div class="control-group">
+                                    <label for="bm-margin">Margin:</label>
+                                    <input type="range" id="bm-margin" min="0" max="20" value="10"><span class="value-display" id="bm-margin-val">10px</span>
+                                </div>
+                                <button id="bm-reset-btn" class="button button-secondary mt-2 ripple-container">重置</button>
+                            </div>
+                            <div class="box-model-visualizer" id="bm-visualizer">
+                                <div class="box-model-box" id="bm-box">
+                                    <div class="box-model-content-visual" id="bm-content-viz">
+                                        Content
+                                    </div>
+                                </div>
+                            </div>
+                             <div class="demo-output" id="box-model-output">计算中...</div>
+                        </div>
+                        <h3 class="head3 mt-6"><code>box-sizing</code> (面试重点)</h3>
+                        <ul>
+                            <li><strong><code>content-box</code> (默认):</strong> 设置的 <code>width/height</code> 仅指内容区。总尺寸 = 内容 + padding + border。</li>
+                            <li><strong><code>border-box</code> (推荐):</strong> 设置的 <code>width/height</code> 包含 内容 + padding + border。布局更可预测。</li>
+                        </ul>
+                        <pre><code class="language-css">/* 推荐全局设置 */
+html { box-sizing: border-box; }
+*, *:before, *:after { box-sizing: inherit; }</code></pre>
+                    </div>
+                </section>
+
+                <section id="position" class="content-section fade-in-section" style="animation-delay: 0.15s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">layers</span>Position & Z-Index
+                        <span class="level-tag level-tag-high">高频基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">Position 概念与属性值</h3>
+                        <p><code>position</code> 定义元素定位方式，配合 <code>top/right/bottom/left/z-index</code> 控制位置。</p>
+                        <ul>
+                            <li><strong><code>static</code> (默认):</strong> 文档流。</li>
+                            <li><strong><code>relative</code>:</strong> 相对于自身正常位置定位，<strong>占位</strong>。常做定位上下文。</li>
+                            <li><strong><code>absolute</code>:</strong> 相对于最近的非 static 祖先定位，<strong>脱离文档流</strong>。</li>
+                            <li><strong><code>fixed</code>:</strong> 相对于视口定位，<strong>脱离文档流</strong>。</li>
+                            <li><strong><code>sticky</code>:</strong> 粘性定位，滚动到阈值时表现类似 fixed。</li>
+                        </ul>
+
+                        <div class="example-box position-demo-area">
+                             <h4 class="demo-title">交互式定位演示 (含定位上下文)</h4>
+                             <div class="position-controls demo-controls" id="position-controls"> <button class="button button-secondary active" data-pos="static">Static</button>
+                                <button class="button button-secondary" data-pos="relative">Relative</button>
+                                <button class="button button-secondary" data-pos="absolute">Absolute</button>
+                                <button class="button button-secondary" data-pos="fixed">Fixed</button>
+                                <button class="button button-secondary" data-pos="sticky">Sticky</button>
+                                <label class="ml-auto flex items-center gap-1 cursor-pointer">
+                                    <input type="checkbox" id="toggle-context"> 为容器创建定位上下文 (relative)
+                                </label>
+                             </div>
+                             <div class="position-container-interactive" id="position-container">
+                                <div class="pos-box-interactive pos-box-target" id="target-box">Target</div>
+                                <div class="pos-box-interactive pos-box-other">Other 1</div>
+                                <div class="pos-box-interactive pos-box-other">Other 2</div>
+                                <div style="height: 150px; font-size: 0.8rem; color: #999; text-align: center; padding-top: 50px;">(滚动区域)</div>
+                                <div class="pos-box-interactive pos-box-other">Other 3</div>
+                                <div class="context-arrow" id="context-arrow"></div>
+                             </div>
+                             <div class="demo-output" id="pos-output">当前 Target 状态: static (在文档流中)</div>
+                        </div>
+                        <h3 class="head3 mt-6">Z-Index 与层叠上下文 (面试重点)</h3>
+                        <p><code>z-index</code> 属性设置定位元素（非 <code>static</code>）的堆叠顺序。数值越大越靠上。它只在同一个**层叠上下文 (Stacking Context)** 内比较才有意义。</p>
+                        <p>层叠上下文由满足特定条件的元素创建（如 <code>position</code> 为 absolute/relative 且 <code>z-index</code> 非 auto，<code>position: fixed/sticky</code>，<code>opacity</code> < 1，<code>transform</code> 非 none 等）。子元素的 <code>z-index</code> 值只与同一层叠上下文内的兄弟元素比较。</p>
+
+                        <div class="example-box zindex-demo-area">
+                             <div class="zindex-controls">
+                                 <h4 class="demo-title w-full">交互式 Z-Index 演示</h4>
+                                 <div class="control-group">
+                                     <h5 class="head6">Box 1 (Red)</h5>
+                                     <label>Position:
+                                         <select class="zindex-pos-select" data-target="zindex-box-1">
+                                             <option value="static" selected>static</option> <option value="relative">relative</option> <option value="absolute">absolute</option>
+                                         </select>
+                                     </label>
+                                     <label class="mt-2">Z-Index:
+                                         <input type="number" class="zindex-input" data-target="zindex-box-1" value="1" step="1" disabled>
+                                     </label>
+                                 </div>
+                                 <div class="control-group">
+                                     <h5 class="head6">Box 2 (Blue)</h5>
+                                      <label>Position:
+                                         <select class="zindex-pos-select" data-target="zindex-box-2">
+                                             <option value="static" selected>static</option> <option value="relative">relative</option> <option value="absolute">absolute</option>
+                                         </select>
+                                     </label>
+                                     <label class="mt-2">Z-Index:
+                                         <input type="number" class="zindex-input" data-target="zindex-box-2" value="2" step="1" disabled>
+                                     </label>
+                                 </div>
+                             </div>
+                             <div class="zindex-visualizer">
+                                 <div class="zindex-box zindex-box-1" id="zindex-box-1" style="z-index: 1;">Box 1</div>
+                                 <div class="zindex-box zindex-box-2" id="zindex-box-2" style="z-index: 2;">Box 2</div>
+                             </div>
+                        </div>
+                        </div>
+                </section>
+
+                <section id="display" class="content-section fade-in-section" style="animation-delay: 0.2s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">visibility</span>Display 属性与布局流
+                        <span class="level-tag level-tag-high">高频基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">概念与常用值</h3>
+                        <p><code>display</code> 决定元素的显示类型和布局行为。</p>
+                        <ul>
+                            <li><strong><code>block</code>:</strong> 独占一行，可设宽高内外边距。</li>
+                            <li><strong><code>inline</code>:</strong> 同行排列，宽高无效，垂直 margin/padding/border 不影响布局。</li>
+                            <li><strong><code>inline-block</code>:</strong> 同行排列，可设宽高内外边距。</li>
+                            <li><strong><code>none</code>:</strong> 隐藏且**不占空间** (面试重点)。</li>
+                            <li><strong><code>flex</code> / <code>grid</code>:</strong> 启用 Flexbox / Grid 布局。</li>
+                        </ul>
+
+                        <div class="example-box display-demo-area">
+                             <h4 class="demo-title">交互式 Display 演示 (含动画)</h4>
+                             <div class="display-controls demo-controls" id="display-controls"> <button class="button button-secondary active" data-disp="inline">Inline</button>
+                                <button class="button button-secondary" data-disp="block">Block</button>
+                                <button class="button button-secondary" data-disp="inline-block">Inline-Block</button>
+                                <button class="button button-secondary" data-disp="none">None</button>
+                             </div>
+                             <div class="display-container-interactive" id="display-container">
+                                <span class="display-item" id="display-target-item" style="display: inline;">Target</span>
+                                <span class="display-item">Sibling 1</span>
+                                <span class="display-item">Sibling 2</span>
+                             </div>
+                             <div class="demo-output" id="display-output">当前 Target 状态: inline (同行排列, 宽高无效)</div>
+                        </div>
+                        <p class="mt-4"><strong>面试考点:</strong> 理解 <code>block</code>, <code>inline</code>, <code>inline-block</code> 的核心区别和对布局流的影响。<code>display: none</code> 与 <code>visibility: hidden</code> 的关键区别（前者不占空间，后者占空间）。</p>
+                    </div>
+                </section>
+
+                <section id="flexbox" class="content-section fade-in-section" style="animation-delay: 0.25s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">align_horizontal_left</span>Flexbox 布局
+                        <span class="level-tag level-tag-high">高频基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">概念</h3>
+                        <p>一维布局模型，用于灵活控制项目(items)在容器(container)内的对齐、分布和顺序。</p>
+
+                        <div class="example-box flex-playground-area">
+                            <div class="flex-playground-controls">
+                                <h4 class="demo-title w-full">Flexbox 交互式演练场</h4>
+                                <div class="control-group">
+                                    <label for="flex-direction">flex-direction:</label>
+                                    <select id="flex-direction">
+                                        <option value="row" selected>row (默认)</option> <option value="row-reverse">row-reverse</option>
+                                        <option value="column">column</option> <option value="column-reverse">column-reverse</option>
+                                    </select>
+                                </div>
+                                <div class="control-group">
+                                    <label for="justify-content">justify-content:</label>
+                                    <select id="justify-content">
+                                        <option value="flex-start" selected>flex-start (默认)</option> <option value="flex-end">flex-end</option>
+                                        <option value="center">center</option> <option value="space-between">space-between</option>
+                                        <option value="space-around">space-around</option> <option value="space-evenly">space-evenly</option>
+                                    </select>
+                                </div>
+                                <div class="control-group">
+                                    <label for="align-items">align-items:</label>
+                                    <select id="align-items">
+                                        <option value="stretch" selected>stretch (默认)</option> <option value="flex-start">flex-start</option>
+                                        <option value="flex-end">flex-end</option> <option value="center">center</option>
+                                        <option value="baseline">baseline</option>
+                                    </select>
+                                </div>
+                                <div class="control-group">
+                                    <label for="flex-wrap">flex-wrap:</label>
+                                    <select id="flex-wrap">
+                                        <option value="nowrap" selected>nowrap (默认)</option> <option value="wrap">wrap</option>
+                                        <option value="wrap-reverse">wrap-reverse</option>
+                                    </select>
+                                </div>
+                                 <div class="control-group">
+                                    <label for="align-content">align-content (多行时):</label>
+                                    <select id="align-content">
+                                        <option value="stretch" selected>stretch (默认)</option> <option value="flex-start">flex-start</option>
+                                        <option value="flex-end">flex-end</option> <option value="center">center</option>
+                                        <option value="space-between">space-between</option> <option value="space-around">space-around</option>
+                                    </select>
+                                </div>
+                                <button id="flex-reset-btn" class="button button-secondary mt-2 ripple-container">重置</button>
+                            </div>
+                            <div> <div class="flex-playground-container" id="flex-pg-container">
+                                    <div class="flex-playground-item">1</div>
+                                    <div class="flex-playground-item" style="padding: 1.5rem 1rem;">2</div>
+                                    <div class="flex-playground-item" style="font-size: 1.2rem;">3</div>
+                                    <div class="flex-playground-item">4</div>
+                                    <div class="flex-playground-item">5</div> </div>
+                                <div class="demo-output" id="flex-output">主轴方向: row, 主轴对齐: flex-start, 交叉轴对齐: stretch, 换行: nowrap</div>
+                            </div>
+                        </div>
+                        <h3 class="head3 mt-6">核心概念: 容器与项目, 主轴与交叉轴</h3>
+                         <div class="mermaid-diagram-container">
+                            <pre class="mermaid"> 
+                                graph TD
+                                subgraph "Flex Container (flex-direction: row)"
+                                  direction LR
+                                  MA_Start["主轴起点"] --> MA_End["主轴终点"]
+                                  CA_Start["交叉轴起点"] --> CA_End["交叉轴终点"]
+                                  Item1["Item 1"]:::itemStyle
+                                  Item2["Item 2"]:::itemStyle
+                                  MA_Start -- "主轴" --> Item1 --> Item2 --> MA_End
+                                end
+                              
+                                subgraph "Flex Container (flex-direction: column)"
+                                  direction TB
+                                  MA_Start_Col["主轴起点"] --> Item1_Col["Item 1"]:::itemStyle
+                                  Item1_Col --> Item2_Col["Item 2"]:::itemStyle --> MA_End_Col["主轴终点"]
+                                  CA_Start_Col["交叉轴起点"] -- "交叉轴" --> Item1_Col
+                                end
+                              
+                                classDef itemStyle fill:#cffafe,stroke:#06b6d4,color:#0e7490;
+                              
+                            </pre>
+                            <div class="mermaid-fallback text-xs text-gray-500 mt-2">[Flexbox 轴向示意图]</div>
+                        </div>
+                        <h3 class="head3">常用容器与项目属性</h3>
+                        <p>见上方交互式演示区域的选项。关键属性包括 <code>display</code>, <code>flex-direction</code>, <code>justify-content</code>, <code>align-items</code>, <code>flex-wrap</code> (容器) 和 <code>flex-grow</code>, <code>flex-shrink</code>, <code>flex-basis</code>, <code>order</code>, <code>align-self</code> (项目)。</p>
+                    </div>
+                </section>
+
+                <section id="grid" class="content-section fade-in-section" style="animation-delay: 0.3s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">grid_view</span>Grid 布局
+                        <span class="level-tag level-tag-low">低频基础</span>
+                    </h2>
+                     <div class="content-card">
+                        <h3 class="head3">概念</h3>
+                        <p>二维布局系统，可以同时控制行和列，非常适合页面级的复杂布局。</p>
+                        <h3 class="head3">与 Flexbox 的区别</h3>
+                        <p>Flexbox 主要处理一维布局（沿单轴排列），而 Grid 专注于二维布局（网格）。它们经常结合使用，Grid 用于整体页面结构，Flexbox 用于组件内部布局。</p>
+                        <h3 class="head3">基本属性 (了解)</h3>
+                        <ul>
+                            <li><code>display: grid;</code> 或 <code>inline-grid;</code>: 定义 Grid 容器。</li>
+                            <li><code>grid-template-columns: ...;</code>: 定义列轨道的大小和数量 (例如: <code>1fr 2fr 100px</code>, <code>repeat(3, 1fr)</code>)。</li>
+                            <li><code>grid-template-rows: ...;</code>: 定义行轨道的大小和数量 (例如: <code>auto 100px auto</code>)。</li>
+                            <li><code>gap: &lt;row-gap&gt; &lt;column-gap&gt;;</code> (或 <code>grid-gap</code>): 定义网格线之间的间距。</li>
+                            <li><code>grid-column-start</code>, <code>grid-column-end</code>, <code>grid-row-start</code>, <code>grid-row-end</code>: 定义项目放置的起始和结束网格线。</li>
+                            <li><code>grid-column: start / end;</code>, <code>grid-row: start / end;</code>: 上述属性的简写。</li>
+                            <li><code>grid-area: row-start / col-start / row-end / col-end | name;</code>: 定义项目位置和大小或引用命名区域。</li>
+                        </ul>
+                        <h3 class="head3">示例: 显式放置与跨越</h3>
+                        <div class="example-box">
+                            <div class="grid-example-container">
+                                <div class="grid-example-item grid-item-explicit-1">1 (1,1)</div>
+                                <div class="grid-example-item grid-item-explicit-2">2 (1,3)</div>
+                                <div class="grid-example-item grid-item-explicit-3">3 (2, 1/3)</div>
+                                <div class="grid-example-item grid-item-explicit-4">4 (2,3)</div>
+                            </div>
+                        </div>
+                        <pre><code class="language-css">.container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 等宽列 */
+  grid-template-rows: repeat(2, 80px);   /* 2 固定行高 */
+  gap: 10px;
+}
+.item1 { grid-column: 1; grid-row: 1; } /* 放在第1行第1列 */
+.item2 { grid-column: 3; grid-row: 1; } /* 放在第1行第3列 */
+.item3 {
+  grid-column: 1 / 3; /* 从第1列线开始，到第3列线结束 (跨2列) */
+  grid-row: 2;        /* 放在第2行 */
+}
+.item4 { grid-column: 3; grid-row: 2; } /* 放在第2行第3列 */</code></pre>
+                        <p class="mt-4 text-sm text-gray-600">Grid 提供了强大的布局能力，包括分数单位(<code>fr</code>)、<code>minmax()</code>、自动放置、命名区域等高级特性。</p>
+                    </div>
+                </section>
+
+                <section id="centering" class="content-section fade-in-section" style="animation-delay: 0.35s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">center_focus_strong</span>水平垂直居中
+                        <span class="level-tag level-tag-medium">中频基础</span>
+                    </h2>
+                    <div class="content-card">
+                        <h3 class="head3">常见方法</h3>
+                        <p>将元素在其父容器中居中。</p>
+                        <div class="centering-methods-grid">
+                            <div class="centering-example">
+                                <h4 class="head5 text-center">Flexbox (推荐)</h4>
+                                <div class="example-box p-2"> <div class="center-container center-flex"><div class="center-item">Flex</div></div> </div>
+                                <pre class="text-xs"><code class="language-css">.parent {
+display: flex;
+justify-content: center;
+align-items: center;
+}</code></pre>
+                            </div>
+                             <div class="centering-example">
+                                <h4 class="head5 text-center">Grid</h4>
+                                <div class="example-box p-2"> <div class="center-container center-grid"><div class="center-item">Grid</div></div> </div>
+                                <pre class="text-xs"><code class="language-css">.parent {
+display: grid;
+place-items: center;
+}</code></pre>
+                            </div>
+                             <div class="centering-example">
+                                <h4 class="head5 text-center">Position + Transform</h4>
+                                <div class="example-box p-2"> <div class="center-container center-pos-container"><div class="center-item center-pos-item">Pos</div></div> </div>
+                                <pre class="text-xs"><code class="language-css">.parent { position: relative; }
+.child {
+position: absolute;
+top: 50%; left: 50%;
+transform: translate(-50%, -50%);
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="bfc" class="content-section fade-in-section" style="animation-delay: 0.4s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-symbols-outlined">space_dashboard</span>BFC (块级格式化上下文)
+                        <span class="level-tag level-tag-medium">中频基础</span>
+                    </h2>
+                     <div class="content-card">
+                        <h3 class="head3">概念</h3>
+                        <p>一个独立的渲染区域，内部布局不受外部影响，也不影响外部。用于解决特定布局问题。</p>
+                        <h3 class="head3">触发条件 (常见)</h3>
+                        <p><code>float</code> (非 none), <code>position</code> (absolute/fixed), <code>display</code> (inline-block, flex/grid item, table-cell), <code>overflow</code> (非 visible/clip), <code>display: flow-root</code>。</p>
+                        <h3 class="head3">主要应用 (可视化演示)</h3>
+
+                        <div class="example-box bfc-demo-area">
+                             <div class="bfc-demo-case">
+                                 <h5 class="head6">防止外边距塌陷</h5>
+                                 <div class="bfc-margin-collapse" id="bfc-margin-target">
+                                     <p id="bfc-p1">
+                                         <span class="margin-visual margin-visual-top"></span>
+                                         段落 1 (margin: 10px)
+                                         <span class="margin-visual margin-visual-bottom"></span>
+                                     </p>
+                                     <div id="bfc-p2-container">
+                                         <p id="bfc-p2">
+                                             <span class="margin-visual margin-visual-top"></span>
+                                             段落 2 (margin: 10px)
+                                             <span class="margin-visual margin-visual-bottom"></span>
+                                         </p>
+                                     </div>
+                                 </div>
+                                 <div class="demo-controls mt-2">
+                                     <button class="button button-secondary ripple-container" id="bfc-margin-toggle">为段落2容器创建BFC</button>
+                                 </div>
+                                 <div class="demo-output" id="bfc-margin-output">初始状态: 段落1和2的外边距会塌陷 (margin 重叠)。</div>
+                             </div>
+                             <div class="bfc-demo-case">
+                                 <h5 class="head6">清除浮动</h5>
+                                 <div class="bfc-clear-float">
+                                     <div class="parent-container" id="bfc-float-parent">
+                                         <div class="float-box">Float</div>
+                                         (父容器边框)
+                                     </div>
+                                 </div>
+                                  <div class="demo-controls mt-2">
+                                     <button class="button button-secondary ripple-container" id="bfc-float-toggle">为父容器创建BFC</button>
+                                 </div>
+                                 <div class="demo-output" id="bfc-float-output">初始状态: 父容器高度未包含浮动元素 (背景色未撑开)。</div>
+                             </div>
+                        </div>
+                        <p class="mt-4"><strong>面试考点:</strong> 理解 BFC 的概念、触发条件以及它能解决的典型布局问题（外边距塌陷、清除浮动、自适应布局）。<code>display: flow-root</code> 是创建 BFC 最推荐的现代方法。</p>
+                    </div>
+                </section>
+
+            </article>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Initialize Mermaid ---
+            function initializeMermaid() {
+                 try {
+                    if (typeof mermaid !== 'undefined') {
+                        mermaid.initialize({ startOnLoad: false, theme: 'neutral', flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }, securityLevel: 'loose' });
+                        mermaid.run({ nodes: document.querySelectorAll('.mermaid') });
+                        document.querySelectorAll('.mermaid-diagram-container').forEach(container => {
+                            const mermaidEl = container.querySelector('.mermaid'); const fallbackEl = container.querySelector('.mermaid-fallback');
+                             if (mermaidEl && fallbackEl) { if (mermaidEl.hasAttribute('data-processed') && mermaidEl.innerHTML.includes('<svg')) { fallbackEl.style.display = 'none'; } else if (!mermaidEl.hasAttribute('data-processed')) { fallbackEl.style.display = 'block'; } else { fallbackEl.style.display = 'none'; } }
+                        });
+                    } else { console.warn("Mermaid library not loaded."); document.querySelectorAll('.mermaid-fallback').forEach(el => el.style.display = 'block'); }
+                } catch (e) { console.error("Mermaid initialization or rendering failed:", e); document.querySelectorAll('.mermaid-fallback').forEach(el => el.style.display = 'block'); }
+            }
+            setTimeout(initializeMermaid, 50);
+
+            // --- Sidebar Active Link Highlighting ---
+            const sections = document.querySelectorAll('main section[id]');
+            const sidebarLinks = document.querySelectorAll('#local-toc a.sidebar-link');
+            const sidebarNav = document.querySelector('.local-side-nav');
+            let lastActiveLink = null;
+            const observerOptions = { root: null, rootMargin: '-20% 0px -60% 0px', threshold: 0 };
+            const observerCallback = (entries) => {
+                let bestVisibleEntry = null; entries.forEach(entry => { if (entry.isIntersecting) { if (!bestVisibleEntry || entry.boundingClientRect.top < bestVisibleEntry.boundingClientRect.top) { bestVisibleEntry = entry; } } });
+                let activeId = null; if (bestVisibleEntry) { activeId = bestVisibleEntry.target.getAttribute('id'); } else { let closestSectionAbove = null; let minDistanceAbove = Infinity; const viewportCenter = window.innerHeight / 2; sections.forEach(section => { const rect = section.getBoundingClientRect(); if (rect.bottom < viewportCenter) { const distance = viewportCenter - rect.bottom; if (distance < minDistanceAbove) { minDistanceAbove = distance; closestSectionAbove = section; } } }); if (closestSectionAbove) { activeId = closestSectionAbove.getAttribute('id'); } else if (window.scrollY === 0 && sections.length > 0) { activeId = sections[0].getAttribute('id'); } }
+                let currentActiveLinkFound = false; sidebarLinks.forEach(link => { const linkHref = link.getAttribute('href'); const linkSectionId = linkHref ? linkHref.substring(1) : null; if (linkSectionId && linkSectionId === activeId) { if (link !== lastActiveLink) { if(lastActiveLink) lastActiveLink.classList.remove('active'); link.classList.add('active'); lastActiveLink = link; if (sidebarNav && sidebarNav.scrollHeight > sidebarNav.clientHeight) { link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' }); } } currentActiveLinkFound = true; } else { link.classList.remove('active'); } });
+                if (!currentActiveLinkFound && lastActiveLink) { lastActiveLink.classList.add('active'); } else if (!lastActiveLink && sidebarLinks.length > 0) { sidebarLinks[0].classList.add('active'); lastActiveLink = sidebarLinks[0]; }
+            };
+            const observer = new IntersectionObserver(observerCallback, observerOptions);
+            sections.forEach(section => observer.observe(section));
+            function checkInitialActiveLink() {
+                 let currentHash = window.location.hash; let initialActiveLink = null; if (currentHash) { initialActiveLink = document.querySelector(`#local-toc a[href="${currentHash}"]`); }
+                 if (initialActiveLink) { sidebarLinks.forEach(link => link.classList.remove('active')); initialActiveLink.classList.add('active'); lastActiveLink = initialActiveLink; if (sidebarNav && sidebarNav.scrollHeight > sidebarNav.clientHeight) { initialActiveLink.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } } else if (sidebarLinks.length > 0) { sidebarLinks[0].classList.add('active'); lastActiveLink = sidebarLinks[0]; }
+            }
+            setTimeout(checkInitialActiveLink, 100);
+
+
+            // --- Fade-in Animation Logic ---
+            const fadeElements = document.querySelectorAll('.fade-in-section');
+            const fadeObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+            const fadeObserverCallback = (entries, observer) => {
+                 entries.forEach((entry, index) => { if (entry.isIntersecting) { const delay = Array.from(fadeElements).indexOf(entry.target) * 0.05; entry.target.style.animationDelay = `${delay}s`; entry.target.classList.add('visible'); observer.unobserve(entry.target); } });
+            };
+            const fadeObserver = new IntersectionObserver(fadeObserverCallback, fadeObserverOptions);
+            fadeElements.forEach(el => fadeObserver.observe(el));
+
+            // --- Ripple Effect ---
+            function createRipple(event) {
+                const button = event.currentTarget;
+                const controlGroup = button.closest('.demo-controls');
+                if (!controlGroup && !button.classList.contains('ripple-container')) return;
+
+                const circle = document.createElement("span");
+                const diameter = Math.max(button.clientWidth, button.clientHeight);
+                const radius = diameter / 2;
+                const primaryColorRgb = getComputedStyle(document.documentElement).getPropertyValue('--primary-color-rgb').trim() || '59, 130, 246';
+
+                circle.style.width = circle.style.height = `${diameter}px`;
+                const rect = button.getBoundingClientRect();
+                circle.style.left = `${event.clientX - rect.left - radius}px`;
+                circle.style.top = `${event.clientY - rect.top - radius}px`;
+                circle.style.backgroundColor = `rgba(${primaryColorRgb}, 0.3)`;
+                circle.classList.add("ripple");
+
+                const existingRipple = button.querySelector(".ripple");
+                if (existingRipple) existingRipple.remove();
+
+                button.appendChild(circle);
+                setTimeout(() => circle.remove(), 600);
+            }
+             document.querySelectorAll('.demo-controls button, .ripple-container').forEach(button => {
+                 if (!button.classList.contains('ripple-container')) button.classList.add('ripple-container');
+                 button.addEventListener('click', createRipple);
+             });
+
+             // --- Helper Function to Update Active Button State ---
+             function updateActiveButton(buttonGroup, clickedButton) {
+                 if (!buttonGroup || !clickedButton) return; // Guard clause
+                 buttonGroup.querySelectorAll('button').forEach(btn => {
+                     btn.classList.remove('active');
+                     // Ensure secondary style is applied if it's not the active one
+                     if (!btn.classList.contains('button-primary') && !btn.classList.contains('button-danger')) { // Check if it's not already primary/danger etc.
+                         btn.classList.add('button-secondary');
+                     }
+                 });
+                 clickedButton.classList.add('active');
+                 clickedButton.classList.remove('button-secondary');
+             }
+
+
+            // --- FIXED: Interactive Selector Demo with Specificity Breakdown ---
+            const selectorInput = document.getElementById('selector-input');
+            const selectorApplyBtn = document.getElementById('selector-apply-btn');
+            const targetHtmlArea = document.getElementById('selector-target-html');
+            const specificityOutput = document.getElementById('selector-specificity-output');
+            const parsedOutput = document.getElementById('selector-parsed-output');
+
+            function calculateAndParseSpecificity(selector) {
+                let inline = 0; let ids = 0; let classesAttrsPseudoClasses = 0; let elementsPseudoElements = 0;
+                let parsedHtml = '';
+
+                // Regex patterns (improved slightly)
+                const idRegex = /#[^\s#.:\[+>~]+/g;
+                const classRegex = /\.[^\s#.:\[+>~]+/g;
+                const attrRegex = /\[.*?\]/g;
+                const pseudoClassRegex = /:[\w-]+(\(.+\))?(?!:)/g; // Avoid ::pseudo-elements
+                const pseudoElementRegex = /::?[\w-]+(\(.+\))?/g; // Match :: and :pseudo-elements
+                const elementRegex = /(^|[\s>+~])([a-zA-Z][\w-]*)/g; // Match potential elements
+
+                // Calculate counts
+                ids = (selector.match(idRegex) || []).length;
+                classesAttrsPseudoClasses = (selector.match(classRegex) || []).length +
+                                            (selector.match(attrRegex) || []).length +
+                                            (selector.match(pseudoClassRegex) || []).length;
+                elementsPseudoElements = (selector.match(pseudoElementRegex) || []).length;
+
+                // Count elements carefully, avoiding double counts with IDs/Classes etc.
+                 let tempSelector = selector;
+                 // Remove IDs, Classes, Attrs, PseudoClasses, PseudoElements to isolate elements
+                 [idRegex, classRegex, attrRegex, pseudoClassRegex, pseudoElementRegex].forEach(regex => {
+                     tempSelector = tempSelector.replace(regex, '');
+                 });
+                 // Count remaining potential elements after removing other types
+                 elementsPseudoElements += (tempSelector.match(/[a-zA-Z][\w-]*/g) || []).length;
+
+
+                // Build parsed HTML (visual breakdown)
+                let remainingSelector = selector;
+                const partsData = [];
+
+                // Extract parts by type for coloring
+                const extractParts = (regex, typeClass) => {
+                    let match;
+                    while ((match = regex.exec(selector)) !== null) {
+                        // Avoid double counting pseudo-elements as pseudo-classes
+                        if (typeClass === 'spec-class' && match[0].startsWith('::')) continue;
+                        if (typeClass === 'spec-class' && match[0].startsWith(':') && !pseudoClassRegex.test(match[0])) continue; // Ensure it's a pseudo-class
+
+                        partsData.push({ index: match.index, length: match[0].length, text: match[0], type: typeClass });
+                    }
+                };
+
+                extractParts(idRegex, 'spec-id');
+                extractParts(classRegex, 'spec-class');
+                extractParts(attrRegex, 'spec-class');
+                extractParts(pseudoClassRegex, 'spec-class');
+                extractParts(pseudoElementRegex, 'spec-element');
+
+                // Sort by index to reconstruct
+                partsData.sort((a, b) => a.index - b.index);
+
+                let lastIndex = 0;
+                partsData.forEach(part => {
+                    // Add text before this part (combinators, spaces, potential elements)
+                    if (part.index > lastIndex) {
+                        const intermediate = selector.substring(lastIndex, part.index);
+                        // Color potential elements within the intermediate string
+                        intermediate.split(/([\s>+~]+)/).forEach(subPart => {
+                            if (/^[a-zA-Z][\w-]*$/.test(subPart)) { // Check if it looks like an element
+                                parsedHtml += `<span class="spec-element">${subPart}</span>`;
+                            } else {
+                                parsedHtml += `<span class="spec-other">${subPart}</span>`;
+                            }
+                        });
+                    }
+                    // Add the colored part
+                    parsedHtml += `<span class="${part.type}">${part.text}</span>`;
+                    lastIndex = part.index + part.length;
+                });
+                // Add any remaining text (including potential elements at the end)
+                if (lastIndex < selector.length) {
+                     const trailing = selector.substring(lastIndex);
+                      trailing.split(/([\s>+~]+)/).forEach(subPart => {
+                            if (/^[a-zA-Z][\w-]*$/.test(subPart)) {
+                                parsedHtml += `<span class="spec-element">${subPart}</span>`;
+                            } else {
+                                parsedHtml += `<span class="spec-other">${subPart}</span>`;
+                            }
+                        });
+                }
+
+
+                return {
+                    tuple: `(${inline}, ${ids}, ${classesAttrsPseudoClasses}, ${elementsPseudoElements})`,
+                    parsed: parsedHtml || `<span class="spec-other">${selector}</span>`
+                };
+            }
+
+            function applySelector() {
+                 const selector = selectorInput.value.trim();
+                 targetHtmlArea.querySelectorAll('.highlighted').forEach(el => el.classList.remove('highlighted'));
+                 parsedOutput.innerHTML = '';
+
+                 if (selector && targetHtmlArea) {
+                     try {
+                         const matchedElements = targetHtmlArea.querySelectorAll(selector);
+                         matchedElements.forEach(el => { if (el !== targetHtmlArea) { el.classList.add('highlighted'); } });
+                         const spec = calculateAndParseSpecificity(selector);
+                         specificityOutput.textContent = spec.tuple;
+                         parsedOutput.innerHTML = spec.parsed;
+                     } catch (e) {
+                         specificityOutput.textContent = "无效的选择器!";
+                         parsedOutput.innerHTML = `<span style="color: red;">${e.message}</span>`;
+                         console.error("Invalid selector:", e);
+                     }
+                 } else {
+                     specificityOutput.textContent = "(0, 0, 0, 0)";
+                 }
+             }
+
+            if (selectorInput && selectorApplyBtn && targetHtmlArea && specificityOutput && parsedOutput) {
+                selectorApplyBtn.addEventListener('click', applySelector);
+                selectorInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { applySelector(); } });
+                applySelector(); // Initial application
+            }
+
+
+            // --- FIXED: Interactive Box Model Demo ---
+            // [Box Model JS Logic - Corrected in V5, kept the same]
+            const bmWidthSlider = document.getElementById('bm-width');
+            const bmHeightSlider = document.getElementById('bm-height');
+            const bmPaddingSlider = document.getElementById('bm-padding');
+            const bmBorderSlider = document.getElementById('bm-border');
+            const bmMarginSlider = document.getElementById('bm-margin');
+            const bmWidthVal = document.getElementById('bm-width-val');
+            const bmHeightVal = document.getElementById('bm-height-val');
+            const bmPaddingVal = document.getElementById('bm-padding-val');
+            const bmBorderVal = document.getElementById('bm-border-val');
+            const bmMarginVal = document.getElementById('bm-margin-val');
+            const bmBox = document.getElementById('bm-box');
+            const bmContentViz = document.getElementById('bm-content-viz');
+            const bmVisualizer = document.getElementById('bm-visualizer');
+            const bmOutput = document.getElementById('box-model-output');
+            const bmResetBtn = document.getElementById('bm-reset-btn');
+            const bmSizingRadios = document.querySelectorAll('input[name="box-sizing"]');
+            function updateBoxModelVisuals() {
+                if (!bmBox || !bmVisualizer) return;
+                const width = parseInt(bmWidthSlider.value); const height = parseInt(bmHeightSlider.value); const padding = parseInt(bmPaddingSlider.value); const border = parseInt(bmBorderSlider.value); const margin = parseInt(bmMarginSlider.value); const boxSizing = document.querySelector('input[name="box-sizing"]:checked').value;
+                bmWidthVal.textContent = `${width}px`; bmHeightVal.textContent = `${height}px`; bmPaddingVal.textContent = `${padding}px`; bmBorderVal.textContent = `${border}px`; bmMarginVal.textContent = `${margin}px`;
+                bmBox.style.boxSizing = boxSizing; bmBox.style.width = `${width}px`; bmBox.style.height = `${height}px`; bmBox.style.padding = `${padding}px`; bmBox.style.border = `${border}px solid #0ea5e9`; bmBox.style.margin = `${margin}px`;
+                bmVisualizer.style.padding = '20px'; // Keep fixed padding
+                // Update outline offset to visualize margin
+                bmBox.style.outlineOffset = `${margin}px`;
+                bmBox.style.outline = margin > 0 ? `1px dashed #a855f7` : 'none'; // Show outline only if margin > 0
+
+                setTimeout(() => {
+                    const computedStyle = getComputedStyle(bmBox); const totalWidth = bmBox.offsetWidth; const totalHeight = bmBox.offsetHeight; let contentWidth, contentHeight;
+                    if (boxSizing === 'border-box') { contentWidth = totalWidth - (parseFloat(computedStyle.paddingLeft) || 0) - (parseFloat(computedStyle.paddingRight) || 0) - (parseFloat(computedStyle.borderLeftWidth) || 0) - (parseFloat(computedStyle.borderRightWidth) || 0); contentHeight = totalHeight - (parseFloat(computedStyle.paddingTop) || 0) - (parseFloat(computedStyle.paddingBottom) || 0) - (parseFloat(computedStyle.borderTopWidth) || 0) - (parseFloat(computedStyle.borderBottomWidth) || 0); } else { contentWidth = parseFloat(computedStyle.width); contentHeight = parseFloat(computedStyle.height); }
+                    bmOutput.textContent = `box-sizing: ${boxSizing}\n设置 Width: ${width}px, Height: ${height}px\nPadding: ${padding}px, Border: ${border}px, Margin: ${margin}px\n内容区实际尺寸: ${Math.max(0, contentWidth).toFixed(0)}px × ${Math.max(0, contentHeight).toFixed(0)}px\n元素总占用宽度 (含 Padding, Border): ${totalWidth}px\n元素总占用高度 (含 Padding, Border): ${totalHeight}px\n(外层虚线代表 Margin)`;
+                    bmContentViz.textContent = `Content\n${Math.max(0, contentWidth).toFixed(0)}x${Math.max(0, contentHeight).toFixed(0)}`; bmContentViz.style.width = `calc(100% - 2px)`; bmContentViz.style.height = `calc(100% - 2px)`;
+                }, 0);
+            }
+            if (bmWidthSlider && bmBox && bmOutput && bmResetBtn && bmVisualizer) { const sliders = [bmWidthSlider, bmHeightSlider, bmPaddingSlider, bmBorderSlider, bmMarginSlider]; sliders.forEach(slider => slider.addEventListener('input', updateBoxModelVisuals)); bmSizingRadios.forEach(radio => radio.addEventListener('change', updateBoxModelVisuals)); bmResetBtn.addEventListener('click', () => { bmWidthSlider.value = 100; bmHeightSlider.value = 50; bmPaddingSlider.value = 10; bmBorderSlider.value = 5; bmMarginSlider.value = 10; document.querySelector('input[name="box-sizing"][value="content-box"]').checked = true; updateBoxModelVisuals(); }); updateBoxModelVisuals(); }
+
+
+            // --- FIXED: Interactive Position Demo with Context Visualization ---
+            const positionControlsContainer = document.getElementById('position-controls'); // Use specific ID
+            const targetBox = document.getElementById('target-box');
+            const posOutput = document.getElementById('pos-output');
+            const posContainer = document.getElementById('position-container');
+            const toggleContextCheckbox = document.getElementById('toggle-context');
+            const contextArrow = document.getElementById('context-arrow');
+
+            function updatePositionDemo() {
+                if (!positionControlsContainer || !targetBox || !posOutput || !posContainer || !toggleContextCheckbox || !contextArrow) {
+                    console.error("Position demo elements missing!"); return;
+                 }
+                const activeButton = positionControlsContainer.querySelector('button.active'); // Use correct container
+                const newPosition = activeButton ? activeButton.dataset.pos : 'static';
+                const hasContext = toggleContextCheckbox.checked;
+
+                posContainer.classList.toggle('has-relative-context', hasContext);
+                posContainer.style.position = hasContext ? 'relative' : '';
+
+                targetBox.className = 'pos-box-interactive pos-box-target';
+                targetBox.style.position = ''; targetBox.style.top = ''; targetBox.style.left = '';
+                targetBox.style.bottom = ''; targetBox.style.right = ''; targetBox.style.zIndex = '';
+                targetBox.style.margin = '';
+                contextArrow.classList.remove('visible');
+
+                let outputText = `当前 Target 状态: ${newPosition}\n`;
+                let appliedCSS = `position: ${newPosition};`;
+
+                switch (newPosition) {
+                    case 'static': outputText += "说明: 在文档流中, top/left/z-index 无效。"; break;
+                    case 'relative': targetBox.classList.add('is-relative'); appliedCSS += `\ntop: 15px;\nleft: 15px;`; outputText += `说明: 相对自身正常位置偏移，仍占空间。\nCSS: ${appliedCSS}`; break;
+                    case 'absolute':
+                        targetBox.classList.add('is-absolute'); appliedCSS += `\ntop: 40px;\nright: 30px;`; outputText += "说明: 相对";
+                        if (hasContext) {
+                            outputText += "容器(定位上下文)";
+                            setTimeout(() => {
+                                const containerRect = posContainer.getBoundingClientRect(); const targetRect = targetBox.getBoundingClientRect();
+                                if (containerRect.width > 0 && targetRect.width > 0) {
+                                    contextArrow.style.top = `${targetRect.top - containerRect.top + targetRect.height * 0.5 - 6}px`;
+                                    contextArrow.style.left = `${targetRect.left - containerRect.left - 15}px`;
+                                    contextArrow.style.transform = 'rotate(135deg)'; contextArrow.classList.add('visible');
+                                }
+                            }, 50);
+                        } else { outputText += "视口/祖先"; }
+                        outputText += "定位, 脱离文档流。\nCSS: " + appliedCSS; break;
+                    case 'fixed': targetBox.classList.add('is-fixed'); appliedCSS += `\nbottom: 80px;\nright: 40px;`; outputText += `说明: 相对视口定位, 脱离文档流。\nCSS: ${appliedCSS}`; break;
+                    case 'sticky': targetBox.classList.add('is-sticky'); appliedCSS += `\ntop: 10px;`; outputText += `说明: 粘性定位, 滚动时固定到 top: 10px。\nCSS: ${appliedCSS}`; posContainer.scrollTop = 0; break;
+                }
+                posOutput.textContent = outputText;
+            }
+
+            if (positionControlsContainer && targetBox && posOutput && posContainer && toggleContextCheckbox && contextArrow) {
+                positionControlsContainer.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'BUTTON' && e.target.dataset.pos) {
+                        updateActiveButton(positionControlsContainer, e.target);
+                        updatePositionDemo();
+                    }
+                });
+                toggleContextCheckbox.addEventListener('change', updatePositionDemo);
+                 updateActiveButton(positionControlsContainer, positionControlsContainer.querySelector('button[data-pos="static"]'));
+                 updatePositionDemo();
+            } else { console.error("Failed to initialize Position Demo - one or more elements not found."); }
+
+
+             // --- Interactive Z-Index Demo ---
+             // [Existing Z-Index Logic - Kept the same]
+             const zIndexControls = document.querySelector('.zindex-controls');
+             const zIndexVisualizer = document.querySelector('.zindex-visualizer');
+             const zIndexBox1 = document.getElementById('zindex-box-1');
+             const zIndexBox2 = document.getElementById('zindex-box-2');
+             function updateZIndexDemo() {
+                 if (!zIndexBox1 || !zIndexBox2 || !zIndexControls) return;
+                 const posSelect1 = zIndexControls.querySelector('select[data-target="zindex-box-1"]'); const zIndexInput1 = zIndexControls.querySelector('input[data-target="zindex-box-1"]'); const posSelect2 = zIndexControls.querySelector('select[data-target="zindex-box-2"]'); const zIndexInput2 = zIndexControls.querySelector('input[data-target="zindex-box-2"]');
+                 const pos1 = posSelect1.value; const zIndex1 = zIndexInput1.value; const pos2 = posSelect2.value; const zIndex2 = zIndexInput2.value;
+                 zIndexBox1.style.position = pos1; zIndexBox2.style.position = pos2;
+                 zIndexInput1.disabled = (pos1 === 'static'); zIndexInput2.disabled = (pos2 === 'static');
+                 zIndexBox1.style.zIndex = (pos1 !== 'static') ? zIndex1 : ''; zIndexBox2.style.zIndex = (pos2 !== 'static') ? zIndex2 : '';
+                 const z1 = (pos1 !== 'static') ? parseInt(zIndex1) || 0 : 0; const z2 = (pos2 !== 'static') ? parseInt(zIndex2) || 0 : 0;
+                 zIndexBox1.style.boxShadow = (pos1 !== 'static') ? `0 ${Math.min(z1 * 2 + 2, 10)}px ${Math.min(z1 * 3 + 5, 15)}px rgba(0,0,0,${Math.min(0.1 + z1 * 0.02, 0.25)})` : ''; zIndexBox2.style.boxShadow = (pos2 !== 'static') ? `0 ${Math.min(z2 * 2 + 2, 10)}px ${Math.min(z2 * 3 + 5, 15)}px rgba(0,0,0,${Math.min(0.1 + z2 * 0.02, 0.25)})` : '';
+             }
+             if (zIndexControls && zIndexVisualizer) { zIndexControls.querySelectorAll('select, input').forEach(control => { control.addEventListener('change', updateZIndexDemo); control.addEventListener('input', updateZIndexDemo); }); updateZIndexDemo(); }
+
+
+             // --- FIXED: Interactive Display Demo with Animation & Button Feedback ---
+            const displayControlsContainer = document.getElementById('display-controls'); // Use specific ID
+            const displayTargetItem = document.getElementById('display-target-item');
+            const displayOutput = document.getElementById('display-output');
+            const displayContainer = document.getElementById('display-container');
+
+             if (displayControlsContainer && displayTargetItem && displayOutput && displayContainer) {
+                 displayControlsContainer.addEventListener('click', (e) => {
+                     if (e.target.tagName === 'BUTTON' && e.target.dataset.disp) {
+                         const newDisplay = e.target.dataset.disp;
+                         updateActiveButton(displayControlsContainer, e.target); // Use correct container ID
+
+                         // Animation Logic (same as before)
+                         if (newDisplay === 'none') {
+                             displayTargetItem.classList.add('is-hiding');
+                             setTimeout(() => {
+                                 displayTargetItem.style.display = 'none';
+                             }, 300);
+                         } else {
+                             const wasNone = displayTargetItem.style.display === 'none';
+                             if (wasNone) {
+                                 displayTargetItem.style.display = '';
+                                 void displayTargetItem.offsetWidth;
+                             }
+                             displayTargetItem.classList.remove('is-hiding', 'is-block', 'is-inline-block');
+                             displayTargetItem.style.display = newDisplay;
+                             displayTargetItem.style.width = ''; displayTargetItem.style.height = '';
+                             displayTargetItem.style.padding = ''; displayTargetItem.style.margin = '';
+                             displayTargetItem.style.borderWidth = ''; displayTargetItem.style.opacity = '';
+                             displayTargetItem.style.transform = '';
+
+                             requestAnimationFrame(() => {
+                                 if (newDisplay === 'block') displayTargetItem.classList.add('is-block');
+                                 if (newDisplay === 'inline-block') displayTargetItem.classList.add('is-inline-block');
+                             });
+                         }
+
+                         // Update Output Text (same as before)
+                         let outputText = `当前 Target 状态: ${newDisplay}`;
+                         switch(newDisplay) {
+                             case 'inline': outputText += " (同行排列, 宽高无效)"; break;
+                             case 'block': outputText += " (独占一行, 可设宽高)"; break;
+                             case 'inline-block': outputText += " (同行排列, 可设宽高)"; break;
+                             case 'none': outputText += " (隐藏且不占空间)"; break;
+                         }
+                         displayOutput.textContent = outputText;
+                     }
+                 });
+                 // Set initial active button for Display
+                 updateActiveButton(displayControlsContainer, displayControlsContainer.querySelector('button[data-disp="inline"]'));
+             } else {
+                 console.error("Failed to initialize Display Demo - one or more elements not found.");
+             }
+
+
+            // --- UPDATED: Interactive Flexbox Playground ---
+            // [Flexbox JS Logic - Kept the same]
+            const flexContainer = document.getElementById('flex-pg-container');
+            const flexDirectionSelect = document.getElementById('flex-direction');
+            const justifyContentSelect = document.getElementById('justify-content');
+            const alignItemsSelect = document.getElementById('align-items');
+            const flexWrapSelect = document.getElementById('flex-wrap');
+            const alignContentSelect = document.getElementById('align-content');
+            const flexResetBtn = document.getElementById('flex-reset-btn');
+            const flexOutput = document.getElementById('flex-output');
+            function updateFlexContainer() { if (!flexContainer || !flexOutput) return; const direction = flexDirectionSelect.value; const justify = justifyContentSelect.value; const alignItems = alignItemsSelect.value; const wrap = flexWrapSelect.value; const alignContent = alignContentSelect.value; flexContainer.style.flexDirection = direction; flexContainer.style.justifyContent = justify; flexContainer.style.alignItems = alignItems; flexContainer.style.flexWrap = wrap; flexContainer.style.alignContent = alignContent; alignContentSelect.disabled = (wrap === 'nowrap'); flexOutput.textContent = `主轴方向: ${direction}, 主轴对齐: ${justify}, 交叉轴对齐: ${alignItems}, 换行: ${wrap}${wrap !== 'nowrap' ? `, 多行对齐: ${alignContent}` : ''}`; }
+            if (flexContainer && flexDirectionSelect && justifyContentSelect && alignItemsSelect && flexWrapSelect && alignContentSelect && flexResetBtn && flexOutput) { const flexControls = [flexDirectionSelect, justifyContentSelect, alignItemsSelect, flexWrapSelect, alignContentSelect]; flexControls.forEach(control => control.addEventListener('change', updateFlexContainer)); flexResetBtn.addEventListener('click', () => { flexDirectionSelect.value = 'row'; justifyContentSelect.value = 'flex-start'; alignItemsSelect.value = 'stretch'; flexWrapSelect.value = 'nowrap'; alignContentSelect.value = 'stretch'; updateFlexContainer(); }); updateFlexContainer(); }
+
+
+             // --- FIXED: Interactive BFC Demo with Visualization ---
+             const bfcMarginToggle = document.getElementById('bfc-margin-toggle');
+             const bfcMarginTargetContainer = document.getElementById('bfc-p2-container');
+             const bfcMarginOutput = document.getElementById('bfc-margin-output');
+             const bfcP1 = document.getElementById('bfc-p1');
+             const bfcP2 = document.getElementById('bfc-p2');
+             const bfcFloatToggle = document.getElementById('bfc-float-toggle');
+             const bfcFloatParent = document.getElementById('bfc-float-parent');
+             const bfcFloatOutput = document.getElementById('bfc-float-output');
+
+             function setupMarginVisuals(pElement) {
+                 if (!pElement) return;
+                 pElement.querySelectorAll('.margin-visual').forEach(v => v.remove());
+                 const topVisual = document.createElement('span'); topVisual.className = 'margin-visual margin-visual-top';
+                 const bottomVisual = document.createElement('span'); bottomVisual.className = 'margin-visual margin-visual-bottom';
+                 pElement.prepend(topVisual); pElement.appendChild(bottomVisual);
+                 // Set initial state based on whether the container has BFC initially
+                 const containerHasBfc = pElement.parentElement.classList.contains('has-bfc');
+                 if (pElement.id === 'bfc-p2') { // Only adjust p2's top visual based on container BFC
+                    topVisual.style.top = containerHasBfc ? '0px' : '-10px';
+                 } else {
+                    topVisual.style.top = '-10px'; // p1's top margin always visualised normally
+                 }
+                 bottomVisual.style.bottom = '-10px';
+             }
+             setupMarginVisuals(bfcP1); setupMarginVisuals(bfcP2);
+
+             if (bfcMarginToggle && bfcMarginTargetContainer && bfcMarginOutput && bfcP1 && bfcP2) {
+                 let marginBfcActive = bfcMarginTargetContainer.classList.contains('has-bfc');
+                 const p2MarginTopVisual = bfcP2.querySelector('.margin-visual-top');
+
+                 bfcMarginToggle.addEventListener('click', (e) => {
+                     marginBfcActive = !marginBfcActive;
+                     // Use display: flow-root instead of overflow: hidden
+                     bfcMarginTargetContainer.style.display = marginBfcActive ? 'flow-root' : '';
+                     bfcMarginTargetContainer.classList.toggle('has-bfc', marginBfcActive); // Keep class for styling if needed
+
+                     // Ensure button update happens correctly
+                     const buttonGroup = e.target.closest('.demo-controls');
+                     if (buttonGroup) {
+                         updateActiveButton(buttonGroup, e.target);
+                     } else { // Fallback if structure changes
+                         updateActiveButton(e.target.parentElement, e.target);
+                     }
+
+
+                     if (marginBfcActive) {
+                         if(p2MarginTopVisual) p2MarginTopVisual.style.top = '0px'; // Animate separation
+                         bfcMarginOutput.textContent = '创建BFC (display: flow-root)后，段落2的顶部外边距不再与段落1的底部外边距塌陷。';
+                         bfcMarginToggle.textContent = '移除段落2容器BFC';
+                     } else {
+                         if(p2MarginTopVisual) p2MarginTopVisual.style.top = '-10px'; // Animate collapse
+                         bfcMarginOutput.textContent = '移除BFC后，外边距再次塌陷。';
+                         bfcMarginToggle.textContent = '为段落2容器创建BFC';
+                         // updateActiveButton handles removing 'active' and adding 'button-secondary'
+                         e.target.classList.remove('active');
+                         e.target.classList.add('button-secondary');
+                     }
+                 });
+                 // Set initial button state
+                 const marginButtonGroup = bfcMarginToggle.closest('.demo-controls');
+                 if (marginButtonGroup) {
+                     if (marginBfcActive) { updateActiveButton(marginButtonGroup, bfcMarginToggle); }
+                     else { bfcMarginToggle.classList.add('button-secondary'); bfcMarginToggle.classList.remove('active'); }
+                 }
+             }
+
+             if (bfcFloatToggle && bfcFloatParent && bfcFloatOutput) {
+                 let floatBfcActive = bfcFloatParent.classList.contains('has-bfc');
+                 bfcFloatToggle.addEventListener('click', (e) => {
+                     floatBfcActive = !floatBfcActive;
+                     // Use display: flow-root instead of overflow: hidden
+                     bfcFloatParent.style.display = floatBfcActive ? 'flow-root' : '';
+                     bfcFloatParent.classList.toggle('has-bfc', floatBfcActive);
+                     bfcFloatParent.classList.toggle('show-bg', floatBfcActive);
+
+                     const buttonGroup = e.target.closest('.demo-controls');
+                     if (buttonGroup) {
+                         updateActiveButton(buttonGroup, e.target);
+                     } else {
+                          updateActiveButton(e.target.parentElement, e.target);
+                     }
+
+
+                     if (floatBfcActive) {
+                         bfcFloatOutput.textContent = '为父容器创建BFC (display: flow-root)后，其高度自动扩展以包含浮动元素 (背景可见)。';
+                         bfcFloatToggle.textContent = '移除父容器BFC';
+                     } else {
+                         bfcFloatOutput.textContent = '移除BFC后，父容器高度可能塌陷 (背景消失)。';
+                         bfcFloatToggle.textContent = '为父容器创建BFC';
+                         e.target.classList.remove('active');
+                         e.target.classList.add('button-secondary');
+                     }
+                 });
+                 // Set initial button state
+                 const floatButtonGroup = bfcFloatToggle.closest('.demo-controls');
+                 if(floatButtonGroup){
+                     if (floatBfcActive) { updateActiveButton(floatButtonGroup, bfcFloatToggle); }
+                     else { bfcFloatToggle.classList.add('button-secondary'); bfcFloatToggle.classList.remove('active'); }
+                 }
+             }
+
+
+            // --- Centering Demo ---
+            // No JS needed
+
+        }); // End DOMContentLoaded
+    </script>
+
+</body>
+
+</html>

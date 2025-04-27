@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>包管理与模块化</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../../global.css"> <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <style>
+        /* Minimal inline styles - Primarily rely on global.css and Tailwind */
+
+        /* Adjust scroll padding/margin based on potential sticky header */
+        html {
+            scroll-padding-top: 6rem;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            scroll-margin-top: 6rem;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+            background-color: var(--bg-color-lighter, #f3f4f6); /* Use variable with fallback */
+            color: var(--text-color-default, #374151);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --- Enhanced Heading Styles --- */
+        /* Using Tailwind classes directly in HTML is preferred, but these serve as fallback/reference */
+        /* H1: Already handled by .head1 in global.css */
+        /* H2: Make more prominent */
+        .content-section > h2 { /* Target direct children H2 */
+             /* Use head2 from global.css if defined, otherwise: */
+            font-size: 1.75rem; /* ~text-2xl */
+            font-weight: 600; /* font-semibold */
+            padding-bottom: 0.75rem; /* pb-3 */
+            margin-bottom: 1.75rem; /* mb-7 */
+            border-bottom: 1px solid var(--border-color-light, #e5e7eb);
+            color: var(--text-color-dark, #1f2937);
+        }
+        /* H3: Card titles */
+        .content-card > h3 {
+            /* Use head3 from global.css if defined, otherwise: */
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            color: var(--primary-color-dark, #2563eb); /* Distinct color */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        /* H4: Sub-headings within cards */
+         .content-card > h4 {
+            /* Use head4 from global.css if defined, otherwise: */
+            font-size: 1.1rem; /* ~text-lg */
+            font-weight: 600; /* font-semibold */
+            color: var(--text-color-dark, #1f2937);
+            margin-top: 1.5rem; /* mt-6 */
+            margin-bottom: 0.75rem; /* mb-3 */
+        }
+        .content-card > *:first-child > h4:first-child { /* Remove top margin if H4 is first element */
+             margin-top: 0;
+        }
+
+
+        /* --- Card Styling Enhancements --- */
+        .content-card {
+            /* Add subtle shadow from global.css or Tailwind */
+            box-shadow: var(--card-shadow-default, 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)); /* Tailwind shadow-md */
+            margin-bottom: 2rem; /* Increased spacing between cards mb-8 */
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        .content-card:hover {
+             box-shadow: var(--card-shadow-hover, 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)); /* Tailwind shadow-lg */
+        }
+
+        /* --- Frequency/Level Tags --- */
+        .level-tag {
+            display: inline-block;
+            margin-left: 0.5rem;
+            font-size: 0.75rem; /* text-xs */
+            font-weight: 500; /* font-medium */
+            padding: 0.1rem 0.5rem;
+            border-radius: 0.25rem; /* rounded-sm */
+            vertical-align: middle;
+            border: 1px solid transparent;
+        }
+        .level-tag-high { background-color: var(--danger-color-light, #fee2e2); color: var(--danger-color, #ef4444); border-color: var(--danger-color, #ef4444); }
+        .level-tag-medium { background-color: var(--warning-color-light, #fff7ed); color: var(--warning-color, #f97316); border-color: var(--warning-color, #f97316); }
+        .level-tag-low { background-color: var(--secondary-color-light, #ecfdf5); color: var(--secondary-color, #10b981); border-color: var(--secondary-color, #10b981); }
+
+        /* --- Fade-in Animation --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in-section { opacity: 0; animation: fadeIn 0.5s ease-out forwards; }
+
+        /* --- Code Block Enhancements --- */
+        article pre {
+            position: relative; /* Needed for absolute positioning of the button */
+            font-family: var(--font-family-mono, 'Roboto Mono', monospace);
+            border-radius: 0.375rem;
+            margin: 1rem 0;
+            padding: 1em;
+            padding-top: 2.5em; /* Make space for the button */
+            overflow: auto;
+            background-color: #272822;
+            color: #f8f8f2;
+            border: 1px solid #4d4d4d;
+        }
+        .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background-color: #4a5568; /* gray-700 */
+            color: #f7fafc; /* gray-100 */
+            border: none;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease-in-out, background-color 0.2s ease-in-out;
+        }
+        .copy-button:hover {
+            opacity: 1;
+            background-color: #2d3748; /* gray-800 */
+        }
+        .copy-button .fa-copy { margin-right: 0.25rem; }
+        .copy-button .copy-feedback { margin-left: 0.25rem; }
+
+        /* --- Inline Code & Lists --- */
+        article ul { list-style: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        article ol { list-style: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+        article li { margin-bottom: 0.5em; }
+        article ul ul, article ol ol, article ul ol, article ol ul { margin-top: 0.5em; margin-bottom: 0.5em; }
+        *:not(pre) > code {
+            background-color: var(--primary-color-light, #eff6ff);
+            color: var(--primary-color-dark, #2563eb);
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: var(--font-family-mono, 'Roboto Mono', monospace);
+            font-size: 0.9em;
+        }
+        article pre code[class*="language-"] {
+            background: none; color: inherit; padding: 0; border-radius: 0;
+            font-size: inherit; font-family: inherit; line-height: inherit;
+            text-shadow: none; white-space: pre; display: block;
+        }
+
+        /* --- Tooltips --- */
+        .tooltip-term {
+            border-bottom: 1px dotted var(--primary-color, #3b82f6);
+            cursor: help;
+            position: relative;
+            color: var(--primary-color-dark, #2563eb);
+            font-weight: 500;
+        }
+        .tooltip-term::before { /* Tooltip text */
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px); /* Position above */
+            background-color: rgba(31, 41, 55, 0.9); /* gray-800 with opacity */
+            color: white;
+            padding: 0.4rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 400; /* Normal weight for tooltip */
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            z-index: 10;
+        }
+        .tooltip-term::after { /* Tooltip arrow */
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(0px); /* Arrow position */
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(31, 41, 55, 0.9) transparent transparent transparent;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            z-index: 10;
+        }
+        .tooltip-term:hover::before,
+        .tooltip-term:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* --- Mermaid Diagram Styling --- */
+         .mermaid {
+            margin: 1.5rem 0; /* Add some vertical spacing */
+            text-align: center; /* Center the diagram */
+            background-color: var(--bg-color-light, #f9fafb); /* Light background for contrast */
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color-light, #e5e7eb);
+        }
+        .mermaid svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+
+        /* --- Comparison Table Styling --- */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid var(--border-color-default, #d1d5db);
+            padding: 0.75rem;
+            text-align: left;
+            vertical-align: top;
+        }
+        .comparison-table thead th {
+            background-color: var(--bg-color-lighter, #f3f4f6);
+            font-weight: 600;
+            color: var(--text-color-dark, #1f2937);
+        }
+        .comparison-table tbody tr:nth-child(odd) {
+            background-color: var(--bg-color-light, #f9fafb);
+        }
+        .comparison-table tbody tr:hover {
+            background-color: var(--primary-color-light, #eff6ff);
+        }
+        .comparison-table td:first-child {
+            font-weight: 500;
+            width: 25%; /* Adjust as needed */
+        }
+
+        /* --- Quiz Card Styling (Adapted from example.html, ensure compatibility with global.css) --- */
+        /* Use .quiz-card styles from global.css if available */
+        .quiz-card {
+            background-color: var(--quiz-bg, var(--primary-color-light, #eff6ff));
+            border: 1px solid var(--border-color-default, #d1d5db);
+            border-left: 4px solid var(--quiz-border-color, var(--primary-color, #3b82f6));
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: var(--quiz-padding, 1.5rem); /* p-6 */
+            margin-top: 2rem; /* Add margin top for spacing */
+            margin-bottom: 1.5rem; /* mb-6 */
+            box-shadow: var(--card-shadow-default, 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)); /* shadow-md */
+        }
+        .quiz-question { font-size: 1.1rem; font-weight: 500; color: var(--text-color-dark, #1f2937); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+        .quiz-options { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
+        .quiz-option { display: block; padding: 0.75rem 1rem; border: 1px solid var(--border-color-default, #d1d5db); border-radius: 0.375rem; background-color: var(--bg-color-white, white); cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; display: flex; align-items: center; }
+        .quiz-option:hover { background-color: var(--quiz-option-hover-bg, rgba(59, 130, 246, 0.1)); border-color: var(--primary-color, #3b82f6); }
+        .quiz-option input[type="radio"] { margin-right: 0.75rem; width: 1rem; height: 1rem; accent-color: var(--primary-color, #3b82f6); cursor: pointer; flex-shrink: 0; }
+        .quiz-option span { flex-grow: 1; cursor: pointer; color: var(--text-color-default, #374151); }
+        .quiz-option.selected { border-color: var(--primary-color, #3b82f6); background-color: rgba(59, 130, 246, 0.15); }
+        .quiz-option.selected span { font-weight: 500; } /* font-medium */
+        .quiz-option.correct { border-color: var(--success-color, #10b981); background-color: var(--success-color-light, #ecfdf5); }
+        .quiz-option.incorrect { border-color: var(--danger-color, #ef4444); background-color: var(--danger-color-light, #fee2e2); }
+        .quiz-feedback { margin-top: 1rem; padding: 0.75rem 1rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; display: none; border: 1px solid transparent; }
+        .quiz-feedback.correct { background-color: var(--quiz-feedback-correct-bg, var(--success-color-light, #ecfdf5)); color: var(--quiz-feedback-correct-text, var(--success-color, #10b981)); border-color: var(--success-color, #10b981); }
+        .quiz-feedback.incorrect { background-color: var(--quiz-feedback-incorrect-bg, var(--danger-color-light, #fee2e2)); color: var(--quiz-feedback-incorrect-text, var(--danger-color, #ef4444)); border-color: var(--danger-color, #ef4444); }
+        .quiz-feedback.warning { background-color: var(--warning-color-light, #fff7ed); color: var(--warning-color, #f97316); border-color: var(--warning-color, #f97316); }
+        /* Quiz Toggle Button */
+        .quiz-toggle { /* Inherit from .button if defined, or use Tailwind */
+             /* Example using Tailwind */
+             /* padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; border-radius: 0.375rem; transition: all 0.2s; */
+             /* Ensure it aligns items */
+             display: inline-flex; align-items: center; gap: 0.25rem;
+             /* Add ripple effect styles if using JS ripple */
+             position: relative; overflow: hidden;
+        }
+        .quiz-toggle .material-icons { font-size: 1.1rem; transition: transform 0.3s ease-in-out; }
+        .quiz-toggle .icon-arrow.rotated { transform: rotate(180deg); }
+        .quiz-answer {
+            max-height: 0; opacity: 0;
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, padding-top 0.5s ease-in-out, padding-bottom 0.5s ease-in-out, margin-top 0.5s ease-in-out;
+            overflow: hidden; padding-top: 0; padding-bottom: 0; margin-top: 0;
+            border: 1px solid var(--border-color-default, #d1d5db);
+            background-color: var(--bg-color-lighter, #f3f4f6);
+            border-radius: 0.375rem;
+            color: var(--text-color-default, #374151);
+        }
+        .quiz-answer.visible {
+            max-height: 1000px; /* Large enough for content */
+            opacity: 1; padding-top: 1rem; padding-bottom: 1rem; margin-top: 1rem;
+            overflow: auto;
+        }
+        .quiz-answer p { margin-bottom: 0.5rem; }
+        .quiz-answer ul { margin-top: 0.5rem; }
+
+        /* Ripple effect for buttons */
+        .ripple {
+            position: absolute; border-radius: 50%;
+            background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.4); /* Use RGB for opacity */
+            transform: scale(0); animation: ripple-animation 0.6s linear; pointer-events: none;
+        }
+        @keyframes ripple-animation { to { transform: scale(4); opacity: 0; } }
+
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <div class="page-container">
+
+        <aside class="local-side-nav">
+            <h4 class="head4">包管理与模块化</h4>
+            <ul id="local-toc">
+                <li><a href="#intro" class="active"><span class="material-icons nav-icon">inventory_2</span>简介</a></li>
+                <li><a href="#package-managers"><span class="material-icons nav-icon">construction</span>包管理器</a></li>
+                <li><a href="#npm-yarn-basic"><span class="material-icons nav-icon text-sm ml-4">terminal</span>npm/yarn 基础</a></li>
+                <li><a href="#deps-vs-devdeps"><span class="material-icons nav-icon text-sm ml-4">difference</span>依赖类型</a></li>
+                <li><a href="#semver"><span class="material-icons nav-icon text-sm ml-4">pin</span>版本控制 (SemVer)</a></li>
+                <li><a href="#lockfiles"><span class="material-icons nav-icon text-sm ml-4">lock</span>Lock 文件</a></li>
+                <li><a href="#npm-ci"><span class="material-icons nav-icon text-sm ml-4">build_circle</span>npm ci</a></li>
+                <li><a href="#npx"><span class="material-icons nav-icon text-sm ml-4">play_circle</span>npx</a></li>
+                <li><a href="#modules"><span class="material-icons nav-icon">hub</span>模块化系统</a></li>
+                <li><a href="#esm"><span class="material-icons nav-icon text-sm ml-4">javascript</span>ES Modules</a></li>
+                <li><a href="#commonjs"><span class="material-icons nav-icon text-sm ml-4">javascript</span>CommonJS</a></li>
+                <li><a href="#esm-vs-cjs"><span class="material-icons nav-icon text-sm ml-4">compare_arrows</span>ESM vs CJS 对比</a></li>
+                <li><a href="#pnpm"><span class="material-icons nav-icon">savings</span>pnpm 优势</a></li>
+            </ul>
+            <a href="../../index.html" class="back-link"> &larr; 返回大纲目录
+            </a>
+        </aside>
+
+        <main class="content-main">
+            <article>
+                <section id="intro" class="content-section fade-in-section" style="animation-delay: 0s;">
+                    <h1 class="head1 flex items-center gap-2">
+                        <span class="material-icons text-3xl text-blue-600">widgets</span>(一) 包管理与模块化
+                    </h1>
+                    <p class="text-gray-700 leading-relaxed">
+                        在现代前端和全栈开发中，高效地管理项目依赖和组织代码结构至关重要。本节将探讨常用的包管理器（如 npm, yarn, pnpm）及其核心概念，以及 JavaScript 中主流的模块化规范（ES Modules 和 CommonJS）。
+                    </p>
+                    <p class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md text-sm">💡
+                        <strong>提示:</strong> 点击左侧导航可以快速跳转。括号内标注了知识点考察频率。代码块右上角提供<i class="fas fa-copy mx-1"></i>复制按钮。悬停在<span class="tooltip-term" data-tooltip="就像这样！">带下划线的术语</span>上可查看解释。
+                    </p>
+                </section>
+
+                <section id="package-managers" class="content-section fade-in-section" style="animation-delay: 0.05s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-icons">construction</span>包管理器 (Package Managers)
+                        <span class="level-tag level-tag-high">高频基础</span>
+                    </h2>
+                    <p class="mb-6 text-gray-600">包管理器是自动化安装、更新、配置和卸载软件包（项目依赖）的工具，极大地简化了第三方库的引入和管理流程。</p>
+
+                    <div id="npm-yarn-basic" class="content-card mb-8">
+                        <h3 class="head3">1. npm/yarn 基本使用</h3>
+                        <p class="mb-4"><code>npm</code> (Node Package Manager) 是 Node.js 默认的包管理器。<code>yarn</code> 是由 Facebook 开发的替代方案，旨在解决早期 npm 的一些性能和一致性问题（尽管现代 npm 已有很大改进）。它们的核心命令类似：</p>
+
+                        <h4 class="head4">安装依赖 (Install Dependencies)</h4>
+                        <p class="mb-2 text-sm">从 <code>package.json</code> 安装所有项目依赖：</p>
+                        <pre><code class="language-bash"># 使用 npm
+npm install
+
+# 使用 yarn
+yarn install # 或者直接 yarn</code></pre>
+
+                        <h4 class="head4">添加依赖 (Add Dependency)</h4>
+                        <p class="mb-2 text-sm">安装特定包并将其添加到 <code>dependencies</code> (生产环境依赖)：</p>
+                        <pre><code class="language-bash"># 使用 npm
+npm install package-name # 或者 npm i package-name
+
+# 使用 yarn
+yarn add package-name</code></pre>
+                        <p class="mt-2 mb-2 text-sm">安装特定包并将其添加到 <code>devDependencies</code> (开发环境依赖)：</p>
+                        <pre><code class="language-bash"># 使用 npm
+npm install package-name --save-dev # 或者 -D
+
+# 使用 yarn
+yarn add package-name --dev # 或者 -D</code></pre>
+
+                        <h4 class="head4">运行脚本 (Run Scripts)</h4>
+                        <p class="mb-2 text-sm">执行定义在 <code>package.json</code> 中 <code>"scripts"</code> 字段的命令：</p>
+                        <pre><code class="language-bash"># 使用 npm (例如运行 "start" 脚本)
+npm run start # 对于 start, test, stop, restart 可以省略 run
+
+# 使用 yarn
+yarn run start # 或者 yarn start</code></pre>
+
+                         <h4 class="head4">卸载依赖 (Remove Dependency)</h4>
+                        <p class="mb-2 text-sm">从项目中移除一个包：</p>
+                        <pre><code class="language-bash"># 使用 npm
+npm uninstall package-name
+
+# 使用 yarn
+yarn remove package-name</code></pre>
+                    </div>
+
+                    <div id="deps-vs-devdeps" class="content-card mb-8">
+                        <h3 class="head3">2. 依赖类型: dependencies vs devDependencies</h3>
+                        <p class="mb-4">在 <code>package.json</code> 中，依赖被区分为两类，这对于项目构建和部署至关重要。</p>
+                        <ul class="list-disc list-inside space-y-2 text-sm">
+                            <li>
+                                <strong><code>dependencies</code> (生产依赖):</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-gray-600">
+                                    <li>应用运行时必需的包（例如 React, Lodash, Express）。</li>
+                                    <li>执行 <code>npm install</code> 或 <code>yarn install</code> 时（不带额外参数）会安装。</li>
+                                    <li>在打包部署到生产环境时，这些依赖通常需要被包含。</li>
+                                    <li>使用 <code>npm install &lt;package&gt;</code> 或 <code>yarn add &lt;package&gt;</code> 添加。</li>
+                                </ul>
+                            </li>
+                             <li>
+                                <strong><code>devDependencies</code> (开发依赖):</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-gray-600">
+                                    <li>仅在开发过程中需要的包（例如测试框架 Jest, 打包工具 Webpack, 代码格式化 Prettier, 类型检查 TypeScript）。</li>
+                                     <li>执行 <code>npm install</code> 或 <code>yarn install</code> 时也会安装。</li>
+                                     <li>但在生产环境构建或部署时，通常可以通过设置环境变量 (<code>NODE_ENV=production</code>) 或使用特定命令 (<code>npm install --production</code>) 来跳过安装这些依赖，以减小部署包的大小和安装时间。</li>
+                                     <li>使用 <code>npm install &lt;package&gt; --save-dev</code> 或 <code>yarn add &lt;package&gt; --dev</code> 添加。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                         <p class="text-sm font-medium text-red-600 mt-4">🎯 关键：正确区分依赖类型有助于优化生产构建的大小和速度。运行时需要的放 <code>dependencies</code>，开发、测试、构建时需要的放 <code>devDependencies</code>。</p>
+                    </div>
+
+                    <div id="semver" class="content-card mb-8">
+                        <h3 class="head3">3. 版本控制: <span class="tooltip-term" data-tooltip="Semantic Versioning (语义化版本控制) 是一种广泛采用的版本号格式和约定，格式为 MAJOR.MINOR.PATCH。">SemVer</span></h3>
+                        <p class="mb-4"><code>package.json</code> 中依赖的版本号通常遵循 SemVer 规范，并使用特定前缀来指定版本范围：</p>
+                        <ul class="list-disc list-inside space-y-2 text-sm">
+                            <li><strong><code>MAJOR.MINOR.PATCH</code> (例如 <code>1.2.3</code>):</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-gray-600">
+                                    <li><code>MAJOR</code>: 不兼容的 API 变更。</li>
+                                    <li><code>MINOR</code>: 向下兼容的功能性新增。</li>
+                                    <li><code>PATCH</code>: 向下兼容的问题修正。</li>
+                                </ul>
+                            </li>
+                             <li><strong><code>^</code> (Caret):</strong> 允许更新 <code>MINOR</code> 和 <code>PATCH</code> 版本。例如 <code>^1.2.3</code> 允许安装 <code>1.2.3</code> 到 <code>&lt;2.0.0</code> 的最新版本 (即 <code>1.x.x</code>)。这是 <code>npm install package-name</code> 的默认行为。</li>
+                             <li><strong><code>~</code> (Tilde):</strong> 允许更新 <code>PATCH</code> 版本。例如 <code>~1.2.3</code> 允许安装 <code>1.2.3</code> 到 <code>&lt;1.3.0</code> 的最新版本 (即 <code>1.2.x</code>)。</li>
+                             <li><strong>无前缀 (例如 <code>1.2.3</code>):</strong> 锁定确切版本。</li>
+                             <li><strong><code>*</code> 或 <code>latest</code>:</strong> 安装最新可用版本（不推荐用于生产依赖）。</li>
+                        </ul>
+                         <p class="text-sm font-medium text-red-600 mt-4">🎯 关键：<code>^</code> 和 <code>~</code> 提供了灵活性，允许自动获取补丁和新功能，但也可能引入未预期的变更。<code>lock</code> 文件正是为了解决这个问题而存在的。</p>
+                    </div>
+
+                    <div id="lockfiles" class="content-card mb-8">
+                        <h3 class="head3">4. package.json 与 Lock 文件</h3>
+                        <p class="mb-4">这两个文件是包管理的核心，共同确保项目依赖的稳定性和一致性。</p>
+
+                        <h4 class="head4">package.json</h4>
+                         <p class="mb-2 text-sm">项目的清单文件，定义了项目的元数据和依赖关系。</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm mb-4">
+                            <li><strong>作用：</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-gray-600">
+                                    <li>记录项目名称、版本、描述、作者等基本信息。</li>
+                                    <li>定义项目脚本 (<code>scripts</code>)。</li>
+                                    <li>声明项目所需的生产依赖 (<code>dependencies</code>) 和开发依赖 (<code>devDependencies</code>)，使用 <span class="tooltip-term" data-tooltip="例如 ^1.2.3 或 ~1.2.3，指定一个版本范围而非固定版本">SemVer 范围</span>。</li>
+                                </ul>
+                            </li>
+                            <li><strong>特点：</strong> 手动或通过命令修改，定义的是依赖的 *版本范围*。</li>
+                        </ul>
+                        <pre><code class="language-json">{
+  "name": "my-project",
+  "version": "1.0.0",
+  "description": "A sample project",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21" // 允许 1.x.x
+  },
+  "devDependencies": {
+    "jest": "~27.5.1" // 允许 27.5.x
+  },
+  "author": "Your Name",
+  "license": "ISC"
+}</code></pre>
+
+                        <h4 class="head4 mt-6">package-lock.json (npm) / yarn.lock (yarn)</h4>
+                         <p class="mb-2 text-sm">自动生成的文件，用于锁定项目依赖树中每个包的 *确切版本*。</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm mb-4">
+                            <li><strong>作用：</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-gray-600">
+                                    <li>记录安装时解析到的每个依赖（包括间接依赖）的精确版本号。</li>
+                                    <li>记录依赖的下载地址和完整性哈希值 (用于校验)。</li>
+                                    <li>确保不同时间、不同环境（开发者机器、CI/CD 服务器）下执行 <code>npm install</code> 或 <code>yarn install</code> 时，安装的依赖版本完全一致。</li>
+                                    <li><span class="tooltip-term" data-tooltip="Lock 文件记录了扁平化的依赖树结构，明确了哪个版本的间接依赖被提升到顶层，解决了潜在的版本冲突。">解决依赖冲突</span>：确定最终安装的依赖版本，即使多个包依赖同一个库的不同 SemVer 范围版本。</li>
+                                </ul>
+                            </li>
+                             <li><strong>特点：</strong> 自动生成和更新，不应手动修改。必须提交到版本控制系统（如 Git）。</li>
+                        </ul>
+                        <p class="text-sm font-medium text-red-600">🎯 关键区别：<code>package.json</code> 定义意图（版本范围），<code>lock</code> 文件记录结果（确切版本），保证环境一致性。</p>
+
+                        <div class="quiz-card" id="quiz-lockfile">
+                            <div class="quiz-question"><span class="material-icons">quiz</span>测验: <code>package-lock.json</code> 或 <code>yarn.lock</code> 的主要目的是什么？</div>
+                            <div class="quiz-options">
+                                <label class="quiz-option"><input type="radio" name="q_lockfile" value="a"><span>定义项目需要哪些依赖包。</span></label>
+                                <label class="quiz-option"><input type="radio" name="q_lockfile" value="b"><span>指定项目依赖的版本范围。</span></label>
+                                <label class="quiz-option"><input type="radio" name="q_lockfile" value="c"><span>锁定项目中所有依赖（包括间接依赖）的确切版本，确保安装一致性。</span></label>
+                                <label class="quiz-option"><input type="radio" name="q_lockfile" value="d"><span>记录项目的脚本命令。</span></label>
+                            </div>
+                            <div class="quiz-feedback mt-4" id="feedback-q_lockfile"></div>
+                            <button class="quiz-toggle button button-secondary mt-4" onclick="checkAnswer('q_lockfile', 'c', 'quiz-lockfile')">
+                                <span class="material-icons icon-arrow">expand_more</span><span class="button-text">检查答案</span>
+                            </button>
+                            <div class="quiz-answer">
+                                <p><strong>答案:</strong> C. 锁定项目中所有依赖（包括间接依赖）的确切版本，确保安装一致性。</p>
+                                <p><strong>解析:</strong> A 和 B 是 <code>package.json</code> 的主要作用。D 是 <code>package.json</code> 中 <code>scripts</code> 字段的作用。Lock 文件的核心价值在于记录依赖树的确切状态，保证任何人在任何时间安装都能得到相同的结果。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                     <div id="npm-ci" class="content-card mb-8">
+                        <h3 class="head3">5. npm ci</h3>
+                         <span class="level-tag level-tag-medium">中频</span>
+                        <p class="mb-4"><code>npm ci</code> 是一个专门用于自动化环境（如 CI/CD 服务器）的命令，用于安装依赖。</p>
+                        <ul class="list-disc list-inside space-y-2 text-sm">
+                            <li><strong>与 <code>npm install</code> 的关键区别：</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-gray-600">
+                                    <li><strong>基于 Lock 文件：</strong> <code>npm ci</code> 严格按照 <code>package-lock.json</code> 文件安装依赖。如果 lock 文件不存在或与 <code>package.json</code> 不一致，它会报错退出，而不是尝试更新 lock 文件。</li>
+                                    <li><strong>删除 <code>node_modules</code>：</strong> 在安装前，<code>npm ci</code> 会先删除现有的 <code>node_modules</code> 目录，确保一个干净的安装环境。</li>
+                                    <li><strong>速度：</strong> 通常比 <code>npm install</code> 更快，因为它跳过了依赖解析和 lock 文件更新的步骤。</li>
+                                    <li><strong>不可更改性：</strong> 不会修改 <code>package.json</code> 或 <code>package-lock.json</code>。</li>
+                                </ul>
+                            </li>
+                             <li><strong>适用场景：</strong> 持续集成 (CI)、自动化构建、生产部署等需要精确、快速、可复现依赖安装的场景。</li>
+                        </ul>
+                        <pre><code class="language-bash"># 在 CI/CD 流程中推荐使用
+npm ci</code></pre>
+                         <p class="text-sm font-medium text-red-600 mt-4">🎯 关键：开发时用 <code>npm install</code> (会更新 lock 文件)，CI/部署时用 <code>npm ci</code> (保证严格按 lock 文件安装)。</p>
+                    </div>
+
+                     <div id="npx" class="content-card">
+                        <h3 class="head3">6. npx</h3>
+                         <span class="level-tag level-tag-low">低频</span>
+                        <p class="mb-4"><code>npx</code> 是 npm v5.2+ 自带的一个工具，用于执行 npm 包中的可执行文件。</p>
+                        <ul class="list-disc list-inside space-y-2 text-sm">
+                            <li><strong>主要作用：</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-gray-600">
+                                    <li><strong>运行本地安装的包命令：</strong> 无需配置 <code>package.json</code> 的 <code>scripts</code>，可以直接运行 <code>node_modules/.bin/</code> 下的命令。</li>
+                                    <li><strong>运行未安装的包命令：</strong> 如果命令对应的包未在本地安装，<code>npx</code> 会临时下载该包，运行其命令，然后删除，避免全局污染。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <pre><code class="language-bash"># 假设本地安装了 jest
+npx jest --watch # 运行本地的 jest 命令
+
+# 临时下载并运行 create-react-app，无需全局安装
+npx create-react-app my-react-app</code></pre>
+                         <p class="text-sm font-medium text-red-600 mt-4">🎯 关键：方便地运行包提供的命令行工具，特别是临时使用或运行本地工具时。</p>
+                    </div>
+
+                </section>
+
+                <section id="modules" class="content-section fade-in-section" style="animation-delay: 0.1s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-icons">hub</span>模块化系统 (Module System)
+                        <span class="level-tag level-tag-medium">中频基础</span>
+                    </h2>
+                    <p class="mb-6 text-gray-600">模块化是将复杂的程序拆分成独立、可复用的代码单元（模块）的方式，有助于提高代码的可维护性、可读性和组织性。</p>
+
+                    <div id="esm" class="content-card mb-8">
+                        <h3 class="head3">1. ES Modules (ESM)</h3>
+                        <p class="mb-2 text-sm">ECMAScript 官方标准的模块化规范，是现代浏览器和 Node.js (通过 <code>"type": "module"</code> 或 <code>.mjs</code> 文件) 支持的标准。</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm mb-4">
+                            <li><strong>语法：</strong> 使用 <code>import</code> 导入，<code>export</code> 导出。</li>
+                            <li><strong>特点：</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-gray-600">
+                                    <li><strong>静态解析：</strong> 模块依赖关系在编译（或加载前解析）时确定，这使得 <span class="tooltip-term" data-tooltip="一种死代码消除技术，可以在打包时移除 JavaScript 中未被引用的代码，减小最终文件大小。">Tree Shaking</span> 成为可能。</li>
+                                    <li><code>import</code> 语句必须在模块顶层。</li>
+                                    <li>导出的是值的 <span class="tooltip-term" data-tooltip="导出的变量和导入的变量指向同一个内存地址，如果导出模块内部修改了变量值，导入的地方也能感知到变化。">实时绑定 (Live Binding)</span>。</li>
+                                    <li>支持顶层 <code>await</code>。</li>
+                                    <li>支持异步加载 (<code>import()</code> 函数)。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <h4 class="head4 text-sm font-semibold mb-1">示例:</h4>
+                        <pre><code class="language-javascript">// math.js
+export const PI = 3.14159;
+let counter = 0;
+export function increment() { counter++; }
+export function getCount() { return counter; }
+export default function multiply(a, b) { return a * b; }
+
+// main.js
+import multiply, { PI, increment, getCount } from './math.js';
+
+console.log(PI); // 3.14159
+console.log(getCount()); // 0
+increment();
+console.log(getCount()); // 1 (Live Binding 体现)
+console.log(multiply(2, 3)); // 6
+
+// 异步导入
+import('./math.js').then(math => {
+  console.log('Async PI:', math.PI);
+});</code></pre>
+                        <h4 class="head4 text-sm font-semibold mt-4 mb-1">加载机制 (简化流程图):</h4>
+                        <div class="mermaid">
+                            graph TD
+                            A["浏览器/Node.js 加载 main.js"] --> B["解析 main.js"]
+                            B -- "发现 import from ./math.js" --> C["加载 math.js"]
+                            C --> D["解析 math.js"]
+                            D -- "发现 export" --> E["建立模块记录 math.js"]
+                            E -- "导出绑定" --> B
+                            B -- "建立模块记录 main.js" --> F["执行 main.js 代码"]
+                            F -- "访问导入的变量" --> E
+                        
+                            style A fill:#e0f2fe,stroke:#0ea5e9
+                            style B fill:#fefce8,stroke:#ca8a04
+                            style C fill:#e0f2fe,stroke:#0ea5e9
+                            style D fill:#fefce8,stroke:#ca8a04
+                            style E fill:#ecfdf5,stroke:#16a34a
+                            style F fill:#f1f5f9,stroke:#64748b
+                        
+                        </div>
+                        <p class="text-xs text-center text-gray-500 mt-1">ESM 加载过程：解析 -> 加载依赖 -> 解析依赖 -> 链接 -> 执行。</p>
+                    </div>
+
+                    <div id="commonjs" class="content-card mb-8">
+                        <h3 class="head3">2. CommonJS (CJS)</h3>
+                        <p class="mb-2 text-sm">Node.js 早期采用的模块化规范，在服务器端广泛使用。</p>
+                         <ul class="list-disc list-inside space-y-1 text-sm mb-4">
+                            <li><strong>语法：</strong> 使用 <code>require()</code> 导入，<code>module.exports</code> 或 <code>exports</code> 导出。</li>
+                            <li><strong>特点：</strong>
+                                <ul class="list-['-_'] list-inside ml-4 mt-1 text-gray-600">
+                                    <li><strong>动态加载：</strong> 模块在运行时加载和执行，<code>require()</code> 可以在代码的任何地方调用。</li>
+                                    <li>导出的是值的 *拷贝* (对于原始类型) 或 *引用* (对于对象，但引用的是导出时的那个对象)。</li>
+                                    <li>同步加载 (第一次加载时会缓存结果)。</li>
+                                    <li><code>this</code> 指向当前模块的 <code>exports</code> 对象。</li>
+                                    <li>Node.js 环境提供 <code>__filename</code>, <code>__dirname</code> 等变量。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <h4 class="head4 text-sm font-semibold mb-1">示例:</h4>
+                        <pre><code class="language-javascript">// utils.js
+let counter = 0;
+function increment() { counter++; }
+function getCount() { return counter; }
+
+module.exports = {
+  increment,
+  getCount,
+  get value() { return counter; } // 使用 getter 模拟 live binding (不完全等同)
+};
+
+// app.js
+const utils = require('./utils.js');
+
+console.log(utils.getCount()); // 0
+utils.increment();
+console.log(utils.getCount()); // 1
+console.log(utils.value); // 1 (通过 getter 获取最新值)
+// 如果直接导出 counter: module.exports = { counter }, 则导入的是 0 这个值的拷贝
+</code></pre>
+                        <h4 class="head4 text-sm font-semibold mt-4 mb-1">加载机制 (简化流程图):</h4>
+                         <div class="mermaid">
+                            graph TD
+                            A["Node.js 执行 app.js"] --> B["遇到 require('./utils.js')"]
+                            B -- "缓存中有 utils.js 模块?" --> C["有"]
+                            B -- "缓存中没有" --> D["加载 utils.js 文件"]
+                            D --> E["执行 utils.js 代码"]
+                            E --> F["将 module.exports 的值缓存"]
+                            F --> C
+                            C -- "返回缓存的 module.exports" --> G["utils = 返回值"]
+                            G --> H["继续执行 app.js 后续代码"]
+                        
+                            style A fill:#e0f2fe,stroke:#0ea5e9
+                            style B fill:#fefce8,stroke:#ca8a04
+                            style C fill:#fefce8,stroke:#ca8a04
+                            style D fill:#e0f2fe,stroke:#0ea5e9
+                            style E fill:#f1f5f9,stroke:#64748b
+                            style F fill:#ecfdf5,stroke:#16a34a
+                            style G fill:#fefce8,stroke:#ca8a04
+                            style H fill:#f1f5f9,stroke:#64748b
+                        
+                        </div>
+                         <p class="text-xs text-center text-gray-500 mt-1">CJS 加载过程：执行 -> 遇到 require -> 加载/执行依赖 -> 缓存导出 -> 返回导出 -> 继续执行。</p>
+                    </div>
+
+                    <div id="esm-vs-cjs" class="content-card mb-8">
+                        <h3 class="head3">3. ESM vs CJS 对比与深入</h3>
+                        <p class="mb-4">两者在语法、加载时机、绑定方式等方面存在显著差异：</p>
+                        <div class="overflow-x-auto">
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th>特性</th>
+                                        <th>ES Modules (ESM)</th>
+                                        <th>CommonJS (CJS)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>标准</td>
+                                        <td>ECMAScript 官方标准</td>
+                                        <td>Node.js 实现 (非官方标准)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>加载时机</td>
+                                        <td>编译时静态解析</td>
+                                        <td>运行时动态加载</td>
+                                    </tr>
+                                    <tr>
+                                        <td>加载方式</td>
+                                        <td>异步 (浏览器默认, Node.js 支持), <code>import()</code></td>
+                                        <td>同步 (<code>require()</code>)</td>
+                                    </tr>
+                                     <tr>
+                                        <td>导出/导入</td>
+                                        <td><code>export</code> / <code>import</code></td>
+                                        <td><code>module.exports</code>, <code>exports</code> / <code>require()</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td>值绑定</td>
+                                        <td><span class="tooltip-term" data-tooltip="导入的变量与导出的变量绑定，导出模块内部值的变化会反映到导入处。">实时绑定 (Live Binding)</span></td>
+                                        <td>值拷贝 (原始类型) / 引用拷贝 (对象, 导出瞬间的值)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>import/require</code> 位置</td>
+                                        <td>必须在顶层</td>
+                                        <td>可在代码任意位置</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tree Shaking</td>
+                                        <td>支持 (因静态解析)</td>
+                                        <td>较难支持 (因动态性)</td>
+                                    </tr>
+                                     <tr>
+                                        <td><code>this</code> 指向</td>
+                                        <td>顶层 <code>this</code> 为 <code>undefined</code></td>
+                                        <td>顶层 <code>this</code> 指向 <code>module.exports</code></td>
+                                    </tr>
+                                     <tr>
+                                        <td>循环依赖处理</td>
+                                        <td>部分支持 (返回未初始化的绑定)</td>
+                                        <td>部分支持 (可能返回未完成的对象)</td>
+                                    </tr>
+                                     <tr>
+                                        <td>Node.js 支持</td>
+                                        <td>需 <code>"type": "module"</code> 或 <code>.mjs</code></td>
+                                        <td>默认 (<code>.js</code>, <code>.cjs</code>)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4 class="head4 mt-6">Node.js 中使用 ESM</h4>
+                        <p class="text-sm mb-2">要在 Node.js 中原生使用 ESM，可以通过以下方式之一：</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-gray-600">
+                            <li>在 <code>package.json</code> 中添加 <code>"type": "module"</code>，此时 <code>.js</code> 文件默认被视为 ESM。</li>
+                            <li>将文件后缀名改为 <code>.mjs</code>。</li>
+                            <li>如果项目是 CJS (默认或 <code>"type": "commonjs"</code>)，可以使用 <code>.cjs</code> 后缀明确指定文件为 CJS。</li>
+                        </ul>
+                        <p class="text-sm mt-2">在 ESM 文件中，不能直接使用 CJS 特有的变量如 <code>require</code>, <code>module</code>, <code>exports</code>, <code>__filename</code>, <code>__dirname</code>。可以使用 <code>import.meta.url</code> 等替代。</p>
+
+                         <div class="quiz-card" id="quiz-modules">
+                            <div class="quiz-question"><span class="material-icons">quiz</span>测验: 以下关于 ES Modules (ESM) 和 CommonJS (CJS) 的说法，哪个是 <strong>错误</strong> 的？</div>
+                            <div class="quiz-options">
+                                <label class="quiz-option"><input type="radio" name="q_modules" value="a"><span>ESM 支持静态分析和 Tree Shaking，而 CJS 通常不支持。</span></label>
+                                <label class="quiz-option"><input type="radio" name="q_modules" value="b"><span>CJS 的 <code>require()</code> 是同步加载，而 ESM 的 <code>import</code> 语句是异步加载。</span></label>
+                                <label class="quiz-option"><input type="radio" name="q_modules" value="c"><span>ESM 导出的是值的实时绑定 (live binding)，而 CJS 导出的是值的拷贝（或引用拷贝）。</span></label>
+                                <label class="quiz-option"><input type="radio" name="q_modules" value="d"><span>在 Node.js 中，可以通过设置 <code>"type": "module"</code> 来让 <code>.js</code> 文件默认使用 ESM 规范。</span></label>
+                            </div>
+                            <div class="quiz-feedback mt-4" id="feedback-q_modules"></div>
+                            <button class="quiz-toggle button button-secondary mt-4" onclick="checkAnswer('q_modules', 'b', 'quiz-modules')">
+                                <span class="material-icons icon-arrow">expand_more</span><span class="button-text">检查答案</span>
+                            </button>
+                            <div class="quiz-answer">
+                                <p><strong>答案:</strong> B. CJS 的 <code>require()</code> 是同步加载，而 ESM 的 <code>import</code> 语句是异步加载。</p>
+                                <p><strong>解析:</strong> CJS 的 <code>require()</code> 确实是同步加载。但 ESM 的 <code>import</code> 语句本身是静态声明，其加载过程在不同环境下可能同步也可能异步（例如浏览器是异步的），但关键在于它是 *静态解析* 的。说 <code>import</code> 语句本身是异步加载并不完全准确，且容易与动态 <code>import()</code> 函数混淆。其他选项都是正确的。</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="pnpm" class="content-section fade-in-section" style="animation-delay: 0.15s;">
+                    <h2 class="flex items-center head2">
+                        <span class="material-icons">savings</span>pnpm 及其优势
+                        <span class="level-tag level-tag-low">低频基础</span>
+                    </h2>
+                     <div class="content-card">
+                        <p class="mb-4"><code>pnpm</code> (performant npm) 是另一种流行的 Node.js 包管理器，旨在解决 npm/yarn 的一些痛点，尤其是在磁盘空间和安装速度方面。</p>
+                        <h3 class="head3">核心优势</h3>
+                         <ul class="list-disc list-inside space-y-2 text-sm">
+                            <li>
+                                <strong>节省磁盘空间 (Content-addressable Store & Links):</strong>
+                                pnpm 的核心机制是使用 <span class="tooltip-term" data-tooltip="依赖文件内容决定其存储路径，相同内容的文件只存一份。">内容寻址存储</span> 和文件系统链接（硬链接或符号链接）。依赖包的实际文件只会在全局存储区（通常在用户主目录下的 `.pnpm-store`）存储一份。项目中的 <code>node_modules</code> 目录则通过链接指向这些全局存储中的文件，而不是像 npm/yarn 那样在每个项目中复制依赖文件。这在有多个项目共享许多相同依赖时，能极大地减少磁盘空间占用。
+                            </li>
+                             <li>
+                                <strong>安装速度快：</strong>
+                                由于利用了全局存储和链接，安装依赖时如果所需版本的包已存在于全局存储中，pnpm 可以直接创建链接，跳过了下载和解压的过程，因此安装速度通常比 npm/yarn 更快，尤其是在重复安装或安装大型依赖时。
+                            </li>
+                             <li>
+                                <strong>更严格的依赖管理 (非扁平化 node_modules)：</strong>
+                                pnpm 创建的 <code>node_modules</code> 结构不是扁平的。项目代码只能直接 <code>require()</code> 或 <code>import</code> 在其 <code>package.json</code> 中明确声明的依赖。间接依赖（依赖的依赖）不会被提升到 <code>node_modules</code> 的顶层，从而避免了 <span class="tooltip-term" data-tooltip="项目中使用了某个包，但该包并未在 package.json 中声明，而是通过其他依赖间接引入的。这可能导致依赖关系不稳定。">幽灵依赖 (Phantom Dependencies)</span> 问题，使得依赖关系更清晰、项目更健壮。
+                            </li>
+                        </ul>
+                         <h4 class="head4 mt-6">node_modules 结构对比 (示意图)</h4>
+                        <div class="mermaid">
+                            graph LR
+                            subgraph "npm/yarn v3+ 扁平化"
+                                direction TB
+                                NM1["node_modules"] --> P1["package-a"]
+                                NM1 --> P2["package-b"]
+                                NM1 --> P3["package-c@1.0 来自 a"]
+                                NM1 --> P4["package-c@2.0 来自 b"]
+                                P1 --> P3
+                                P2 --> P4
+                                style NM1 fill:#f3e8ff,stroke:#7e22ce
+                            end
+                        
+                            subgraph "pnpm (符号链接)"
+                                direction TB
+                                NM2["node_modules"] --> L1["./package-a → ../.pnpm/package-a@ver/node_modules/package-a"]
+                                NM2 --> L2["./package-b → ../.pnpm/package-b@ver/node_modules/package-b"]
+                                NM2 --> H1["./.pnpm"]
+                                H1 --> PnpmA["package-a@ver/node_modules/package-a"]
+                                H1 --> PnpmB["package-b@ver/node_modules/package-b"]
+                                H1 --> PnpmC1["package-c@1.0/node_modules/package-c"]
+                                H1 --> PnpmC2["package-c@2.0/node_modules/package-c"]
+                                PnpmA --> L3["./package-c → ../../package-c@1.0/node_modules/package-c"]
+                                PnpmB --> L4["./package-c → ../../package-c@2.0/node_modules/package-c"]
+                                style NM2 fill:#dcfce7,stroke:#16a34a
+                                style H1 fill:#e0f2fe,stroke:#0ea5e9
+                            end                        
+                        
+                        </div>
+                         <p class="text-xs text-center text-gray-500 mt-1">pnpm 通过 <code>.pnpm</code> 目录和符号链接管理依赖，避免了扁平化带来的问题。</p>
+                        <p class="text-sm font-medium text-gray-800 mt-4">🎯 了解：知道 pnpm 通过链接技术节省空间、提升速度，并创建更规范的 node_modules 结构即可。在大型项目或 Monorepo 场景下优势更明显。</p>
+                    </div>
+                </section>
+
+            </article>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+        /**
+         * JavaScript for Content Pages (Enhanced)
+         * Handles:
+         * - TOC highlighting
+         * - Section fade-in
+         * - Prism highlighting
+         * - Mermaid rendering
+         * - Code block copy button
+         * - Quiz functionality
+         * - Ripple effect for buttons
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Initialize Mermaid ---
+            mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+            try {
+                mermaid.run(); // Render static diagrams defined in HTML
+            } catch(e) {
+                console.error("Error running initial Mermaid render:", e);
+            }
+
+
+            // --- TOC Highlighting & Fade-in ---
+            const sections = document.querySelectorAll('main section[id], main div[id^="quiz-"]'); // Observe sections and quiz cards
+            const tocLinks = document.querySelectorAll('#local-toc a');
+            const mainContentSections = document.querySelectorAll('main > article > section.content-section'); // Target sections for fade-in
+
+            const tocObserverOptions = { root: null, rootMargin: '-20% 0px -60% 0px', threshold: 0 };
+            let lastActiveTocLink = null;
+
+            const tocObserverCallback = (entries) => {
+                let bestVisibleEntry = null;
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (!bestVisibleEntry || entry.boundingClientRect.top < bestVisibleEntry.boundingClientRect.top) {
+                            bestVisibleEntry = entry;
+                        }
+                    }
+                });
+
+                if (bestVisibleEntry) {
+                    const id = bestVisibleEntry.target.getAttribute('id');
+                    // Adjust selector to handle quiz IDs potentially matching section IDs partially
+                    const activeLink = document.querySelector(`#local-toc a[href="#${id.startsWith('quiz-') ? id.substring(5) : id}"]`);
+
+                    if (activeLink && activeLink !== lastActiveTocLink) {
+                        if (lastActiveTocLink) lastActiveTocLink.classList.remove('active');
+                        activeLink.classList.add('active');
+                        lastActiveTocLink = activeLink;
+                    }
+                }
+            };
+
+            const tocObserver = new IntersectionObserver(tocObserverCallback, tocObserverOptions);
+            sections.forEach(section => tocObserver.observe(section));
+
+            const currentHash = window.location.hash;
+            if (currentHash) {
+                const initialActiveLink = document.querySelector(`#local-toc a[href="${currentHash}"]`);
+                if (initialActiveLink) {
+                    tocLinks.forEach(link => link.classList.remove('active'));
+                    initialActiveLink.classList.add('active');
+                    lastActiveTocLink = initialActiveLink;
+                }
+            } else if (tocLinks.length > 0 && !lastActiveTocLink) {
+                 if(tocLinks[0]) {
+                    tocLinks[0].classList.add('active');
+                    lastActiveTocLink = tocLinks[0];
+                 }
+            }
+
+            const fadeObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+            const fadeObserverCallback = (entries, observer) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        const delayIndex = Array.from(mainContentSections).indexOf(entry.target);
+                        entry.target.style.animationDelay = `${delayIndex * 0.05}s`;
+                        entry.target.classList.add('fade-in-section');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            };
+            const fadeObserver = new IntersectionObserver(fadeObserverCallback, fadeObserverOptions);
+            mainContentSections.forEach(section => fadeObserver.observe(section));
+
+            // --- Code Block Copy Button ---
+            document.querySelectorAll('pre').forEach(preElement => {
+                const codeElement = preElement.querySelector('code');
+                if (!codeElement) return;
+
+                const button = document.createElement('button');
+                button.className = 'copy-button';
+                button.innerHTML = '<i class="fas fa-copy"></i> Copy <span class="copy-feedback"></span>';
+                preElement.appendChild(button);
+
+                button.addEventListener('click', () => {
+                    const codeToCopy = codeElement.innerText;
+                    navigator.clipboard.writeText(codeToCopy).then(() => {
+                        const feedback = button.querySelector('.copy-feedback');
+                        feedback.textContent = 'Copied!';
+                        button.style.backgroundColor = '#10b981'; // Emerald-500
+                        setTimeout(() => {
+                            feedback.textContent = '';
+                            button.style.backgroundColor = ''; // Revert color
+                        }, 2000);
+                    }).catch(err => {
+                        const feedback = button.querySelector('.copy-feedback');
+                        feedback.textContent = 'Failed!';
+                        button.style.backgroundColor = '#ef4444'; // Red-500
+                         console.error('Failed to copy: ', err);
+                         setTimeout(() => {
+                            feedback.textContent = '';
+                            button.style.backgroundColor = ''; // Revert color
+                        }, 2000);
+                    });
+                });
+            });
+
+            // --- Ripple Effect Logic (Adapted from example.html) ---
+            function createRipple(event) {
+                const button = event.currentTarget;
+                // Check if the target is a button or has button class
+                if (!button || (button.tagName !== 'BUTTON' && !button.classList.contains('button'))) return;
+                if (typeof button.getBoundingClientRect !== 'function') return;
+
+                const circle = document.createElement("span");
+                const diameter = Math.max(button.clientWidth, button.clientHeight);
+                const radius = diameter / 2;
+
+                // Try to get primary color RGB from CSS variable, fallback to default
+                const primaryColorRgb = getComputedStyle(document.documentElement)
+                                        .getPropertyValue('--primary-color-rgb') // Expecting '59, 130, 246'
+                                        || '59, 130, 246'; // Fallback
+
+                circle.style.width = circle.style.height = `${diameter}px`;
+                const rect = button.getBoundingClientRect();
+                circle.style.left = `${event.clientX - rect.left - radius}px`;
+                circle.style.top = `${event.clientY - rect.top - radius}px`;
+                circle.style.backgroundColor = `rgba(${primaryColorRgb}, 0.4)`; // Use RGB for opacity
+                circle.classList.add("ripple");
+
+                const existingRipple = button.querySelector(".ripple");
+                if (existingRipple) existingRipple.remove();
+
+                button.appendChild(circle);
+                setTimeout(() => circle.remove(), 600); // Match animation duration
+            }
+
+            // Attach ripple effect to buttons
+             document.querySelectorAll('.button, .quiz-toggle').forEach(button => {
+                 button.addEventListener('click', createRipple);
+             });
+
+            // --- Quiz Toggle Logic (Adapted from example.html) ---
+            window.toggleAnswer = function(quizId, buttonElement) {
+                const quizCard = document.getElementById(quizId);
+                if (!quizCard) return;
+                const answer = quizCard.querySelector('.quiz-answer');
+                const icon = buttonElement.querySelector('.icon-arrow');
+                const buttonTextSpan = buttonElement.querySelector('.button-text');
+                if (!answer || !icon || !buttonTextSpan) return;
+
+                const isVisible = answer.classList.contains('visible');
+
+                if (isVisible) {
+                    answer.style.maxHeight = '0';
+                    answer.style.opacity = '0';
+                    answer.style.marginTop = '0';
+                    answer.style.paddingTop = '0';
+                    answer.style.paddingBottom = '0';
+                    answer.classList.remove('visible');
+                    icon.classList.remove('rotated');
+                    buttonTextSpan.textContent = ' 查看答案';
+                    // Use transitionend event for cleanup if possible, fallback to timeout
+                    const transitionEndHandler = () => {
+                        if (!answer.classList.contains('visible')) { // Double check state
+                            answer.style.display = 'none';
+                        }
+                        answer.removeEventListener('transitionend', transitionEndHandler);
+                    };
+                    answer.addEventListener('transitionend', transitionEndHandler);
+                    // Fallback timeout in case transitionend doesn't fire reliably
+                    setTimeout(() => {
+                        if (!answer.classList.contains('visible')) {
+                             answer.style.display = 'none';
+                        }
+                    }, 550); // Slightly longer than transition duration
+                } else {
+                    answer.style.display = 'block'; // Make it visible for measurement
+                    // Set final styles before calculating scrollHeight
+                    answer.style.paddingTop = '1rem';
+                    answer.style.paddingBottom = '1rem';
+                    answer.style.marginTop = '1rem';
+                    // Force reflow to apply display: block before measuring scrollHeight
+                    requestAnimationFrame(() => {
+                        answer.style.maxHeight = answer.scrollHeight + 'px';
+                        answer.style.opacity = '1';
+                        answer.classList.add('visible');
+                        icon.classList.add('rotated');
+                        buttonTextSpan.textContent = ' 隐藏答案';
+                    });
+                }
+            }
+
+            // --- Quiz Check Answer Logic (Adapted from example.html) ---
+            window.checkAnswer = function(questionName, correctAnswerValue, quizId) {
+                const options = document.querySelectorAll(`input[name="${questionName}"]`);
+                const feedbackElement = document.getElementById(`feedback-${questionName}`);
+                const quizCard = document.getElementById(quizId); // Use provided quizId
+                let selectedValue = null;
+                let selectedLabel = null;
+
+                if (!feedbackElement || !quizCard) {
+                    console.error("Quiz elements not found for:", questionName, quizId);
+                    return;
+                }
+
+                // Reset previous states
+                quizCard.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+
+                options.forEach(option => {
+                    if (option.checked) {
+                        selectedValue = option.value;
+                        selectedLabel = option.closest('.quiz-option');
+                        if (selectedLabel) selectedLabel.classList.add('selected');
+                    }
+                });
+
+                if (!selectedValue) {
+                    feedbackElement.textContent = "请选择一个选项！";
+                    feedbackElement.className = 'quiz-feedback warning';
+                    feedbackElement.style.display = 'block';
+                    return;
+                }
+
+                let correctAnswerLabel = null;
+                options.forEach(opt => { if (opt.value === correctAnswerValue) correctAnswerLabel = opt.closest('.quiz-option'); });
+
+                if (selectedValue === correctAnswerValue) {
+                    feedbackElement.textContent = "回答正确！";
+                    feedbackElement.className = 'quiz-feedback correct';
+                    if(selectedLabel) selectedLabel.classList.add('correct');
+                } else {
+                    let correctAnswerText = '';
+                    if (correctAnswerLabel) {
+                        correctAnswerText = correctAnswerLabel.querySelector('span')?.textContent || `选项 ${correctAnswerValue}`;
+                        correctAnswerLabel.classList.add('correct'); // Highlight correct answer
+                    }
+                    feedbackElement.textContent = `回答错误。正确答案是: "${correctAnswerText}"`;
+                    feedbackElement.className = 'quiz-feedback incorrect';
+                    if(selectedLabel) selectedLabel.classList.add('incorrect'); // Mark user's wrong choice
+                }
+                feedbackElement.style.display = 'block';
+
+                // Automatically show the answer explanation section
+                const answerSection = quizCard.querySelector('.quiz-answer');
+                const toggleButton = quizCard.querySelector('.quiz-toggle');
+                 if (answerSection && toggleButton && !answerSection.classList.contains('visible')) {
+                     toggleAnswer(quizId, toggleButton);
+                 }
+            }
+
+            // Attach event listener for quiz toggle buttons (if they are separate from check button)
+             document.querySelectorAll('.quiz-card .quiz-toggle').forEach(button => {
+                 const quizCard = button.closest('.quiz-card');
+                 const quizId = quizCard?.id;
+                 const checkButton = quizCard?.querySelector('button[onclick^="checkAnswer"]');
+
+                 if (quizId && button !== checkButton) { // Only add toggle if it's NOT the check button
+                     button.addEventListener('click', (event) => {
+                         // Ripple effect is already attached globally
+                         toggleAnswer(quizId, button);
+                     });
+                 }
+                 // If it IS the check button, the onclick handler calls checkAnswer,
+                 // and checkAnswer now handles revealing the answer section.
+             });
+
+
+            // --- Trigger Prism Highlighting ---
+             Prism.highlightAll();
+
+        }); // End of DOMContentLoaded listener
+    </script>
+
+</body>
+
+</html>

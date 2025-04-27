@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript 进阶概念</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../../global.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <style>
+        /* Primarily rely on global.css and Tailwind */
+
+        /* --- Base & Layout Adjustments --- */
+        html {
+            scroll-padding-top: 6rem; /* Adjust if header is sticky */
+            scroll-behavior: smooth;
+        }
+
+        body {
+            /* Base font, bg, color assumed from global.css */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-family: 'Inter', sans-serif; /* Ensure Inter is the base font */
+        }
+
+        /* --- Typography & Sectioning --- */
+        h1, h2, h3, h4, h5, h6 {
+            scroll-margin-top: 6rem; /* Offset for sticky nav */
+        }
+
+        /* Apply border bottom to H2 in content sections */
+        .content-section > h2 {
+            border-bottom: 1px solid var(--border-color-light);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem; /* Consistent spacing after H2 */
+        }
+
+        /* Style for frequency/level tags */
+        .level-tag {
+            display: inline-block;
+            margin-left: 0.5rem;
+            font-size: 0.75rem; /* text-xs */
+            font-weight: 500; /* font-medium */
+            padding: 0.1rem 0.5rem;
+            border-radius: 0.25rem; /* rounded-sm */
+            vertical-align: middle;
+            border: 1px solid transparent;
+        }
+        .level-tag-high { background-color: var(--danger-color-light); color: var(--danger-color); border-color: var(--danger-color); }
+        .level-tag-medium { background-color: var(--warning-color-light); color: var(--warning-color); border-color: var(--warning-color); }
+        .level-tag-low { background-color: var(--secondary-color-light); color: var(--secondary-color); border-color: var(--secondary-color); }
+        .level-tag-base { background-color: var(--bg-color-lighter); color: var(--text-color-light); border-color: var(--border-color-default); }
+        .level-tag-advanced { background-color: var(--primary-color-light); color: var(--primary-color-dark); border-color: var(--primary-color); }
+
+        /* --- Fade-in Animation --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-section {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* --- Code Block Styling --- */
+        pre[class*="language-"] {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.375rem; /* rounded-md */
+            padding: 1rem; /* p-4 */
+            font-family: 'Roboto Mono', monospace; /* Ensure mono font */
+            overflow-x: auto;
+        }
+        *:not(pre) > code {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9em;
+            background-color: rgba(243, 244, 246, 0.8); /* bg-gray-100 with opacity */
+            color: var(--primary-color-dark);
+            padding: 0.1em 0.4em;
+            border-radius: 0.25rem;
+            border: 1px solid var(--border-color-light);
+        }
+
+        /* --- Content Card Adjustments --- */
+        /* Add hover effect */
+        .content-card {
+            transition: box-shadow 0.2s ease-in-out;
+        }
+        /* Use shadow-md on hover for subtle feedback */
+        .content-card:hover {
+             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* Tailwind shadow-md */
+        }
+        .content-section > .content-card + .content-card {
+            margin-top: 1.5rem;
+        }
+        .content-card > *:last-child:not(.quiz-card) { /* Avoid removing margin from quiz card itself */
+            margin-bottom: 0 !important;
+        }
+
+        /* --- Tooltips (Adapted from example.html) --- */
+        .tooltip-term {
+            border-bottom: 1px dotted var(--primary-color);
+            cursor: help;
+            position: relative;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        .tooltip-term::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 0.4rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            z-index: 10;
+        }
+        .tooltip-term::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(0px);
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            z-index: 10;
+        }
+        .tooltip-term:hover::before,
+        .tooltip-term:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* --- Mermaid Diagram Styling --- */
+        .mermaid {
+            margin: 1.5rem 0;
+            text-align: center;
+            background-color: var(--bg-color-light);
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color-light);
+        }
+        .mermaid svg { max-width: 100%; height: auto; display: block; margin: auto; }
+
+        /* --- Quiz Card Styling (Adapted from example.html & global.css) --- */
+        /* .quiz-card styles are mostly in global.css */
+        /* Ensure necessary styles for toggle button and answer visibility are present */
+        .quiz-toggle {
+            position: relative;
+            overflow: hidden;
+            /* Ensure ripple stays inside */
+            /* Use button classes from global.css */
+        }
+        .quiz-toggle .material-icons {
+            font-size: 1.1rem;
+            transition: transform 0.3s ease-in-out;
+        }
+        .quiz-toggle .icon-arrow.rotated {
+            transform: rotate(180deg);
+        }
+        .quiz-answer {
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, padding-top 0.5s ease-in-out, padding-bottom 0.5s ease-in-out, margin-top 0.5s ease-in-out;
+            overflow: hidden;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            border-top: 1px solid var(--border-color-default); /* Add separator */
+            background-color: var(--bg-color-lighter);
+            border-radius: 0 0 0.375rem 0.375rem; /* Round bottom corners */
+            color: var(--text-color-default);
+        }
+        .quiz-answer.visible {
+            max-height: 1000px; /* Adjust if needed */
+            opacity: 1;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            margin-top: 1rem;
+            overflow: auto;
+        }
+        /* Ripple effect (copied from example.html) */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.4); /* Use RGB for opacity */
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            pointer-events: none;
+        }
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+    </style>
+</head>
+
+<body class="bg-gray-100"> <div class="page-container"> <aside class="local-side-nav">
+            <h4 class="head4">TypeScript 进阶</h4> <ul id="local-toc">
+                <li><a href="#generics" class="active"><span class="material-icons nav-icon">code</span>泛型</a></li>
+                <li><a href="#union-intersection"><span class="material-icons nav-icon">merge_type</span>联合与交叉类型</a></li>
+                <li><a href="#utility-types"><span class="material-icons nav-icon">build</span>常用工具类型</a></li>
+                <li class="ml-4"><a href="#utility-partial" class="text-sm"><span class="material-icons nav-icon text-base">texture</span>Partial&lt;T&gt;</a></li>
+                 <li class="ml-4"><a href="#utility-required" class="text-sm"><span class="material-icons nav-icon text-base">check_box</span>Required&lt;T&gt;</a></li>
+                 <li class="ml-4"><a href="#utility-pick" class="text-sm"><span class="material-icons nav-icon text-base">content_cut</span>Pick&lt;T, K&gt;</a></li>
+                 <li class="ml-4"><a href="#utility-omit" class="text-sm"><span class="material-icons nav-icon text-base">disabled_by_default</span>Omit&lt;T, K&gt;</a></li>
+            </ul>
+            <a href="../../index.html" class="back-link">
+                &larr; 返回大纲目录
+            </a>
+        </aside>
+
+        <main class="content-main">
+            <article>
+                <section id="intro" class="content-section fade-in-section" style="animation-delay: 0s;">
+                    <h1 class="head1 flex items-center gap-2">
+                        <span class="material-icons text-3xl text-blue-600">integration_instructions</span>TypeScript 进阶概念
+                    </h1>
+                    <p class="mb-4">本节介绍 TypeScript 中一些重要的进阶概念，包括泛型、联合类型、交叉类型以及常用的工具类型。理解这些概念有助于编写更灵活、可重用且类型安全的代码。</p>
+                    <p class="mt-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md text-sm">💡
+                        <strong>提示:</strong> 点击左侧导航可以快速跳转到相应主题。代码示例使用了 TypeScript 语法。尝试回答每节末尾的测验题！将鼠标悬停在 <span class="tooltip-term" data-tooltip="像这样!">带下划线的术语</span> 上可查看解释。
+                    </p>
+                </section>
+
+                <section id="generics" class="content-section fade-in-section" style="animation-delay: 0.05s;">
+                    <h2 class="head2 flex items-center">
+                        <span class="material-icons">code</span>泛型 (Generics)
+                        <span class="level-tag level-tag-low">低频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                        <span class="level-tag level-tag-advanced">进阶(了解)</span>
+                    </h2>
+                    <div class="content-card hover:shadow-md">
+                        <h3 class="head3">基本概念</h3>
+                        <p>泛型允许我们编写可重用的代码组件，这些组件可以在<b>使用时</b>才指定具体的类型，而不是在定义时写死。这就像给类型设置了一个<span class="tooltip-term" data-tooltip="如 <T> 中的 T，它是一个占位符，在使用时会被具体类型替换">类型变量 (Type Variable)</span>或占位符。</p>
+                        <p class="mt-2">主要目的是提高代码的<b>灵活性</b>和<b>复用性</b>，同时保持<b>类型安全</b>。</p>
+                    </div>
+                    <div class="content-card hover:shadow-md">
+                        <h3 class="head3">简单应用</h3>
+                        <p>一个经典的例子是 <code>identity</code> 函数，它接收一个参数并返回该参数本身。</p>
+                        <pre><code class="language-typescript">
+// 定义一个泛型函数 identity
+// T 是类型变量，代表任何类型
+function identity&lt;T&gt;(arg: T): T {
+  return arg;
+}
+
+// 使用时显式指定类型
+let outputString = identity&lt;string&gt;("hello generics"); // T is string
+let outputNumber = identity&lt;number&gt;(123);          // T is number
+
+// 类型推断：TS 也能自动推断 T 的类型
+let inferredString = identity("hello again");     // TS infers T as string
+let inferredBoolean = identity(true);         // TS infers T as boolean
+
+console.log(outputString); // "hello generics"
+console.log(outputNumber); // 123
+console.log(inferredString); // "hello again"
+console.log(inferredBoolean); // true
+                        </code></pre>
+                        <p class="mt-4">泛型也常用于定义数据结构，如接口或类：</p>
+                        <pre><code class="language-typescript">
+// 定义一个泛型接口 Box
+interface Box&lt;T&gt; {
+  contents: T;
+}
+
+let numberBox: Box&lt;number&gt; = { contents: 42 };
+let stringBox: Box&lt;string&gt; = { contents: "TypeScript" };
+
+console.log(numberBox.contents); // 42
+console.log(stringBox.contents); // "TypeScript"
+                        </code></pre>
+                    </div>
+                     <div class="quiz-card mt-6" id="quiz-generics">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>泛型测验：泛型的主要目的是什么？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"><input type="radio" name="q_generics" value="a"><span>仅用于函数定义</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_generics" value="b"><span>提高代码复用性和类型安全</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_generics" value="c"><span>替代所有 interface 定义</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_generics" value="d"><span>简化 JavaScript 代码</span></label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_generics"></div>
+                        <button class="quiz-toggle button button-secondary mt-4" onclick="checkAnswer('q_generics', 'b')">
+                             <span class="material-icons icon-arrow">expand_more</span><span class="button-text">检查答案</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                           <p><strong>答案:</strong> B. 提高代码复用性和类型安全</p>
+                           <p><strong>解析:</strong> 泛型允许我们编写与类型无关的可重用代码（如 <code>identity</code> 函数或 <code>Box</code> 接口），同时在编译时强制执行类型检查，确保类型安全。</p>
+                       </div>
+                    </div>
+                </section>
+
+                <section id="union-intersection" class="content-section fade-in-section" style="animation-delay: 0.1s;">
+                     <h2 class="head2 flex items-center">
+                        <span class="material-icons">merge_type</span>联合类型 (<code>|</code>) 与交叉类型 (<code>&</code>)
+                        <span class="level-tag level-tag-low">低频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <div class="content-card hover:shadow-md">
+                        <h3 class="head3">联合类型 (Union Types |)</h3>
+                        <p>联合类型表示一个值可以是<b>多种类型中的一种</b>。使用 <code>|</code> 分隔。</p>
+                        <div class="mermaid">
+                            graph TD
+                                subgraph "联合类型: string | number"
+                                    A[Value] --> B((string));
+                                    A --> C((number));
+                                end
+                                style A fill:#fff,stroke:#333,stroke-width:2px
+                                style B fill:#eff6ff,stroke:#3b82f6
+                                style C fill:#fef3c7,stroke:#ca8a04
+                        </div>
+                        <pre><code class="language-typescript">
+// 函数参数可以是 string 或 number
+function printId(id: string | number) {
+  console.log("ID: " + id);
+
+  // 注意：直接访问联合类型变量时，只能访问所有类型共有的成员
+  // console.log(id.toUpperCase()); // Error: Property 'toUpperCase' does not exist on type 'string | number'.
+
+  // 需要使用 <span class="tooltip-term" data-tooltip="通过 typeof, instanceof, 属性检查等方式，在特定代码块中缩小变量的类型范围">类型收窄 (Type Narrowing)</span> 来区分
+  if (typeof id === "string") {
+    // TS 知道这里 id 是 string
+    console.log(id.toUpperCase());
+  } else {
+    // TS 知道这里 id 是 number
+    console.log(id.toFixed(2));
+  }
+}
+
+printId("abc-123"); // ID: abc-123, ABC-123
+printId(456.7);    // ID: 456.7, 456.70
+// printId(true); // Error: Argument of type 'boolean' is not assignable to parameter of type 'string | number'.
+                        </code></pre>
+                    </div>
+                    <div class="content-card hover:shadow-md">
+                        <h3 class="head3">交叉类型 (Intersection Types &)</h3>
+                        <p>交叉类型是将<b>多个类型合并为一个类型</b>，合并后的类型拥有<b>所有</b>组成类型的成员。使用 <code>&</code> 连接。</p>
+                         <div class="mermaid">
+                            graph TD
+                                subgraph "接口 A"
+                                    PropA["propA: string"]
+                                end
+                                subgraph "接口 B"
+                                    PropB["propB: number"]
+                                end
+                                subgraph "交叉类型: A & B"
+                                    Merged["拥有 propA 和 propB"]
+                                end
+                                PropA --> Merged;
+                                PropB --> Merged;
+
+                                style PropA fill:#dbeafe,stroke:#60a5fa
+                                style PropB fill:#dcfce7,stroke:#34d399
+                                style Merged fill:#f1f5f9,stroke:#64748b,stroke-width:2px
+                        </div>
+                        <pre><code class="language-typescript">
+interface Colorful {
+  color: string;
+}
+
+interface Circle {
+  radius: number;
+}
+
+// 交叉类型：ColorfulCircle 必须同时拥有 color 和 radius
+type ColorfulCircle = Colorful & Circle;
+
+function drawShape(shape: ColorfulCircle) {
+  console.log(`Drawing a ${shape.color} circle with radius ${shape.radius}`);
+}
+
+const myShape: ColorfulCircle = {
+  color: "blue",
+  radius: 10
+};
+
+drawShape(myShape); // Drawing a blue circle with radius 10
+
+// drawShape({ color: "red" }); // Error: Property 'radius' is missing
+// drawShape({ radius: 5 });    // Error: Property 'color' is missing
+                        </code></pre>
+                    </div>
+                     <div class="quiz-card mt-6" id="quiz-union-intersection">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>类型测验：如果一个类型定义为 <code>Dog & Cat</code>，它表示什么？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"><input type="radio" name="q_union_intersection" value="a"><span>这个值要么是 Dog 类型，要么是 Cat 类型</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_union_intersection" value="b"><span>这个值必须同时拥有 Dog 和 Cat 类型的所有属性</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_union_intersection" value="c"><span>这个值可以是 Dog 或 Cat，或者是两者的混合</span></label>
+                            <label class="quiz-option"><input type="radio" name="q_union_intersection" value="d"><span>这是一个无效的类型定义</span></label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_union_intersection"></div>
+                        <button class="quiz-toggle button button-secondary mt-4" onclick="checkAnswer('q_union_intersection', 'b')">
+                             <span class="material-icons icon-arrow">expand_more</span><span class="button-text">检查答案</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                           <p><strong>答案:</strong> B. 这个值必须同时拥有 Dog 和 Cat 类型的所有属性</p>
+                           <p><strong>解析:</strong> 交叉类型 (<code>&</code>) 用于合并多个类型，结果类型需要满足所有原始类型的要求，即拥有所有类型的成员。</p>
+                       </div>
+                    </div>
+                </section>
+
+                <section id="utility-types" class="content-section fade-in-section" style="animation-delay: 0.15s;">
+                    <h2 class="head2 flex items-center">
+                        <span class="material-icons">build</span>常用工具类型 (Utility Types)
+                        <span class="level-tag level-tag-low">低频</span>
+                        <span class="level-tag level-tag-base">基础</span>
+                    </h2>
+                    <p class="mb-4">TypeScript 提供了一些内置的工具类型，可以方便地基于现有类型创建新类型。</p>
+
+                    <div id="utility-partial" class="content-card hover:shadow-md">
+                        <h3 class="head3"><code>Partial&lt;T&gt;</code></h3>
+                        <p>将类型 <code>T</code> 中的<b>所有属性</b>变为<b>可选的</b> (optional)。</p>
+                        <p class="text-sm text-gray-600 mt-1">常用于更新操作，只传递需要修改的字段。</p>
+                        <pre><code class="language-typescript">
+interface Todo {
+  title: string;
+  description: string;
+  completed: boolean;
+}
+
+// 更新函数接受一个可选的字段集合
+function updateTodo(todo: Todo, fieldsToUpdate: Partial&lt;Todo&gt;) {
+  return { ...todo, ...fieldsToUpdate };
+}
+
+const todo1: Todo = { title: "Learn TS", description: "Generics", completed: false };
+const updatedTodo = updateTodo(todo1, { description: "Utility Types" }); // 只更新 description
+
+console.log(updatedTodo);
+// Output: { title: 'Learn TS', description: 'Utility Types', completed: false }
+                        </code></pre>
+                    </div>
+
+                    <div id="utility-required" class="content-card hover:shadow-md">
+                        <h3 class="head3"><code>Required&lt;T&gt;</code></h3>
+                        <p>将类型 <code>T</code> 中的<b>所有属性</b>（包括原本可选的）变为<b>必需的</b> (required)。</p>
+                        <pre><code class="language-typescript">
+interface Props {
+  a?: number; // a is optional
+  b: string;
+}
+
+// 原始类型允许 a 缺失
+const props1: Props = { b: "hello" };
+
+// Required 类型要求所有属性都存在
+const completeProps: Required&lt;Props&gt; = { a: 1, b: "world" }; // OK
+
+// const incompleteProps: Required&lt;Props&gt; = { b: "test" };
+// Error: Property 'a' is missing in type '{ b: string; }' but required in type 'Required&lt;Props&gt;'.
+                        </code></pre>
+                    </div>
+
+                    <div id="utility-pick" class="content-card hover:shadow-md">
+                        <h3 class="head3"><code>Pick&lt;T, K&gt;</code></h3>
+                        <p>从类型 <code>T</code> 中<b>挑选出</b>指定的属性 <code>K</code> 来构造一个新类型。</p>
+                         <pre><code class="language-typescript">
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  isAdmin: boolean;
+}
+
+// 只挑选 'name' 和 'email' 属性
+type UserPreview = Pick&lt;User, "name" | "email"&gt;;
+
+const userPreview: UserPreview = {
+  name: "Alice",
+  email: "alice@example.com"
+  // id: 1 // Error: Type '{ name: string; email: string; id: number; }' is not assignable to type 'UserPreview'.
+           // Object literal may only specify known properties, and 'id' does not exist in type 'UserPreview'.
+};
+
+console.log(userPreview); // { name: 'Alice', email: 'alice@example.com' }
+                        </code></pre>
+                    </div>
+
+                     <div id="utility-omit" class="content-card hover:shadow-md">
+                        <h3 class="head3"><code>Omit&lt;T, K&gt;</code></h3>
+                        <p>从类型 <code>T</code> 中<b>移除</b>指定的属性 <code>K</code>，用剩下的属性构造一个新类型。</p>
+                        <pre><code class="language-typescript">
+interface UserWithPassword {
+  id: number;
+  username: string;
+  passwordHash: string; // Sensitive info
+}
+
+// 移除 'passwordHash' 属性
+type PublicUser = Omit&lt;UserWithPassword, "passwordHash"&gt;;
+
+const publicUserData: PublicUser = {
+  id: 1,
+  username: "bob"
+  // passwordHash: "..." // Error: Type '{ id: number; username: string; passwordHash: string; }' is not assignable to type 'PublicUser'.
+                         // Object literal may only specify known properties, and 'passwordHash' does not exist in type 'PublicUser'.
+};
+
+console.log(publicUserData); // { id: 1, username: 'bob' }
+                        </code></pre>
+                    </div>
+                     <div class="quiz-card mt-6" id="quiz-utility">
+                        <div class="quiz-question"><span class="material-icons mr-1">quiz</span>工具类型测验：如果你想创建一个类型，它包含 <code>User</code> 类型的所有属性，但 <code>email</code> 属性变为可选的，你会怎么做？</div>
+                        <div class="quiz-options">
+                            <label class="quiz-option"><input type="radio" name="q_utility" value="a"><span><code>Partial&lt;User&gt;</code></span></label>
+                            <label class="quiz-option"><input type="radio" name="q_utility" value="b"><span><code>Omit&lt;User, "email"&gt; & { email?: string }</code></span></label>
+                            <label class="quiz-option"><input type="radio" name="q_utility" value="c"><span><code>Pick&lt;User, "id" | "name" | "isAdmin"&gt; & Partial&lt;Pick&lt;User, "email"&gt;&gt;</code></span></label>
+                            <label class="quiz-option"><input type="radio" name="q_utility" value="d"><span><code>Required&lt;Omit&lt;User, "email"&gt;&gt; & { email?: string }</code></span></label>
+                        </div>
+                        <div class="quiz-feedback mt-4" id="feedback-q_utility"></div>
+                        <button class="quiz-toggle button button-secondary mt-4" onclick="checkAnswer('q_utility', 'c')">
+                             <span class="material-icons icon-arrow">expand_more</span><span class="button-text">检查答案</span>
+                        </button>
+                        <div class="quiz-answer" style="display: none;">
+                           <p><strong>答案:</strong> C. <code>Pick&lt;User, "id" | "name" | "isAdmin"&gt; & Partial&lt;Pick&lt;User, "email"&gt;&gt;</code> (或 B 也是一种常见方式)</p>
+                           <p><strong>解析:</strong></p>
+                            <ul>
+                                <li>A: <code>Partial&lt;User&gt;</code> 会使所有属性都可选。</li>
+                                <li>B: <code>Omit&lt;User, "email"&gt; & { email?: string }</code> 先移除 email，再添加一个可选的 email，这也是一种常用的实现方式。</li>
+                                <li>C: <code>Pick</code> 出必需的属性，再 <code>Pick</code> 出 email 并用 <code>Partial</code> 使其可选，最后用 <code>&</code> 合并。这是另一种精确控制的方式。</li>
+                                <li>D: <code>Required</code> 会使 Omit 后的属性变为必需，不符合要求。</li>
+                            </ul>
+                           <p>在实际应用中，选项 B 和 C 都能达到目的，C 更能体现 Pick 和 Partial 的组合运用。</p>
+                       </div>
+                    </div>
+                </section>
+
+            </article>
+        </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' }); // Use neutral theme
+
+        // --- Ripple Effect Logic (from example.html) ---
+        function createRipple(event) {
+            const button = event.currentTarget;
+            if (!button || typeof button.getBoundingClientRect !== 'function') return;
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+            // Attempt to get RGB from CSS variable, fallback to default blue
+            const primaryColorRgb = getComputedStyle(document.documentElement).getPropertyValue('--primary-color-rgb').trim() || '59, 130, 246';
+            circle.style.width = circle.style.height = `${diameter}px`;
+            const rect = button.getBoundingClientRect();
+            circle.style.left = `${event.clientX - rect.left - radius}px`;
+            circle.style.top = `${event.clientY - rect.top - radius}px`;
+            circle.style.backgroundColor = `rgba(${primaryColorRgb}, 0.4)`;
+            circle.classList.add("ripple");
+            const existingRipple = button.querySelector(".ripple");
+            if (existingRipple) existingRipple.remove();
+            button.appendChild(circle);
+            setTimeout(() => circle.remove(), 600); // Remove ripple after animation
+        }
+
+         // --- Quiz Toggle Logic (from example.html) ---
+        function toggleAnswer(quizId, buttonElement) {
+            const quizCard = document.getElementById(quizId);
+            if (!quizCard) return;
+            const answer = quizCard.querySelector('.quiz-answer');
+            const icon = buttonElement.querySelector('.icon-arrow');
+            const buttonTextSpan = buttonElement.querySelector('.button-text');
+            if (!answer || !icon || !buttonTextSpan) return;
+
+            const isVisible = answer.classList.contains('visible');
+
+            if (isVisible) {
+                // Hide the answer
+                answer.style.maxHeight = '0';
+                answer.style.opacity = '0';
+                answer.style.marginTop = '0';
+                answer.style.paddingTop = '0';
+                answer.style.paddingBottom = '0';
+                answer.classList.remove('visible');
+                icon.classList.remove('rotated');
+                buttonTextSpan.textContent = ' 检查答案'; // Or '查看答案' if separate button
+                 // Use timeout to potentially reset display property after transition
+                setTimeout(() => {
+                    if (!answer.classList.contains('visible')) {
+                         // Reset styles that might prevent future showing if needed
+                         answer.style.removeProperty('max-height');
+                         answer.style.removeProperty('opacity');
+                         answer.style.removeProperty('margin-top');
+                         answer.style.removeProperty('padding-top');
+                         answer.style.removeProperty('padding-bottom');
+                         answer.style.display = 'none'; // Ensure it's hidden
+                    }
+                }, 500); // Match transition duration
+            } else {
+                // Show the answer
+                answer.style.display = 'block'; // Make it visible to calculate scrollHeight
+                // Set styles for the open state *before* calculating scrollHeight
+                answer.style.paddingTop = '1rem';
+                answer.style.paddingBottom = '1rem';
+                answer.style.marginTop = '1rem';
+
+                // Use requestAnimationFrame to ensure display:block is applied before measuring scrollHeight
+                requestAnimationFrame(() => {
+                    answer.style.maxHeight = answer.scrollHeight + 'px';
+                    answer.style.opacity = '1';
+                    answer.classList.add('visible');
+                    icon.classList.add('rotated');
+                    buttonTextSpan.textContent = ' 隐藏答案';
+                });
+            }
+        }
+
+        // --- Quiz Check Answer Logic (from example.html) ---
+        function checkAnswer(questionName, correctAnswerValue) {
+            const options = document.querySelectorAll(`input[name="${questionName}"]`);
+            const feedbackElement = document.getElementById(`feedback-${questionName}`);
+            const quizCard = feedbackElement ? feedbackElement.closest('.quiz-card') : null;
+            let selectedValue = null;
+            let selectedLabel = null;
+
+            if (!feedbackElement || !quizCard) {
+                console.error("Quiz elements not found for:", questionName);
+                return;
+            }
+
+            // Reset previous feedback styles
+            quizCard.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+            feedbackElement.textContent = ""; // Clear previous feedback text
+            feedbackElement.style.display = 'none'; // Hide feedback initially
+
+            options.forEach(option => {
+                if (option.checked) {
+                    selectedValue = option.value;
+                    selectedLabel = option.closest('.quiz-option');
+                    if (selectedLabel) selectedLabel.classList.add('selected');
+                }
+            });
+
+            if (!selectedValue) {
+                feedbackElement.textContent = "请选择一个选项！";
+                feedbackElement.className = 'quiz-feedback warning'; // Use warning class from global.css if available
+                feedbackElement.style.display = 'block';
+                return;
+            }
+
+            let correctAnswerLabel = null;
+            options.forEach(opt => { if (opt.value === correctAnswerValue) correctAnswerLabel = opt.closest('.quiz-option'); });
+
+            if (selectedValue === correctAnswerValue) {
+                feedbackElement.textContent = "回答正确！";
+                feedbackElement.className = 'quiz-feedback correct';
+                if(selectedLabel) selectedLabel.classList.add('correct');
+            } else {
+                let correctAnswerText = '';
+                if (correctAnswerLabel) {
+                     // Find the text span within the correct label
+                    const spanElement = correctAnswerLabel.querySelector('span');
+                    correctAnswerText = spanElement ? spanElement.textContent.trim() : `选项 ${correctAnswerValue}`;
+                    correctAnswerLabel.classList.add('correct'); // Highlight the correct answer as well
+                }
+                feedbackElement.textContent = `回答错误。正确答案是: "${correctAnswerText}"`;
+                feedbackElement.className = 'quiz-feedback incorrect';
+                if(selectedLabel) selectedLabel.classList.add('incorrect');
+            }
+            feedbackElement.style.display = 'block'; // Show feedback
+
+            // Automatically show the answer explanation when checking
+            const answerSection = quizCard.querySelector('.quiz-answer');
+            const toggleButton = quizCard.querySelector('.quiz-toggle');
+             if (answerSection && toggleButton && !answerSection.classList.contains('visible')) {
+                 toggleAnswer(quizCard.id, toggleButton);
+             }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- TOC Highlighting Logic ---
+            const sections = document.querySelectorAll('main section[id], main div[id^="utility-"]'); // Observe sections and utility cards
+            const tocLinks = document.querySelectorAll('#local-toc a');
+            let lastActiveTocLink = null;
+            const tocObserverOptions = { root: null, rootMargin: '-20% 0px -60% 0px', threshold: 0 };
+
+            const tocObserverCallback = (entries) => {
+                let bestVisibleEntry = null;
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (!bestVisibleEntry || entry.boundingClientRect.top < bestVisibleEntry.boundingClientRect.top) {
+                             bestVisibleEntry = entry;
+                        }
+                    }
+                });
+
+                if (bestVisibleEntry) {
+                    const id = bestVisibleEntry.target.getAttribute('id');
+                    let targetHref = `#${id}`;
+                    // If the best visible entry is a utility card, target the parent link in TOC
+                    if (id.startsWith('utility-')) {
+                        targetHref = '#utility-types';
+                    }
+
+                    const activeLink = document.querySelector(`#local-toc a[href="${targetHref}"]`);
+
+                    if (activeLink && activeLink !== lastActiveTocLink) {
+                        if (lastActiveTocLink) {
+                            lastActiveTocLink.classList.remove('active');
+                            // Deactivate parent if sublink was active
+                            const parentLi = lastActiveTocLink.closest('li.ml-4');
+                            if(parentLi) {
+                                const parentLink = parentLi.parentElement?.closest('li')?.querySelector('a');
+                                parentLink?.classList.remove('active');
+                            }
+                        }
+                        activeLink.classList.add('active');
+                        // Activate parent link too if it's a sublink
+                        const parentLi = activeLink.closest('li.ml-4');
+                        if(parentLi) {
+                            const parentLink = parentLi.parentElement?.closest('li')?.querySelector('a');
+                            parentLink?.classList.add('active');
+                        }
+                        lastActiveTocLink = activeLink;
+                    }
+                }
+            };
+            const tocObserver = new IntersectionObserver(tocObserverCallback, tocObserverOptions);
+            sections.forEach(section => tocObserver.observe(section));
+
+            // Initial active link check
+            const currentHash = window.location.hash;
+            let initialActiveLinkFound = false;
+            if (currentHash) {
+                 let initialActiveLink = document.querySelector(`#local-toc a[href="${currentHash}"]`);
+                 // If hash points to sub-item, find the parent TOC link
+                 if (!initialActiveLink && currentHash.startsWith('#utility-')) {
+                     initialActiveLink = document.querySelector(`#local-toc a[href="#utility-types"]`);
+                 }
+
+                if (initialActiveLink) {
+                    tocLinks.forEach(link => link.classList.remove('active'));
+                    initialActiveLink.classList.add('active');
+                     const parentLi = initialActiveLink.closest('li.ml-4');
+                     if(parentLi) {
+                         const parentLink = parentLi.parentElement?.closest('li')?.querySelector('a');
+                         parentLink?.classList.add('active');
+                     }
+                    lastActiveTocLink = initialActiveLink;
+                    initialActiveLinkFound = true;
+                }
+            }
+            // Default to first link if no hash or matching link found
+            if (!initialActiveLinkFound && tocLinks.length > 0) {
+                 tocLinks.forEach(link => link.classList.remove('active'));
+                 tocLinks[0].classList.add('active');
+                 lastActiveTocLink = tocLinks[0];
+            }
+
+            // --- Fade-in Animation Logic ---
+            const mainContentSections = document.querySelectorAll('main > article > section.content-section');
+            const fadeObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+            const fadeObserverCallback = (entries, observer) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        const delayIndex = Array.from(mainContentSections).indexOf(entry.target);
+                        entry.target.style.animationDelay = `${delayIndex * 0.05}s`;
+                        entry.target.classList.add('fade-in-section');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            };
+            const fadeObserver = new IntersectionObserver(fadeObserverCallback, fadeObserverOptions);
+            mainContentSections.forEach(section => fadeObserver.observe(section));
+
+            // --- Initialize Quiz Buttons ---
+             document.querySelectorAll('.quiz-card .quiz-toggle').forEach(button => {
+                 button.addEventListener('click', (event) => {
+                     createRipple(event); // Add ripple effect
+                     // The checkAnswer function (called via onclick) will handle toggling the answer
+                 });
+             });
+
+
+            // Manually trigger Prism highlighting
+             Prism.highlightAll();
+             // Re-run Mermaid rendering if needed (though initialize should handle it)
+             try {
+                mermaid.run();
+             } catch(e) {
+                 console.error("Error running mermaid:", e);
+             }
+
+        }); // End of DOMContentLoaded listener
+    </script>
+
+</body>
+
+</html>
