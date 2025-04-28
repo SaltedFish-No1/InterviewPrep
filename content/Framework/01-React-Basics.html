@@ -504,16 +504,16 @@ const element = &lt;WelcomeClass name="Classy User" /&gt;;</code></pre>
                         <h3 class="head3 flex items-center gap-2"><span class="material-icons text-lg text-blue-600">input</span>Props 传递</h3>
                         <p>Props (properties 的缩写) 是组件之间传递数据的主要方式，遵循<strong class="text-blue-600">自顶向下</strong>的单向数据流。</p>
                          <div class="mermaid">
-                            graph TD
-                                A(父组件 App) -->|props: name, age, email| B(子组件 UserProfile);
-                                A -->|props: {...userData}| C(子组件 UserProfile);
-                                B -- "读取 props (只读)" --> D{UI 显示};
-                                C -- "读取 props (只读)" --> D;
+                          graph TD
+                          A(父组件 App) -->|"props: name, age, email"| B("子组件 UserProfile");
+                          A -->|"props: {...userData}"| C(子组件 UserProfile);
+                          B -- "读取 props (只读)" --> D{UI 显示};
+                          C -- "读取 props (只读)" --> D;
 
-                                style A fill:#e0f2fe,stroke:#0ea5e9,stroke-width:2px
-                                style B fill:#f0fdfa,stroke:#0d9488,stroke-width:1px
-                                style C fill:#f0fdfa,stroke:#0d9488,stroke-width:1px
-                                style D fill:#f1f5f9,stroke:#64748b
+                          style A fill:#e0f2fe,stroke:#0ea5e9,stroke-width:2px
+                          style B fill:#f0fdfa,stroke:#0d9488,stroke-width:1px
+                          style C fill:#f0fdfa,stroke:#0d9488,stroke-width:1px
+                          style D fill:#f1f5f9,stroke:#64748b
                          </div>
                         <ul>
                             <li>父组件通过 JSX 属性将数据传递给子组件。</li>
